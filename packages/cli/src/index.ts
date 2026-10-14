@@ -4,7 +4,8 @@ import { scoreInstability, type InstabilityReport } from "@ledring/instability";
 import { buildBranchTree, fromDesignTokens, renderHtml, type Tokens } from "@ledring/flowchart";
 import { parseTrace, type Run } from "@ledring/trace";
 import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, type PermissionsDiff } from "@ledring/trust";
-import { resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { cardFromConfig, renderCardSvg } from "@ledring/cards";
 import { nodeIO, type IO } from "./io.js";
 
 export type { IO } from "./io.js";
@@ -21,6 +22,9 @@ Usage:
   ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out suggested.json]
                 [--threshold 0.6] [--min-samples 5]
                                                      Learn auto-approve rules from allow/deny history
+  ledring card <agent.md> [--settings path] [--mcp path] [--url a2a-endpoint] [--version v]
+               [--out card.json] [--svg card.svg]
+                                                     A2A Agent Card + SVG spec card from agent config
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -110,6 +114,37 @@ const commands: Record<string, Command> = {
     }
     if (values.json) io.out(JSON.stringify({ policy, suggested, diff }, null, 2) + "\n");
     else io.out(formatTrust(policy, diff, values.out));
+    return 0;
+  },
+  card(args, io) {
+    const { values, positionals } = parseArgs({
+      args,
+      allowPositionals: true,
+      options: { settings: { type: "string" }, mcp: { type: "string" }, url: { type: "string" }, version: { type: "string" }, out: { type: "string" }, svg: { type: "string" } },
+    });
+    const [agentPath] = positionals;
+    if (!agentPath || positionals.length > 1) throw new Error("expects exactly one agent markdown file");
+    // In a project layout (.claude/agents/x.md) pick up settings and .mcp.json unless given.
+    const claudeDir = dirname(dirname(resolve(agentPath)));
+    const tryRead = (explicit: string | undefined, fallback: string) => {
+      if (explicit) return io.readFile(explicit);
+      if (!claudeDir.endsWith(".claude")) return undefined;
+      try { return io.readFile(fallback); } catch { return undefined; }
+    };
+    const settings = tryRead(values.settings, join(claudeDir, "settings.json"));
+    const mcp = tryRead(values.mcp, join(dirname(claudeDir), ".mcp.json"));
+    const card = cardFromConfig({
+      agent: io.readFile(agentPath),
+      ...(settings ? { settings } : {}),
+      ...(mcp ? { mcp } : {}),
+      ...(values.url ? { url: values.url } : {}),
+      ...(values.version ? { version: values.version } : {}),
+    });
+    const json = JSON.stringify(card, null, 2) + "\n";
+    if (values.svg) io.writeFile(values.svg, renderCardSvg(card));
+    if (values.out) io.writeFile(values.out, json);
+    else io.out(json);
+    if (!values.url) io.err("note: no --url given, so supportedInterfaces is empty; set it before publishing the card\n");
     return 0;
   },
 };

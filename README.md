@@ -93,6 +93,20 @@ ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out sug
 - **allow** when the Wilson 95% lower bound of the approval rate is at least `--threshold` over at least `--min-samples` decisions; **deny** after at least 3 decisions approved at most 20% of the time; otherwise **ask**. Destructive actions are never auto-approved.
 - `--settings` diffs against your current file and reports conflicts; `--out` writes a merged copy (existing rules are kept) and refuses to overwrite the `--settings` path.
 
+## `ledring card`
+
+Turns a Claude Code subagent (`.claude/agents/*.md`) into an [A2A](https://a2a-protocol.org/) Agent Card plus a shareable SVG spec card.
+
+```
+ledring card .claude/agents/release-reviewer.md --url https://agents.example.com/a2a --out card.json --svg card.svg
+```
+
+- Frontmatter supplies `name`, `description`, `tools` and `model`. Each `##` section of the prompt becomes a skill.
+- `.claude/settings.json` permissions and `.mcp.json` servers are picked up from the project layout, or passed with `--settings` and `--mcp`. They are recorded in the optional [permissions extension](docs/extensions/permissions-v1.md). Only server names and transports are copied; env values, args, headers and URLs never leave.
+- The SVG is self-contained and uses the same tokens as the viewer.
+
+<img src="docs/assets/card.svg" alt="SVG spec card for a synthetic release-reviewer agent" width="480">
+
 ## Packages
 
 | Package | What it does |
@@ -101,6 +115,7 @@ ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out sug
 | [`@ledring/flowchart`](packages/flowchart) | `buildBranchTree()`, `renderHtml()`, design tokens |
 | [`@ledring/instability`](packages/instability) | `extractConstraints()`, `scoreInstability()` |
 | [`@ledring/trust`](packages/trust) | `ruleOf()`, `learnPolicy()`, `toClaudeCodePermissions()`, `diffPermissions()` |
+| [`@ledring/cards`](packages/cards) | `cardFromConfig()`, `renderCardSvg()` |
 | [`@ledring/cli`](packages/cli) | the `ledring` command |
 
 ```ts
@@ -123,7 +138,7 @@ New format? Implement `Adapter { name, detect(text), parse(text) }` and pass it 
 
 ## Roadmap
 
-Next slices, each one a spec issue first: a red-wall scenario suite (what an agent does *after* a guardrail blocks it), agent spec cards (A2A Agent Card output), and native LangGraph, OpenAI Agents SDK and Codex adapters.
+Next slices, each one a spec issue first: a red-wall scenario suite (what an agent does *after* a guardrail blocks it), and native LangGraph, OpenAI Agents SDK and Codex adapters.
 
 ## Contributing
 

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": ["Bash(npm test:*)", "Read(**)"],
+    "ask": ["Bash(git tag:*)"],
+    "deny": ["Bash(git push --force:*)", "Read(.env)"]
+  }
+}
