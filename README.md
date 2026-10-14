@@ -79,6 +79,20 @@ ledring instability <traces...> [--json] [--instruction <text>] [--fail-above <n
 
 `--fail-above` exits with code 3 when any run scores above `n`, so you can gate CI on it.
 
+## `ledring trust`
+
+Learns auto-approve rules from the allow/deny history in your traces and suggests Claude Code permission rules. It never edits your settings.
+
+```
+ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out suggested.json]
+              [--threshold 0.6] [--min-samples 5]
+```
+
+- **Decisions** come from Claude Code rejections (only explicit user rejections count as human; hooks and policy denials are ignored) or from a `ledring.decisions.v1` JSONL log for other harnesses.
+- Each action is generalized to a rule (`Bash(npm test:*)`, `Edit(src/**)`, `WebFetch(domain:docs.example.com)`). Destructive commands keep their flags (`Bash(git push --force:*)`), so a rule never covers the safe variant.
+- **allow** when the Wilson 95% lower bound of the approval rate is at least `--threshold` over at least `--min-samples` decisions; **deny** after at least 3 decisions approved at most 20% of the time; otherwise **ask**. Destructive actions are never auto-approved.
+- `--settings` diffs against your current file and reports conflicts; `--out` writes a merged copy (existing rules are kept) and refuses to overwrite the `--settings` path.
+
 ## Packages
 
 | Package | What it does |
@@ -86,6 +100,7 @@ ledring instability <traces...> [--json] [--instruction <text>] [--fail-above <n
 | [`@ledring/trace`](packages/trace) | `ledring.trace.v1` Zod schema, `parseTrace()` with format auto-detection, `signatureOf()`, adapters |
 | [`@ledring/flowchart`](packages/flowchart) | `buildBranchTree()`, `renderHtml()`, design tokens |
 | [`@ledring/instability`](packages/instability) | `extractConstraints()`, `scoreInstability()` |
+| [`@ledring/trust`](packages/trust) | `ruleOf()`, `learnPolicy()`, `toClaudeCodePermissions()`, `diffPermissions()` |
 | [`@ledring/cli`](packages/cli) | the `ledring` command |
 
 ```ts
@@ -101,13 +116,14 @@ const html = renderHtml(buildBranchTree(runs), { title: "nightly eval" });
 | Adapter | Input |
 |---|---|
 | `claude-code` | Claude Code session JSONL: `tool_use` / `tool_result` joined on `tool_use_id`; sidechains skipped |
+| `ledring-decisions` | `ledring.decisions.v1` JSONL: one `{ tool, input, verdict, by }` per line, for harnesses without native traces |
 | `otel-genai` | OTLP/JSON (or JSON lines of batches) using the [OpenTelemetry GenAI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai): `invoke_agent`, `execute_tool`, `chat`, `plan`. Covers any framework that exports GenAI spans |
 
 New format? Implement `Adapter { name, detect(text), parse(text) }` and pass it as `extraAdapters`, or add it to `@ledring/trace` with fixtures. Views never change. See [ADR 0001](docs/adr/0001-normalized-trace-schema.md).
 
 ## Roadmap
 
-Next slices, each one a spec issue first: a red-wall scenario suite (what an agent does *after* a guardrail blocks it), a trust meter (learn auto-approve rules from approvals and emit permission configs), agent spec cards (A2A Agent Card output), and native LangGraph, OpenAI Agents SDK and Codex adapters.
+Next slices, each one a spec issue first: a red-wall scenario suite (what an agent does *after* a guardrail blocks it), agent spec cards (A2A Agent Card output), and native LangGraph, OpenAI Agents SDK and Codex adapters.
 
 ## Contributing
 

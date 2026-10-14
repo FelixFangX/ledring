@@ -105,3 +105,44 @@ describe("ledring instability", () => {
     expect(await run(["instability", `${fixtures}claude-code/run-1.jsonl`, "--fail-above", "10"], nodeIOForTest())).toBe(0);
   });
 });
+
+describe("ledring trust", () => {
+  it("prints relationship bars and suggested permission changes", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["trust", `${fixtures}trust`], io)).toBe(0);
+    expect(io.stdout()).toMatch(/Bash\(npm test:\*\) +█+░* +8\/8 +→ ALLOW/);
+    expect(io.stdout()).toMatch(/\+ deny +Bash\(git push --force:\*\)/);
+    expect(io.stdout()).toMatch(/NEVER AUTO/);
+  });
+
+  it("diffs against existing settings and writes a merged suggestion to a separate file", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ledring-"));
+    const settings = join(dir, "settings.json");
+    writeFileSync(settings, JSON.stringify({ model: "x", permissions: { allow: ["Bash(git push --force:*)"] } }));
+    const out = join(dir, "suggested.json");
+    const io = nodeIOForTest();
+    expect(await run(["trust", `${fixtures}trust`, "--settings", settings, "--out", out], io)).toBe(0);
+    expect(io.stdout()).toMatch(/! Bash\(git push --force:\*\): currently allow, history suggests deny/);
+    const merged = JSON.parse(readFileSync(out, "utf8"));
+    expect(merged.model).toBe("x");
+    expect(merged.permissions.deny).toContain("Bash(git push --force:*)");
+    expect(JSON.parse(readFileSync(settings, "utf8")).permissions.deny).toBeUndefined();
+  });
+
+  it("refuses to overwrite the settings file", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ledring-"));
+    const settings = join(dir, "settings.json");
+    writeFileSync(settings, "{}");
+    const io = nodeIOForTest();
+    expect(await run(["trust", `${fixtures}trust`, "--settings", settings, "--out", settings], io)).toBe(1);
+    expect(io.stderr()).toMatch(/refusing to overwrite/);
+  });
+
+  it("emits the policy as JSON", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["trust", `${fixtures}trust/decisions.jsonl`, "--json"], io)).toBe(0);
+    const j = JSON.parse(io.stdout());
+    expect(j.policy.schema).toBe("ledring.policy.v1");
+    expect(j.policy.rules.map((r: { rule: string }) => r.rule)).toContain("send_email");
+  });
+});
