@@ -18,14 +18,15 @@ export const STRINGS = {
     title: "分支回放",
     section: "分岔 · ledring.branch-tree.v1",
     runs: "运行", forks: "岔口", errored: "出错",
-    figure: "图一　分支树，{n} 次运行。边上的数字：走到这个岔口时，有多少次选了这边",
-    taken: "这次的路", others: "别的运行", erroredStep: "出错的一步",
-    highlighted: "看哪一次", selected: "选中",
-    empty: "还没选。点图一里任何一块，看它的签名、谁走过、结局如何。",
-    generated: "ledring 生成", offline: "单个文件，断网也能看",
-    kSignature: "签名", kKind: "类型", kRuns: "走过", kDivergence: "分流", ofParent: "%，相对上一步",
+    figure: "图一　分支树，凡 {n} 次运行。边上之数，为行至此岔者择此路之比",
+    taken: "本次所经", others: "他次运行", erroredStep: "出错之步",
+    highlighted: "高亮运行", selected: "选中",
+    empty: "尚未选取。点选图一任一铭牌，可见其签名、所经运行与结局。",
+    generated: "由 ledring 生成", offline: "单一文件 · 离线可阅",
+    kSignature: "签名", kKind: "类型", kRuns: "所经", kDivergence: "分流", ofParent: "%（较上一步）",
     kErrors: "出错", kEnded: "止于此", kOutcomes: "结局", ok: "成", fail: "败",
   },
+
 
 } as const satisfies Record<Lang, Record<string, string>>;
 

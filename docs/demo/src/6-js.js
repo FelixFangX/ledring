@@ -41,7 +41,7 @@ enter.home=()=>{$("#ringart").innerHTML=ringArt("calm");
  else if(visited.has("int"))msg="The interrogation was written back to the trace. Every choice is recorded, including yours.";
  else if(visited.has("flow")&&!visited.has("drift"))msg="You've seen the forks. Next: the step where it began to drift.";
  else msg=`You've opened ${n} view${n>1?"s":""} this session. ${6-MODS.filter(m=>visited.has(m[0])).length} modules left.`;
- if(LANG==="zh"&&msg.startsWith("You've opened"))msg=`看过 ${n} 处，还有 ${6-MODS.filter(m=>visited.has(m[0])).length} 件没看。`;else msg=T(msg);
+ if(LANG==="zh"&&msg.startsWith("You've opened"))msg=`已览 ${n} 处，余 ${6-MODS.filter(m=>visited.has(m[0])).length} 件未观。`;else msg=T(msg);
  clearInterval(gt);const el=$("#greet");let i=params.has("static")?msg.length:0;el.innerHTML=msg.slice(0,i)+'<span class="cur"></span>';
  gt=setInterval(()=>{i++;el.innerHTML=msg.slice(0,i)+'<span class="cur"></span>';if(i>=msg.length)clearInterval(gt)},22)};
 /* flowchart */
