@@ -46,7 +46,7 @@ node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out repo
 
 Merges N runs into a prefix tree of step **signatures** (`Bash(npm test)`, `Edit(login.ts)`, `get_forecast`) and shows, at every fork, the share of runs that took each branch. The highlighted run's path is lit; every other branch is drawn locked.
 
-![Branch tree for six Claude Code runs](https://raw.githubusercontent.com/FelixFangX/ledring/main/docs/assets/flowchart-light.png)
+![Branch tree for six Claude Code runs](https://raw.githubusercontent.com/FelixFangX/ledring/main/docs/assets/flowchart.png)
 
 ```
 ledring flowchart <traces...> [--out report.html] [--json] [--highlight <runId>]
@@ -55,7 +55,7 @@ ledring flowchart <traces...> [--out report.html] [--json] [--highlight <runId>]
 
 - **Output** is one self-contained HTML file: inline CSS, SVG and a few lines of JS, with no network requests. Attach it to a PR or open it offline.
 - `--json` prints a `ledring.branch-tree.v1` tree (per node: `count`, `share`, `errors`, `ends`, `outcomes`) for CI or other tools.
-- **Theming**: the viewer reads only `--lr-*` CSS tokens. Pass `--tokens` with a flat token object or `{ "light": {…}, "dark": {…} }`. Dark mode follows `prefers-color-scheme`.
+- **Theming**: dark-first, with a light theme under `prefers-color-scheme: light`. The viewer reads only `--lr-*` CSS tokens; `--tokens` accepts a flat token object, `{ "dark": {…}, "light": {…} }`, or a structured design-tokens file (`color.bg.base`, `color.accent.cyan`, `font.mono`, …). Fonts fall back to system faces, so reports render offline.
 
 ## `ledring instability`
 
