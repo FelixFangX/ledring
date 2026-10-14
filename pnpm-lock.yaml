@@ -35,11 +35,20 @@ importers:
       '@ledring/flowchart':
         specifier: workspace:*
         version: link:../flowchart
+      '@ledring/instability':
+        specifier: workspace:*
+        version: link:../instability
       '@ledring/trace':
         specifier: workspace:*
         version: link:../trace
 
   packages/flowchart:
+    dependencies:
+      '@ledring/trace':
+        specifier: workspace:*
+        version: link:../trace
+
+  packages/instability:
     dependencies:
       '@ledring/trace':
         specifier: workspace:*

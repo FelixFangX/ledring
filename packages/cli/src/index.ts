@@ -1,5 +1,6 @@
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
+import { scoreInstability, type InstabilityReport } from "@ledring/instability";
 import { buildBranchTree, renderHtml, type Tokens } from "@ledring/flowchart";
 import { parseTrace, type Run } from "@ledring/trace";
 import { nodeIO, type IO } from "./io.js";
@@ -13,6 +14,8 @@ Usage:
   ledring flowchart <traces...> [--out report.html] [--json] [--highlight runId]
                     [--title text] [--tokens tokens.json] [--adapter name]
                                                      Merge runs into a branch tree with divergence %
+  ledring instability <traces...> [--json] [--instruction text] [--fail-above n]
+                                                     Heuristic drift-from-instruction score per run
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -62,7 +65,35 @@ const commands: Record<string, Command> = {
     if (!values.json) io.out(`Wrote ${out} — ${tree.runCount} runs, ${countForks(tree.root)} forks\n`);
     return 0;
   },
+  instability(args, io) {
+    const { values, positionals } = parseArgs({
+      args,
+      allowPositionals: true,
+      options: { json: { type: "boolean" }, instruction: { type: "string" }, "fail-above": { type: "string" }, adapter: { type: "string" } },
+    });
+    const reports = loadRuns(io, positionals, values.adapter).map((r) => scoreInstability(r, values.instruction ? { instruction: values.instruction } : {}));
+    io.out(values.json ? JSON.stringify(reports, null, 2) + "\n" : reports.map(formatReport).join("\n"));
+    const limit = values["fail-above"];
+    if (limit !== undefined) {
+      const n = Number(limit);
+      if (!Number.isFinite(n)) throw new Error(`--fail-above expects a number, got "${limit}"`);
+      if (reports.some((r) => r.score > n)) return 3;
+    }
+    return 0;
+  },
 };
+
+const LED = { calm: "●", processing: "◐", critical: "○" } as const;
+
+function formatReport(r: InstabilityReport): string {
+  const lines = [`${LED[r.level]} ${r.score.toString().padStart(3)} ${r.level.toUpperCase().padEnd(10)} peak ${r.peak}  ${r.runId}`];
+  for (const s of r.steps) {
+    if (s.delta === 0 && s.reasons.length === 0) continue;
+    const d = s.delta > 0 ? `▲ +${s.delta}` : s.delta < 0 ? `▼ ${s.delta}` : "  ·";
+    lines.push(`    ${d.padEnd(6)} ${s.signature.padEnd(26)} ${s.reasons.join("; ")}`);
+  }
+  return lines.join("\n") + "\n";
+}
 
 interface TreeLike { children: TreeLike[] }
 const countForks = (n: TreeLike): number => (n.children.length > 1 ? 1 : 0) + n.children.reduce((a, c) => a + countForks(c), 0);
