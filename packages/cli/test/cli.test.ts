@@ -146,3 +146,25 @@ describe("ledring trust", () => {
     expect(j.policy.rules.map((r: { rule: string }) => r.rule)).toContain("send_email");
   });
 });
+
+describe("ledring card", () => {
+  it("discovers settings and .mcp.json from the project layout and writes card + SVG", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ledring-"));
+    const io = nodeIOForTest();
+    const code = await run(["card", `${fixtures}cards/.claude/agents/release-reviewer.md`, "--url", "https://agents.example.com/a2a", "--out", join(dir, "card.json"), "--svg", join(dir, "card.svg")], io);
+    expect(code).toBe(0);
+    const card = JSON.parse(readFileSync(join(dir, "card.json"), "utf8"));
+    expect(card.name).toBe("release-reviewer");
+    expect(card.capabilities.extensions[0].params.mcpServers).toHaveLength(2);
+    expect(card.capabilities.extensions[0].params.permissions.allow).toContain("Bash(npm test:*)");
+    expect(readFileSync(join(dir, "card.svg"), "utf8")).toMatch(/^<svg/);
+    expect(io.stderr()).toBe("");
+  });
+
+  it("prints JSON to stdout and warns when no endpoint url is set", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["card", `${fixtures}cards/.claude/agents/release-reviewer.md`], io)).toBe(0);
+    expect(JSON.parse(io.stdout()).supportedInterfaces).toEqual([]);
+    expect(io.stderr()).toMatch(/--url/);
+  });
+});

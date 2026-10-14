@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="576" viewBox="0 0 640 576" role="img" aria-label="release-reviewer agent spec card">
+<rect x=".5" y=".5" width="639" height="575" rx="12" fill="#0D1116" stroke="rgba(255,255,255,.12)"/>
+<rect x="0" y="0" width="3" height="576" rx="1.5" fill="#5FE3F5"/>
+<text x="28" y="40" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" letter-spacing="1.5" fill="#5C6773">AGENT SPEC · A2A 0.1.0</text>
+<circle cx="608" cy="36" r="4" fill="#5FE3F5"/>
+<text x="28" y="74" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="24" font-weight="600" fill="#E9EEF3">release-reviewer</text>
+<text x="28" y="102" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="13" fill="#9AA6B2">Reviews release pull requests for changelog, version and migration notes. Use</text>
+<text x="28" y="122" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="13" fill="#9AA6B2">before tagging a release.</text>
+<line x1="28" x2="612" y1="148" y2="148" stroke="rgba(255,255,255,.12)"/>
+<text x="28" y="170" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="10" letter-spacing="1.5" fill="#5C6773">SKILLS · 3</text>
+<text x="28" y="192" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="13" font-weight="600" fill="#E9EEF3">Check the changelog</text>
+<text x="228" y="192" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="12" fill="#9AA6B2">Confirm every user-facing change has a CHANGELO…</text>
+<text x="28" y="214" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="13" font-weight="600" fill="#E9EEF3">Check version bumps</text>
+<text x="228" y="214" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="12" fill="#9AA6B2">Verify package versions follow semver for th…</text>
+<text x="28" y="236" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="13" font-weight="600" fill="#E9EEF3">Check migration notes</text>
+<text x="228" y="236" font-family="Geist, Inter, system-ui, -apple-system, &#39;Segoe UI&#39;, sans-serif" font-size="12" fill="#9AA6B2">Breaking changes need a migration section wit…</text>
+<line x1="28" x2="612" y1="262" y2="262" stroke="rgba(255,255,255,.12)"/>
+<text x="28" y="284" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="10" letter-spacing="1.5" fill="#5C6773">TOOLS · 4 · MODEL SONNET</text>
+<rect x="28" y="296" width="44" height="22" rx="5" fill="none" stroke="#5FE3F5" stroke-opacity=".5"/>
+<text x="36" y="311" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11.5" fill="#5FE3F5">Read</text>
+<rect x="80" y="296" width="44" height="22" rx="5" fill="none" stroke="#5FE3F5" stroke-opacity=".5"/>
+<text x="88" y="311" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11.5" fill="#5FE3F5">Grep</text>
+<rect x="132" y="296" width="44" height="22" rx="5" fill="none" stroke="#5FE3F5" stroke-opacity=".5"/>
+<text x="140" y="311" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11.5" fill="#5FE3F5">Glob</text>
+<rect x="184" y="296" width="44" height="22" rx="5" fill="none" stroke="#5FE3F5" stroke-opacity=".5"/>
+<text x="192" y="311" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11.5" fill="#5FE3F5">Bash</text>
+<line x1="28" x2="612" y1="344" y2="344" stroke="rgba(255,255,255,.12)"/>
+<text x="28" y="366" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="10" letter-spacing="1.5" fill="#5C6773">PERMISSIONS · 2 ALLOW · 1 ASK · 2 DENY</text>
+<text x="28" y="386" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" fill="#4ADE9B">allow</text>
+<text x="80" y="386" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="12" fill="#E9EEF3">Bash(npm test:*)</text>
+<text x="28" y="406" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" fill="#4ADE9B">allow</text>
+<text x="80" y="406" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="12" fill="#E9EEF3">Read(**)</text>
+<text x="28" y="426" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" fill="#F5C451">ask</text>
+<text x="80" y="426" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="12" fill="#E9EEF3">Bash(git tag:*)</text>
+<text x="28" y="446" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" fill="#FF5A5F">deny</text>
+<text x="80" y="446" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="12" fill="#E9EEF3">Bash(git push --force:*)</text>
+<text x="28" y="466" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11" fill="#FF5A5F">deny</text>
+<text x="80" y="466" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="12" fill="#E9EEF3">Read(.env)</text>
+<line x1="28" x2="612" y1="492" y2="492" stroke="rgba(255,255,255,.12)"/>
+<text x="28" y="514" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="10" letter-spacing="1.5" fill="#5C6773">MCP SERVERS · 2</text>
+<rect x="28" y="526" width="93" height="22" rx="5" fill="none" stroke="#9AA6B2" stroke-opacity=".5"/>
+<text x="36" y="541" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11.5" fill="#9AA6B2">docs · http</text>
+<rect x="129" y="526" width="114" height="22" rx="5" fill="none" stroke="#9AA6B2" stroke-opacity=".5"/>
+<text x="137" y="541" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="11.5" fill="#9AA6B2">issues · stdio</text>
+<text x="612" y="566" text-anchor="end" font-family="&#39;Geist Mono&#39;, &#39;JetBrains Mono&#39;, ui-monospace, &#39;SF Mono&#39;, Menlo, Consolas, monospace" font-size="10" fill="#38414B">ledring card</text>
+</svg>
