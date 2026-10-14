@@ -10,7 +10,8 @@
     "build": "pnpm -r run build",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "eslint .",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "pages": "node scripts/build-pages.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.12.0",

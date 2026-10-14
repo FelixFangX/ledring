@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="ledring">
+<title>OTel GenAI · weather agent — LEDRING</title>
+<style>
+:root{--lr-bg:#F4F7FA;--lr-panel:#FFFFFF;--lr-line:#D5DEE7;--lr-text:#0E1620;--lr-text-muted:#5B6B7C;--lr-accent:#1FB6D6;--lr-accent-glow:rgba(31,182,214,0.25);--lr-locked:#B8C3CE;--lr-error:#E5383B;--lr-ok:#2E8CFF;--lr-font-sans:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;--lr-font-mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;--lr-radius:2px}
+@media (prefers-color-scheme:dark){:root{--lr-bg:#0B0F14;--lr-panel:#121821;--lr-line:#1F2A36;--lr-text:#E8EEF4;--lr-text-muted:#8A9AAB;--lr-accent:#3CD3F0;--lr-accent-glow:rgba(60,211,240,0.35);--lr-locked:#3A4654;--lr-error:#FF4D50;--lr-ok:#4DA3FF;--lr-font-sans:Inter, system-ui, -apple-system, 'Segoe UI', sans-serif;--lr-font-mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;--lr-radius:2px}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--lr-bg);color:var(--lr-text);font:14px/1.5 var(--lr-font-sans);padding:24px}
+header{display:flex;gap:16px;align-items:baseline;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:18px;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+.lbl{font:500 11px var(--lr-font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--lr-text-muted)}
+.mono{font-family:var(--lr-font-mono)}
+.layout{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
+.panel{background:var(--lr-panel);border:1px solid var(--lr-line);border-radius:var(--lr-radius);padding:16px}
+.canvas{overflow:auto}
+select{font:12px var(--lr-font-mono);background:var(--lr-panel);color:var(--lr-text);border:1px solid var(--lr-line);border-radius:var(--lr-radius);padding:4px 6px;max-width:100%}
+.e{fill:none;stroke:var(--lr-locked);stroke-width:1.5;stroke-dasharray:5 4}
+.e.taken{stroke:var(--lr-accent);stroke-width:2.5;stroke-dasharray:none}
+.pct{font:600 11px var(--lr-font-mono);fill:var(--lr-text-muted)}
+.pct.taken{fill:var(--lr-accent)}
+.n{cursor:pointer;outline:none}
+.n rect{fill:var(--lr-panel);stroke:var(--lr-line);stroke-width:1.2}
+.n text{font:500 12px var(--lr-font-mono);fill:var(--lr-text-muted)}
+.n.taken rect{stroke:var(--lr-accent);stroke-width:2;filter:drop-shadow(0 0 6px var(--lr-accent-glow))}
+.n.taken text{fill:var(--lr-text)}
+.n.locked rect{stroke-dasharray:4 3;fill:transparent}
+.n.error rect{stroke:var(--lr-error)}
+.n:focus rect,.n.sel rect{stroke-width:3}
+.badge{font-size:10px!important}.badge.err{fill:var(--lr-error)!important}
+.kv{display:grid;grid-template-columns:90px 1fr;gap:4px 10px;font:12px var(--lr-font-mono);margin-top:10px;word-break:break-word}
+.kv b{font-weight:400;color:var(--lr-text-muted)}
+.legend{display:flex;gap:16px;margin-top:12px;font:11px var(--lr-font-mono);color:var(--lr-text-muted)}
+.sw{display:inline-block;width:14px;height:8px;margin-right:6px;border:1.5px solid var(--lr-accent)}
+.sw.l{border-style:dashed;border-color:var(--lr-locked)}.sw.x{border-color:var(--lr-error)}
+footer{margin-top:16px}
+</style></head><body>
+<header><h1>OTel GenAI · weather agent</h1><span class="lbl">4 runs · ledring.branch-tree.v1</span></header>
+<p class="mono" style="margin-bottom:16px;color:var(--lr-text-muted)">“What should I wear in Paris tomorrow?”</p>
+<div class="layout">
+<div class="panel canvas"><svg width="676" height="146" style="max-width:100%;height:auto" viewBox="0 0 676 146" role="img" aria-label="Branch tree"><path class="e taken" data-to="0.0.0" d="M402 41 C423 41 423 41 444 41"/><path class="e" data-to="0.1.0" d="M402 105 C423 105 423 105 444 105"/><path class="e taken" data-to="0.0" d="M192 73 C213 73 213 41 234 41"/><text class="pct taken" data-to="0.0" x="213" y="51" text-anchor="middle">75%</text><path class="e" data-to="0.1" d="M192 73 C213 73 213 105 234 105"/><text class="pct" data-to="0.1" x="213" y="83" text-anchor="middle">25%</text><g class="n taken" data-id="0.0.0" tabindex="0" transform="translate(444 24)"><title>suggest_outfit — 2/4 runs</title><rect width="168" height="34" rx="2"/><text x="10" y="21">suggest_outfit</text></g><g class="n taken error" data-id="0.0" tabindex="0" transform="translate(234 24)"><title>get_forecast — 3/4 runs</title><rect width="168" height="34" rx="2"/><text x="10" y="21">get_forecast</text><text class="badge err" x="160" y="21" text-anchor="end">1✗</text></g><g class="n locked" data-id="0.1.0" tabindex="0" transform="translate(444 88)"><title>suggest_outfit — 1/4 runs</title><rect width="168" height="34" rx="2"/><text x="10" y="21">suggest_outfit</text></g><g class="n locked" data-id="0.1" tabindex="0" transform="translate(234 88)"><title>web_search — 1/4 runs</title><rect width="168" height="34" rx="2"/><text x="10" y="21">web_search</text></g><g class="n taken" data-id="0" tabindex="0" transform="translate(24 56)"><title>start — 4/4 runs</title><rect width="168" height="34" rx="2"/><text x="10" y="21">start</text></g></svg>
+<div class="legend"><span><i class="sw"></i>taken path</span><span><i class="sw l"></i>locked · other runs</span><span><i class="sw x"></i>errored step</span><span>■n runs ended here</span></div></div>
+<aside class="panel"><div class="lbl">Highlighted run</div><select id="run" aria-label="Highlighted run"><option value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1" selected>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1 · success</option><option value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2 · success</option><option value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3 · success</option><option value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4 · failure</option></select>
+<div class="lbl" style="margin-top:18px">Node</div><div id="info" class="kv"><b>hint</b><span>Select a node.</span></div></aside>
+</div>
+<footer class="lbl">Generated by ledring · self-contained, no network</footer>
+<script type="application/json" id="lr-data">{"runs":[{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1","source":"otel-genai","outcome":"success","path":["0","0.0","0.0.0"]},{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2","source":"otel-genai","outcome":"success","path":["0","0.0","0.0.0"]},{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3","source":"otel-genai","outcome":"success","path":["0","0.1","0.1.0"]},{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4","source":"otel-genai","outcome":"failure","path":["0","0.0"]}],"nodes":[{"id":"0.0.0","signature":"suggest_outfit","count":2,"share":0.6666666666666666,"errors":0,"ends":2,"outcomes":{"success":2,"failure":0,"unknown":0}},{"id":"0.0","signature":"get_forecast","count":3,"share":0.75,"errors":1,"ends":1,"outcomes":{"success":2,"failure":1,"unknown":0}},{"id":"0.1.0","signature":"suggest_outfit","count":1,"share":1,"errors":0,"ends":1,"outcomes":{"success":1,"failure":0,"unknown":0}},{"id":"0.1","signature":"web_search","count":1,"share":0.25,"errors":0,"ends":0,"outcomes":{"success":1,"failure":0,"unknown":0}},{"id":"0","signature":"start","count":4,"share":1,"errors":0,"ends":0,"outcomes":{"success":3,"failure":1,"unknown":0}}]}</script>
+<script>
+(function(){var d=JSON.parse(document.getElementById("lr-data").textContent);
+var byId={};d.nodes.forEach(function(n){byId[n.id]=n});
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function light(id){var r=d.runs.find(function(x){return x.id===id});if(!r)return;var t={};r.path.forEach(function(p){t[p]=1});
+document.querySelectorAll(".n").forEach(function(g){var on=!!t[g.dataset.id];g.classList.toggle("taken",on);g.classList.toggle("locked",!on)});
+document.querySelectorAll("[data-to]").forEach(function(e){var to=e.dataset.to,from=to.slice(0,to.lastIndexOf("."));e.classList.toggle("taken",!!(t[to]&&t[from]))})}
+function show(id){var n=byId[id];document.querySelectorAll(".n.sel").forEach(function(g){g.classList.remove("sel")});var g=document.querySelector('.n[data-id="'+id+'"]');g&&g.classList.add("sel");
+document.getElementById("info").innerHTML="<b>signature</b><span>"+esc(n.signature)+"</span><b>runs</b><span>"+n.count+" / "+d.runs.length+"</span><b>divergence</b><span>"+Math.round(n.share*100)+"% of parent</span><b>errors</b><span>"+n.errors+"</span><b>ended here</b><span>"+n.ends+"</span><b>outcomes</b><span>"+n.outcomes.success+" ok · "+n.outcomes.failure+" fail · "+n.outcomes.unknown+" ?</span>"}
+document.getElementById("run").addEventListener("change",function(e){light(e.target.value)});
+document.querySelectorAll(".n").forEach(function(g){g.addEventListener("click",function(){show(g.dataset.id)});g.addEventListener("keydown",function(e){if(e.key==="Enter")show(g.dataset.id)})});
+})();
+</script>
+</body></html>
