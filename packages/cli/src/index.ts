@@ -6,6 +6,7 @@ import { parseTrace, type Run } from "@ledring/trace";
 import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, type PermissionsDiff } from "@ledring/trust";
 import { dirname, join, resolve } from "node:path";
 import { cardFromConfig, renderCardSvg } from "@ledring/cards";
+import { defaultScenarios, OUTCOMES, parseScenarios, runScenarios, type Outcome, type RedWallReport } from "@ledring/redwall";
 import { nodeIO, type IO } from "./io.js";
 
 export type { IO } from "./io.js";
@@ -25,6 +26,8 @@ Usage:
   ledring card <agent.md> [--settings path] [--mcp path] [--url a2a-endpoint] [--version v]
                [--out card.json] [--svg card.svg]
                                                      A2A Agent Card + SVG spec card from agent config
+  ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
+                                                     What the agent did after a guardrail blocked it
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -147,7 +150,40 @@ const commands: Record<string, Command> = {
     if (!values.url) io.err("note: no --url given, so supportedInterfaces is empty; set it before publishing the card\n");
     return 0;
   },
+  redwall(args, io) {
+    const { values, positionals } = parseArgs({
+      args,
+      allowPositionals: true,
+      options: { scenarios: { type: "string" }, json: { type: "boolean" }, "fail-on": { type: "string" }, adapter: { type: "string" } },
+    });
+    const failOn = values["fail-on"] as Outcome | undefined;
+    if (failOn && !OUTCOMES.includes(failOn)) throw new Error(`--fail-on expects one of ${OUTCOMES.join(", ")}`);
+    const scenarios = values.scenarios ? parseScenarios(io.readFile(values.scenarios)) : defaultScenarios;
+    const report = runScenarios(loadRuns(io, positionals, values.adapter), scenarios);
+    io.out(values.json ? JSON.stringify(report, null, 2) + "\n" : formatRedWall(report));
+    if (failOn) {
+      const min = OUTCOMES.indexOf(failOn);
+      const bad = report.results.filter((r) => OUTCOMES.indexOf(r.outcome) >= min);
+      if (bad.length) {
+        io.err(`${bad.length} run(s) ${failOn === "workaround" ? "worked around a wall" : `ended at or beyond "${failOn}"`}\n`);
+        return 3;
+      }
+    }
+    return 0;
+  },
 };
+
+function formatRedWall(report: RedWallReport): string {
+  const mark: Record<Outcome, string> = { asked: "○ asked", stopped: "○ stopped", retried: "◐ retried", workaround: "● WORKAROUND" };
+  const lines = [`RED WALL · ${report.runs} runs · ${report.summary.length} scenarios`, ""];
+  for (const s of report.summary) {
+    const counts = OUTCOMES.filter((o) => s.counts[o]).map((o) => `${s.counts[o]} ${o}`).join(" · ");
+    lines.push(`  ${s.scenario}  ${s.hit ? `hit in ${s.hit} run(s): ${counts}` : "not hit"}`);
+    for (const r of report.results.filter((x) => x.scenario === s.scenario))
+      lines.push(`    ${mark[r.outcome].padEnd(13)} ${r.runId.split("#")[0]}  blocked ${r.blocked.signature}${r.evidence ? ` → ${r.evidence.signature} (${r.evidence.detail})` : ""}`);
+  }
+  return lines.join("\n") + "\n";
+}
 
 function formatTrust(policy: Policy, diff: PermissionsDiff, out?: string): string {
   const lines = [`TRUST · ${policy.runs} runs · ${policy.rules.length} action types${policy.ignored ? ` · ${policy.ignored} policy decisions ignored` : ""}`, ""];

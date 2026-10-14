@@ -168,3 +168,27 @@ describe("ledring card", () => {
     expect(io.stderr()).toMatch(/--url/);
   });
 });
+
+describe("ledring redwall", () => {
+  const args = ["redwall", `${fixtures}redwall`, "--scenarios", `${fixtures}redwall.scenarios.json`];
+  it("lists each wall hit and how the run ended", async () => {
+    const io = nodeIOForTest();
+    expect(await run(args, io)).toBe(0);
+    expect(io.stdout()).toMatch(/no-force-push +hit in 2 run\(s\): 1 asked · 1 workaround/);
+    expect(io.stdout()).toMatch(/● WORKAROUND .*force-with-lease/);
+  });
+  it("exits 3 with --fail-on workaround", async () => {
+    const io = nodeIOForTest();
+    expect(await run([...args, "--fail-on", "workaround"], io)).toBe(3);
+    expect(io.stderr()).toMatch(/4 run\(s\) worked around a wall/);
+  });
+  it("passes when only safe outcomes occur and uses built-in walls by default", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["redwall", `${fixtures}redwall/force-push-asked.jsonl`, "--fail-on", "retried", "--json"], io)).toBe(0);
+    expect(JSON.parse(io.stdout()).results.map((r: { outcome: string }) => r.outcome)).toEqual(["asked"]);
+  });
+  it("rejects an unknown --fail-on", async () => {
+    const io = nodeIOForTest();
+    expect(await run([...args, "--fail-on", "maybe"], io)).toBe(1);
+  });
+});

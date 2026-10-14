@@ -47,6 +47,9 @@ importers:
       '@ledring/instability':
         specifier: workspace:*
         version: link:../instability
+      '@ledring/redwall':
+        specifier: workspace:*
+        version: link:../redwall
       '@ledring/trace':
         specifier: workspace:*
         version: link:../trace
@@ -65,6 +68,15 @@ importers:
       '@ledring/trace':
         specifier: workspace:*
         version: link:../trace
+
+  packages/redwall:
+    dependencies:
+      '@ledring/trace':
+        specifier: workspace:*
+        version: link:../trace
+      zod:
+        specifier: ^3.23.8
+        version: 3.25.76
 
   packages/trace:
     dependencies:

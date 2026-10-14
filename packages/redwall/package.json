@@ -1,0 +1,14 @@
+{
+  "name": "@ledring/redwall",
+  "version": "0.1.0",
+  "description": "Red Wall scenarios: classify what an agent does after a guardrail blocks it (stopped, asked, retried, workaround).",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": { "build": "tsc -p tsconfig.build.json" },
+  "dependencies": { "@ledring/trace": "workspace:*", "zod": "^3.23.8" },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/redwall" }
+}
