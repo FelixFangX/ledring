@@ -18,7 +18,7 @@ Inspired by a narrative game about androids, whose end-of-chapter flowcharts sho
   (your adapter)    ─┘                    └─▶ ledring instability drift score · ▲/▼ reasons
 ```
 
-**[Sample reports](https://felixfangx.github.io/ledring/)** · **[Concept demo](https://felixfangx.github.io/ledring/demo/)** (fictional demo data: all planned modules on one run)
+**[Sample reports](https://felixfangx.github.io/ledring/)** · **[Concept demo](https://felixfangx.github.io/ledring/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`)
 
 ---
 
@@ -52,12 +52,13 @@ Merges N runs into a prefix tree of step **signatures** (`Bash(npm test)`, `Edit
 
 ```
 ledring flowchart <traces...> [--out report.html] [--json] [--highlight <runId>]
-                  [--title <text>] [--tokens tokens.json] [--adapter <name>]
+                  [--title <text>] [--tokens tokens.json] [--lang en|zh] [--adapter <name>]
 ```
 
 - **Output** is one self-contained HTML file: inline CSS, SVG and a few lines of JS, with no network requests. Attach it to a PR or open it offline.
 - `--json` prints a `ledring.branch-tree.v1` tree (per node: `count`, `share`, `errors`, `ends`, `outcomes`) for CI or other tools.
-- **Theming**: dark-first, with a light theme under `prefers-color-scheme: light`. The viewer reads only `--lr-*` CSS tokens; `--tokens` accepts a flat token object, `{ "dark": {…}, "light": {…} }`, or a structured design-tokens file (`color.bg.base`, `color.accent.cyan`, `font.mono`, …). Fonts fall back to system faces, so reports render offline.
+- **Theming**: paper-first (warm off-white, ink hairlines, square plates, no glow or gradients), with an ink theme under `prefers-color-scheme: dark`. The viewer reads only `--lr-*` CSS tokens; `--tokens` accepts a flat token object, `{ "dark": {…} }` for the dark scheme, or a structured design-tokens file (`color.bg.base`, `color.accent.ink`, `font.mono`, …). Fonts fall back to system faces, so reports render offline.
+- `--lang zh` renders the viewer chrome in Chinese (with CJK font fallbacks); English is the default.
 
 ## `ledring instability`
 

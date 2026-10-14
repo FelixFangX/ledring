@@ -1,7 +1,9 @@
 /**
  * Design tokens for the HTML viewer. The viewer reads *only* these CSS
  * variables (`--lr-*`), so a redesign is a tokens swap (`--tokens tokens.json`).
- * Dark is the default theme; light applies under `prefers-color-scheme: light`.
+ * The default theme is "Catalogue no. 417": warm paper, ink, printed 1px rules,
+ * and the status-ring colours as the only colour. An ink-on-black variant
+ * applies under `prefers-color-scheme: dark`.
  */
 export interface Tokens {
   bg: string; sunken: string; panel: string; raised: string;
@@ -9,31 +11,37 @@ export interface Tokens {
   text: string; text2: string; text3: string; text4: string;
   accent: string; accentTint: string; accentGlow: string;
   calm: string; processing: string; critical: string; ok: string;
-  fontSans: string; fontMono: string;
+  fontSans: string; fontMono: string; fontDisplay: string;
   radiusSm: string; radiusMd: string;
   ease: string; easeReveal: string;
 }
 
-export const darkTokens: Tokens = {
-  bg: "#06080B", sunken: "#0A0D11", panel: "#0D1116", raised: "#121820",
-  line: "rgba(255,255,255,.07)", line2: "rgba(255,255,255,.12)", line3: "rgba(255,255,255,.20)",
-  text: "#E9EEF3", text2: "#9AA6B2", text3: "#5C6773", text4: "#38414B",
-  accent: "#5FE3F5", accentTint: "rgba(95,227,245,.12)", accentGlow: "rgba(95,227,245,.35)",
-  calm: "#4C9DFF", processing: "#F5C451", critical: "#FF5A5F", ok: "#4ADE9B",
-  fontSans: "Geist, Inter, system-ui, -apple-system, 'Segoe UI', sans-serif",
-  fontMono: "'Geist Mono', 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
-  radiusSm: "6px", radiusMd: "10px",
-  ease: "cubic-bezier(.16,1,.3,1)", easeReveal: "cubic-bezier(.65,0,.35,1)",
+/** Default theme: paper and ink. System fonts only, so reports stay offline-safe. */
+export const paperTokens: Tokens = {
+  bg: "#F3F2EE", sunken: "#ECEAE4", panel: "#FBFAF7", raised: "#FFFFFF",
+  line: "#E3E1DA", line2: "#CFCDC6", line3: "#16181A",
+  text: "#16181A", text2: "#6B6E70", text3: "#8C8E8A", text4: "#A3A49F",
+  accent: "#16181A", accentTint: "rgba(22,24,26,.06)", accentGlow: "rgba(47,91,234,.45)",
+  calm: "#2F5BEA", processing: "#E8B10A", critical: "#D7261E", ok: "#2F7A3E",
+  fontSans: "'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif",
+  fontMono: "'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace",
+  fontDisplay: "Archivo, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif",
+  radiusSm: "0", radiusMd: "0",
+  ease: "cubic-bezier(.2,1,.3,1)", easeReveal: "linear",
 };
 
-export const lightTokens: Tokens = {
-  ...darkTokens,
-  bg: "#F6F8FA", sunken: "#EEF1F4", panel: "#FFFFFF", raised: "#FFFFFF",
-  line: "rgba(10,20,30,.08)", line2: "rgba(10,20,30,.14)", line3: "rgba(10,20,30,.24)",
-  text: "#0B1117", text2: "#4A5663", text3: "#7A8692", text4: "#A9B2BB",
-  accent: "#0FA3BA", accentTint: "rgba(15,163,186,.10)", accentGlow: "rgba(15,163,186,.28)",
-  calm: "#2F7FE0", processing: "#C98F0A", critical: "#E0393E", ok: "#1F9D63",
+/** Ink variant for dark colour schemes: the same catalogue, printed in reverse. */
+export const darkTokens: Tokens = {
+  ...paperTokens,
+  bg: "#111213", sunken: "#0B0C0D", panel: "#18191B", raised: "#1E2022",
+  line: "#26282B", line2: "#3A3D40", line3: "#E9E7E1",
+  text: "#E9E7E1", text2: "#A3A49F", text3: "#7C7E7B", text4: "#55585A",
+  accent: "#E9E7E1", accentTint: "rgba(233,231,225,.06)", accentGlow: "rgba(90,130,255,.5)",
+  calm: "#5A82FF", processing: "#F0BE2A", critical: "#F0473E", ok: "#5BB06C",
 };
+
+/** @deprecated The paper theme is now the default; kept as an alias. */
+export const lightTokens: Tokens = paperTokens;
 
 const kebab = (k: string) => k.replace(/[A-Z0-9]+/g, (m) => `-${m.toLowerCase()}`);
 const cssValue = (v: string) => String(v).replace(/[;{}<>]/g, "");
@@ -53,18 +61,18 @@ const get = (o: unknown, path: string): string | undefined => {
  * as produced by the LEDRING design system) onto viewer tokens. Unknown keys are ignored.
  */
 export function fromDesignTokens(file: unknown): Partial<Tokens> {
-  const map: [keyof Tokens, string][] = [
+  const map: [keyof Tokens, ...string[]][] = [
     ["bg", "color.bg.base"], ["sunken", "color.bg.sunken"], ["panel", "color.bg.panel"], ["raised", "color.bg.raised"],
     ["line", "color.line.1"], ["line2", "color.line.2"], ["line3", "color.line.3"],
     ["text", "color.text.1"], ["text2", "color.text.2"], ["text3", "color.text.3"], ["text4", "color.text.4"],
-    ["accent", "color.accent.cyan"], ["accentTint", "color.accent.cyan-tint"], ["accentGlow", "color.accent.cyan-glow"],
+    ["accent", "color.accent.ink", "color.accent.cyan"], ["accentTint", "color.accent.ink-tint", "color.accent.cyan-tint"], ["accentGlow", "color.accent.ink-glow", "color.accent.cyan-glow"],
     ["calm", "color.ledring.calm"], ["processing", "color.ledring.processing"], ["critical", "color.ledring.critical"], ["ok", "color.semantic.ok"],
-    ["fontSans", "font.sans"], ["fontMono", "font.mono"], ["radiusSm", "radius.sm"], ["radiusMd", "radius.md"],
+    ["fontSans", "font.sans"], ["fontMono", "font.mono"], ["fontDisplay", "font.display"], ["radiusSm", "radius.sm"], ["radiusMd", "radius.md"],
     ["ease", "motion.out"], ["easeReveal", "motion.path-reveal"],
   ];
   const out: Partial<Tokens> = {};
-  for (const [k, p] of map) {
-    const v = get(file, p);
+  for (const [k, ...paths] of map) {
+    const v = paths.map((p) => get(file, p)).find((x) => x !== undefined);
     if (v !== undefined) out[k] = v;
   }
   return out;

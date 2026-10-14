@@ -53,7 +53,12 @@ describe("renderCardSvg", () => {
   it("is a self-contained SVG with the spec on it", () => {
     expect(svg.startsWith("<svg")).toBe(true);
     expect(svg).not.toMatch(/<image|href=|@import|url\(/);
-    for (const s of ["release-reviewer", "Check the changelog", "git push --force", "issues · stdio", "MODEL SONNET"]) expect(svg).toContain(s);
+    for (const s of ["release-reviewer", "Check the changelog", "git push --force", "issues · stdio", "model SONNET"]) expect(svg).toContain(s);
+  });
+  it("is a square-cornered paper plate with no glow or gradient", () => {
+    expect(svg).toContain('fill="#FBFAF7" stroke="#16181A"');
+    expect(svg).not.toMatch(/rx=|Gradient|filter/);
+    expect(svg).toMatch(/font-family="[^"]*monospace"/);
   });
   it("escapes markup from the config", () => {
     const s = renderCardSvg(cardFromConfig({ agent: "---\nname: <x>\ndescription: a & b\n---\n" }));

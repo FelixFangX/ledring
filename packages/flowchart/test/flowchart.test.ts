@@ -85,9 +85,9 @@ describe("renderHtml", () => {
     expect(themed).not.toMatch(/#1FB6D6[^;]*;}/i);
   });
 
-  it("is dark-first, with a light theme and reduced-motion fallback", () => {
-    expect(html).toMatch(/:root\{--lr-bg:#06080B/);
-    expect(html).toContain("prefers-color-scheme:light");
+  it("is paper-first, with an ink theme for dark schemes and a reduced-motion fallback", () => {
+    expect(html).toMatch(/:root\{--lr-bg:#F3F2EE/);
+    expect(html).toContain("prefers-color-scheme:dark");
     expect(html).toContain("prefers-reduced-motion:reduce");
   });
 
@@ -97,8 +97,18 @@ describe("renderHtml", () => {
     expect(html).toContain(">START<");
   });
 
-  it("overrides the light theme separately", () => {
-    expect(renderHtml(tree, { lightTokens: { accent: "#abcdef" } })).toMatch(/prefers-color-scheme:light\)\{:root\{[^}]*--lr-accent:#abcdef/);
+  it("overrides the dark theme separately", () => {
+    expect(renderHtml(tree, { darkTokens: { accent: "#abcdef" } })).toMatch(/prefers-color-scheme:dark\)\{:root\{[^}]*--lr-accent:#abcdef/);
+  });
+
+  it("uses system font fallbacks and no glow, blur or rounded plates", () => {
+    expect(html).toMatch(/--lr-font-mono:[^;]*monospace/);
+    expect(html).toMatch(/--lr-font-sans:[^;]*sans-serif/);
+    expect(html).not.toMatch(/drop-shadow|backdrop-filter|blur\(|rx="/);
+  });
+
+  it("numbers each plate like a catalogue entry", () => {
+    expect(html).toMatch(/<text class="no" x="5" y="11">01<\/text>/);
   });
 
   it("marks errored nodes", () => {
@@ -108,6 +118,10 @@ describe("renderHtml", () => {
 });
 
 describe("fromDesignTokens", () => {
+  it("reads the v3 ink accent and display font", () => {
+    expect(fromDesignTokens({ color: { accent: { ink: "#111" } }, font: { display: "Archivo, sans-serif" } })).toEqual({ accent: "#111", fontDisplay: "Archivo, sans-serif" });
+  });
+
   it("maps a structured design-tokens file onto viewer tokens", () => {
     expect(fromDesignTokens({ color: { bg: { base: "#000" }, text: { "1": "#fff" }, ledring: { critical: "#f00" } }, radius: { md: "12px" }, motion: { "path-reveal": "linear" } }))
       .toEqual({ bg: "#000", text: "#fff", critical: "#f00", radiusMd: "12px", easeReveal: "linear" });
@@ -116,5 +130,22 @@ describe("fromDesignTokens", () => {
   it("ignores unknown or malformed fields", () => {
     expect(fromDesignTokens({ color: { bg: 3 }, other: true })).toEqual({});
     expect(fromDesignTokens(null)).toEqual({});
+  });
+});
+
+import { STRINGS } from "../src/i18n.js";
+describe("viewer i18n", () => {
+  it("has every key in both languages, none empty", () => {
+    const en = Object.keys(STRINGS.en).sort();
+    expect(Object.keys(STRINGS.zh).sort()).toEqual(en);
+    for (const k of en) expect(STRINGS.zh[k as keyof typeof STRINGS.zh].length).toBeGreaterThan(0);
+  });
+  it("renders Chinese chrome with lang and CJK fallbacks on request", () => {
+    const tree = buildBranchTree([{ id: "r1", steps: [] } as unknown as Run]);
+    const zh = renderHtml(tree, { lang: "zh" });
+    expect(zh).toContain('<html lang="zh-CN">');
+    expect(zh).toContain("分支回放");
+    expect(zh).toContain("PingFang SC");
+    expect(renderHtml(tree)).toContain('<html lang="en">');
   });
 });

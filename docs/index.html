@@ -1,27 +1,33 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEDRING — status lights for AI agents</title>
+<title>ledring — status lights for AI agents</title>
 <style>
-:root{--lr-bg:#F4F7FA;--lr-panel:#FFFFFF;--lr-line:#D5DEE7;--lr-text:#0E1620;--lr-text-muted:#5B6B7C;--lr-accent:#1FB6D6;--lr-font-sans:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;--lr-font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root{--lr-bg:#0B0F14;--lr-panel:#121821;--lr-line:#1F2A36;--lr-text:#E8EEF4;--lr-text-muted:#8A9AAB;--lr-accent:#3CD3F0}}
+:root{--bg:#F3F2EE;--panel:#FBFAF7;--line:#CFCDC6;--ink:#16181A;--ink2:#6B6E70;--calm:#2F5BEA;--sans:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;--disp:'Archivo','Helvetica Neue',Arial,sans-serif}
+@media (prefers-color-scheme:dark){:root{--bg:#121314;--panel:#18191B;--line:#34363A;--ink:#ECEAE4;--ink2:#9A9C98}}
 *{box-sizing:border-box;margin:0}
-body{background:var(--lr-bg);color:var(--lr-text);font:15px/1.6 var(--lr-font-sans);max-width:760px;margin:0 auto;padding:56px 24px}
-h1{font:600 22px var(--lr-font-mono);letter-spacing:.3em}
-.ring{display:inline-block;width:14px;height:14px;border-radius:50%;border:3px solid var(--lr-accent);margin-right:12px;vertical-align:-1px}
-p{color:var(--lr-text-muted);margin-top:12px}
-.lbl{font:500 11px var(--lr-font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--lr-text-muted);margin-top:40px}
-a.card{display:block;margin-top:12px;padding:16px;background:var(--lr-panel);border:1px solid var(--lr-line);border-radius:2px;color:var(--lr-text);text-decoration:none}
-a.card:hover{border-color:var(--lr-accent)}
-code{font-family:var(--lr-font-mono);font-size:13px}
+body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);max-width:880px;margin:0 auto;padding:40px 24px 64px}
+header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:12px;font:12px var(--mono);color:var(--ink2)}
+header b{font:700 18px var(--disp);color:var(--ink);letter-spacing:-.01em}
+.ring{display:inline-block;width:11px;height:11px;border-radius:50%;border:3px solid var(--calm);margin-right:8px;vertical-align:0}
+h1{font:700 clamp(36px,6vw,60px)/1.02 var(--disp);letter-spacing:-.02em;margin:48px 0 16px;max-width:14ch}
+.lead{color:var(--ink2);max-width:60ch}
+h2{font:12px var(--mono);color:var(--ink2);border-bottom:1px solid var(--ink);padding-bottom:8px;margin-top:48px}
+a.row{display:grid;grid-template-columns:40px 1fr auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
+a.row:hover b{text-decoration:underline;text-underline-offset:3px}
+a.row:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.no,.go{font:12px var(--mono);color:var(--ink2)}
+code{font:12.5px var(--mono);color:var(--ink2)}
 </style></head><body>
-<h1><span class="ring"></span>LEDRING</h1>
-<p>Status lights for AI agents. Reads Claude Code sessions and OpenTelemetry GenAI spans, merges runs into a branch tree with divergence %, and scores drift from the instruction.</p>
-<div class="lbl">Concept demo · fictional demo data</div>
-<a class="card" href="demo/"><b>LEDRING concept demo</b><br><code>All six modules on one fictional run. Demo data, not a real agent run.</code></a>
-<div class="lbl">Sample reports · generated from synthetic fixtures</div>
-<a class="card" href="examples/claude-code.html"><b>Claude Code · fix login bug</b><br><code>ledring flowchart fixtures/claude-code --out report.html</code></a>
-<a class="card" href="examples/otel-genai.html"><b>OTel GenAI · weather agent</b><br><code>ledring flowchart fixtures/otel/weather-agent.otlp.json --out report.html</code></a>
-<a class="card" href="examples/instability.txt"><b>Instability · six runs</b><br><code>ledring instability fixtures/claude-code</code></a>
-<div class="lbl">Source</div>
-<a class="card" href="https://github.com/FelixFangX/ledring">github.com/FelixFangX/ledring</a>
+<header><span><span class="ring"></span><b>ledring</b></span><span>catalogue no. 417 · github pages</span></header>
+<h1>Status lights for AI agents.</h1>
+<p class="lead">Reads Claude Code sessions and OpenTelemetry GenAI spans, merges runs into a branch tree with divergence %, scores drift from the instruction, and learns permission rules from your approvals. One self-contained HTML file per report; no network.</p>
+<h2>concept demo · fictional data</h2>
+<a class="row" href="demo/"><span class="no">00</span><span><b>Catalogue no. 417</b><br><code>All six modules on one fictional run. English and 中文.</code></span><span class="go">open →</span></a>
+<h2>sample reports · synthetic fixtures</h2>
+<a class="row" href="examples/claude-code.html"><span class="no">01</span><span><b>Claude Code · fix login bug</b><br><code>ledring flowchart fixtures/claude-code --out report.html</code></span><span class="go">open →</span></a>
+<a class="row" href="examples/claude-code-zh.html"><span class="no">02</span><span><b>Same report, Chinese chrome</b><br><code>ledring flowchart fixtures/claude-code --lang zh</code></span><span class="go">open →</span></a>
+<a class="row" href="examples/otel-genai.html"><span class="no">03</span><span><b>OTel GenAI · weather agent</b><br><code>ledring flowchart fixtures/otel/weather-agent.otlp.json</code></span><span class="go">open →</span></a>
+<a class="row" href="examples/instability.txt"><span class="no">04</span><span><b>Instability · six runs</b><br><code>ledring instability fixtures/claude-code</code></span><span class="go">open →</span></a>
+<h2>source</h2>
+<a class="row" href="https://github.com/FelixFangX/ledring"><span class="no">◇</span><span><b>github.com/FelixFangX/ledring</b></span><span class="go">→</span></a>
 </body></html>
