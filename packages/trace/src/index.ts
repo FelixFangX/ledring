@@ -1,14 +1,17 @@
 import { claudeCode } from "./adapters/claude-code.js";
 import { otelGenAI } from "./adapters/otel-genai.js";
+import { decisionsLog } from "./adapters/decisions.js";
 import type { Adapter, ParseOptions } from "./adapters/types.js";
 import { RunSchema, type Run } from "./schema.js";
 
-export { TRACE_SCHEMA, RunSchema, StepSchema, StepKind, type Run, type Step } from "./schema.js";
+export { TRACE_SCHEMA, RunSchema, StepSchema, StepKind, DecisionSchema, type Decision, type Run, type Step } from "./schema.js";
+export { riskOf, commandOf } from "./risk.js";
+export { DECISIONS_SCHEMA } from "./adapters/decisions.js";
 export { signatureOf, pathsOf } from "./signature.js";
 export type { Adapter, ParseOptions } from "./adapters/types.js";
 
 /** Built-in adapters, tried in order during auto-detection. */
-export const adapters: readonly Adapter[] = [claudeCode, otelGenAI];
+export const adapters: readonly Adapter[] = [claudeCode, otelGenAI, decisionsLog];
 
 export interface ParseTraceOptions extends ParseOptions {
   /** Force an adapter by name instead of auto-detecting. */

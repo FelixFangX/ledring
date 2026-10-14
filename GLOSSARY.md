@@ -13,3 +13,6 @@ Canonical terms. Code, tests, issues and UI use these words.
 | **Taken path** | The path of the highlighted run through the branch tree. Other branches are **locked**. | active path |
 | **Instability** | Heuristic 0–100 score of how far a run drifts from its instruction, with per-step **deltas** and **reasons**. | drift score (informal ok), risk |
 | **Constraint** | A rule extracted from the instruction (e.g. "don't change tests"). | guardrail (that's runtime enforcement) |
+| **Decision** | A recorded allow/deny on a step, attributed to `human`, `policy` or `unknown`. Only human decisions train trust. | approval (for both verdicts) |
+| **Rule** | A generalized action in Claude Code permission syntax, e.g. `Bash(npm test:*)`. | pattern |
+| **Policy** | The learned `ledring.policy.v1` output: per rule, a verdict (allow/ask/deny), counts, the Wilson lower bound and reasons. | trust score |

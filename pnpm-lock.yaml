@@ -41,6 +41,9 @@ importers:
       '@ledring/trace':
         specifier: workspace:*
         version: link:../trace
+      '@ledring/trust':
+        specifier: workspace:*
+        version: link:../trust
 
   packages/flowchart:
     dependencies:
@@ -59,6 +62,12 @@ importers:
       zod:
         specifier: ^3.23.8
         version: 3.25.76
+
+  packages/trust:
+    dependencies:
+      '@ledring/trace':
+        specifier: workspace:*
+        version: link:../trace
 
 packages:
 

@@ -3,6 +3,8 @@ import { parseArgs } from "node:util";
 import { scoreInstability, type InstabilityReport } from "@ledring/instability";
 import { buildBranchTree, fromDesignTokens, renderHtml, type Tokens } from "@ledring/flowchart";
 import { parseTrace, type Run } from "@ledring/trace";
+import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, type PermissionsDiff } from "@ledring/trust";
+import { resolve } from "node:path";
 import { nodeIO, type IO } from "./io.js";
 
 export type { IO } from "./io.js";
@@ -16,6 +18,9 @@ Usage:
                                                      Merge runs into a branch tree with divergence %
   ledring instability <traces...> [--json] [--instruction text] [--fail-above n]
                                                      Heuristic drift-from-instruction score per run
+  ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out suggested.json]
+                [--threshold 0.6] [--min-samples 5]
+                                                     Learn auto-approve rules from allow/deny history
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -81,7 +86,52 @@ const commands: Record<string, Command> = {
     }
     return 0;
   },
+  trust(args, io) {
+    const { values, positionals } = parseArgs({
+      args,
+      allowPositionals: true,
+      options: { json: { type: "boolean" }, settings: { type: "string" }, out: { type: "string" }, threshold: { type: "string" }, "min-samples": { type: "string" }, adapter: { type: "string" } },
+    });
+    const num = (v: string | undefined, flag: string) => {
+      if (v === undefined) return undefined;
+      const n = Number(v);
+      if (!Number.isFinite(n)) throw new Error(`${flag} expects a number, got "${v}"`);
+      return n;
+    };
+    const threshold = num(values.threshold, "--threshold");
+    const minSamples = num(values["min-samples"], "--min-samples");
+    const policy = learnPolicy(loadRuns(io, positionals, values.adapter), { ...(threshold !== undefined ? { threshold } : {}), ...(minSamples !== undefined ? { minSamples } : {}) });
+    const suggested = toClaudeCodePermissions(policy);
+    const current = values.settings ? (JSON.parse(io.readFile(values.settings)) as Parameters<typeof diffPermissions>[0]) : undefined;
+    const diff = diffPermissions(current, suggested);
+    if (values.out) {
+      if (values.settings && resolve(values.out) === resolve(values.settings)) throw new Error("refusing to overwrite --settings; write the suggestion to a separate file");
+      io.writeFile(values.out, JSON.stringify(diff.merged, null, 2) + "\n");
+    }
+    if (values.json) io.out(JSON.stringify({ policy, suggested, diff }, null, 2) + "\n");
+    else io.out(formatTrust(policy, diff, values.out));
+    return 0;
+  },
 };
+
+function formatTrust(policy: Policy, diff: PermissionsDiff, out?: string): string {
+  const lines = [`TRUST · ${policy.runs} runs · ${policy.rules.length} action types${policy.ignored ? ` · ${policy.ignored} policy decisions ignored` : ""}`, ""];
+  const w = Math.max(10, ...policy.rules.map((r) => r.rule.length));
+  for (const r of policy.rules) {
+    const n = r.allowed + r.denied;
+    const filled = Math.round(r.lowerBound * 10);
+    const bar = "█".repeat(filled) + "░".repeat(10 - filled);
+    const verdict = r.verdict === "allow" ? "→ ALLOW" : r.verdict === "deny" ? "→ DENY" : r.destructive ? "NEVER AUTO" : "→ ask";
+    lines.push(`  ${r.rule.padEnd(w)}  ${bar}  ${`${r.allowed}/${n}`.padStart(6)}  ${verdict.padEnd(10)}  ${r.reasons.join("; ")}`);
+  }
+  lines.push("", "Suggested changes (nothing was written to your settings):");
+  let any = false;
+  for (const k of ["allow", "ask", "deny"] as const) for (const rule of diff.add[k]) { lines.push(`  + ${k.padEnd(5)} ${rule}`); any = true; }
+  for (const c of diff.conflicts) { lines.push(`  ! ${c.rule}: currently ${c.current}, history suggests ${c.suggested}`); any = true; }
+  if (!any) lines.push("  (none)");
+  if (out) lines.push("", `Wrote merged suggestion to ${out}`);
+  return lines.join("\n") + "\n";
+}
 
 const LED = { calm: "●", processing: "◐", critical: "○" } as const;
 

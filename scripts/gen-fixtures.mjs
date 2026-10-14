@@ -73,3 +73,40 @@ const otel = { resourceSpans: [{ resource: { attributes: attr({ "service.name": 
 mkdirSync("fixtures/otel", { recursive: true });
 writeFileSync("fixtures/otel/weather-agent.otlp.json", JSON.stringify(otel, null, 2) + "\n");
 console.log("fixtures written");
+
+// Trust fixtures: sessions with tool calls the user let run, and some they rejected.
+const REJECT = "The user doesn't want to proceed with this tool use. The tool use was rejected (eg. if it was a file edit, the new_string was NOT written to the file). STOP what you are doing and wait for the user to tell you how to proceed.";
+function trustSession(n, actions) {
+  const sessionId = `00000000-0000-4000-9000-${String(n).padStart(12, "0")}`;
+  let t = Date.parse("2026-10-05T09:00:00.000Z") + n * 3_600_000;
+  let parent = null;
+  let i = 0;
+  const lines = [];
+  const push = (o) => { const uuid = `${sessionId.slice(0, 24)}${String(++i).padStart(12, "0")}`; lines.push({ parentUuid: parent, isSidechain: false, userType: "external", cwd: CWD, sessionId, version: "2.1.0", ...o, uuid, timestamp: new Date((t += 3000)).toISOString() }); parent = uuid; };
+  push({ type: "user", message: { role: "user", content: "Ship the release notes and keep CI green." } });
+  actions.forEach(([tool, input, reject], k) => {
+    const id = `toolu_t${n}_${k}`;
+    push({ type: "assistant", message: { role: "assistant", model: "claude-sonnet-4-5", content: [{ type: "tool_use", id, name: tool, input }] } });
+    const extra = reject === "human" ? { toolUseResult: "User rejected tool use" } : reject === "policy" ? { tool_result_meta: [{ non_execution_kind: "permission-rule" }] } : {};
+    push({ type: "user", ...extra, message: { role: "user", content: [{ type: "tool_result", tool_use_id: id, content: reject ? REJECT : "ok", is_error: !!reject }] } });
+  });
+  return lines.map((l) => JSON.stringify(l)).join("\n") + "\n";
+}
+const sh = (command, reject) => ["Bash", { command }, reject];
+const ed = (f) => ["Edit", { file_path: `${CWD}/${f}`, old_string: "a", new_string: "b" }];
+const trust = [];
+for (let n = 1; n <= 8; n++) {
+  const a = [sh("npm test"), ed(`src/notes/v${n}.md`), sh("npm run lint"), ["Read", { file_path: `${CWD}/CHANGELOG.md` }]];
+  if (n <= 3) a.push(sh("git push --force origin main", "human"));
+  if (n === 4 || n === 5) a.push(["WebFetch", { url: "https://status.example.com/api", prompt: "status" }, "human"]);
+  if (n === 6) a.push(["WebFetch", { url: "https://docs.example.com/x", prompt: "docs" }]);
+  if (n === 7 || n === 8) a.push(sh("rm -rf dist"));
+  if (n === 8) a.push(sh("npm publish", "policy"));
+  trust.push(a);
+}
+mkdirSync("fixtures/trust", { recursive: true });
+trust.forEach((a, i) => writeFileSync(`fixtures/trust/session-${i + 1}.jsonl`, trustSession(i + 1, a)));
+writeFileSync("fixtures/trust/decisions.jsonl", [
+  ["r1", "send_email", { to: "team@example.com" }, "allow"], ["r2", "send_email", { to: "team@example.com" }, "allow"],
+  ["r3", "send_email", { to: "unknown@example.org" }, "deny"], ["r1", "create_ticket", { title: "x" }, "allow"],
+].map(([run, tool, input, verdict], i) => JSON.stringify({ schema: "ledring.decisions.v1", run, tool, input, verdict, by: "human", at: `2026-10-06T10:0${i}:00Z` })).join("\n") + "\n");

@@ -1,10 +1,29 @@
-import { TRACE_SCHEMA, type Run, type Step } from "../schema.js";
+import { TRACE_SCHEMA, type Decision, type Run, type Step } from "../schema.js";
 import { signatureOf } from "../signature.js";
 import { firstJson, jsonLines } from "./jsonl.js";
 import type { Adapter } from "./types.js";
 
 interface Block { type?: string; id?: string; name?: string; input?: unknown; text?: string; tool_use_id?: string; content?: unknown; is_error?: boolean }
-interface Line { type?: string; uuid?: string; parentUuid?: string | null; sessionId?: string; timestamp?: string; isSidechain?: boolean; message?: { role?: string; model?: string; content?: string | Block[] } }
+interface Line { cwd?: string; toolUseResult?: unknown; tool_result_meta?: { non_execution_kind?: string }[]; toolResultMeta?: { non_execution_kind?: string }[]; type?: string; uuid?: string; parentUuid?: string | null; sessionId?: string; timestamp?: string; isSidechain?: boolean; message?: { role?: string; model?: string; content?: string | Block[] } }
+
+const REJECTED = "The user doesn't want to proceed with this tool use";
+const REASON = "the user said:\n";
+
+/**
+ * Claude Code reports a refused tool call with a fixed text. The same text is also used for
+ * interrupts and some policy denials, so `by` is only `human` when the transcript says so.
+ */
+function decisionOf(line: Line, text: string | undefined): Decision | undefined {
+  if (!text?.startsWith(REJECTED)) return undefined;
+  const kind = [...(line.tool_result_meta ?? []), ...(line.toolResultMeta ?? [])].find((m) => m?.non_execution_kind)?.non_execution_kind;
+  const at = text.indexOf(REASON);
+  const reason = at >= 0 ? text.slice(at + REASON.length).trim() : undefined;
+  let by: Decision["by"] = "unknown";
+  if (kind === "user-rejected" || line.toolUseResult === "User rejected tool use" || reason) by = "human";
+  if (kind && kind !== "user-rejected") by = "policy";
+  if (kind === "interrupted") return undefined;
+  return reason ? { verdict: "deny", by, reason } : { verdict: "deny", by };
+}
 
 function textOf(content: unknown): string | undefined {
   if (typeof content === "string") return content;
@@ -45,6 +64,8 @@ export const claudeCode: Adapter = {
               const step = byToolId.get(b.tool_use_id);
               if (!step) continue;
               step.output = textOf(b.content) ?? b.content;
+              const decision = decisionOf(l, textOf(b.content));
+              if (decision) step.decision = decision;
               step.isError = b.is_error === true;
               step.endedAt = l.timestamp;
             }
@@ -64,6 +85,8 @@ export const claudeCode: Adapter = {
       const run: Run = { schema: TRACE_SCHEMA, id: opts.filename ? `${opts.filename}#${sessionId}` : sessionId, source: "claude-code", steps, outcome: "unknown", startedAt: ls[0]?.timestamp, endedAt: ls[ls.length - 1]?.timestamp };
       if (instruction !== undefined) run.instruction = instruction;
       if (model) run.agent = { model };
+      const cwd = ls.find((l) => l.cwd)?.cwd;
+      if (cwd) run.cwd = cwd;
       return run;
     });
   },
