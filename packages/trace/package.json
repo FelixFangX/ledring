@@ -1,0 +1,14 @@
+{
+  "name": "@ledring/trace",
+  "version": "0.1.0",
+  "description": "ledring.trace.v1 schema and adapters (Claude Code JSONL, OpenTelemetry GenAI) for agent traces.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": { "build": "tsc -p tsconfig.build.json" },
+  "dependencies": { "zod": "^3.23.8" },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/trace" }
+}
