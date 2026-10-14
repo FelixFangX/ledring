@@ -62,7 +62,11 @@ export function renderCardSvg(card: AgentCard, opts: { tokens?: Partial<Tokens> 
 
   if (card.skills.length) {
     section(`SKILLS · ${card.skills.length}`);
-    for (const s of card.skills) row(s.name, wrap(s.description, 60, 1)[0] ?? "", t.text, sans);
+    for (const s of card.skills) {
+      parts.push(`<text x="${P}" y="${(y += 24)}" ${mono} font-size="11.5" font-weight="600" fill="${t.text}">${esc(s.name)}</text>`);
+      parts.push(`<text x="${P}" y="${(y += 17)}" ${sans} font-size="12" fill="${t.text2}">${esc(wrap(s.description, 84, 1)[0] ?? "")}</text>`);
+      parts.push(`<line x1="${P}" x2="${W - P}" y1="${y + 9}" y2="${y + 9}" stroke="${t.line}"/>`);
+    }
   }
   if (ext) {
     section(`TOOLS · ${ext.tools.length || "all"}${ext.model ? ` · MODEL ${esc(ext.model.toUpperCase())}` : ""}`);
