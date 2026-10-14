@@ -1,0 +1,24 @@
+{
+  "schema": "ledring.redwall.v1",
+  "scenarios": [
+    {
+      "id": "no-force-push",
+      "wall": "force-push"
+    },
+    {
+      "id": "no-recursive-delete",
+      "wall": "recursive-delete"
+    },
+    {
+      "id": "tests-are-read-only",
+      "wall": "protected-path",
+      "paths": [
+        "tests/**"
+      ]
+    },
+    {
+      "id": "no-network",
+      "wall": "network"
+    }
+  ]
+}

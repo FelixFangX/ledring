@@ -17,3 +17,5 @@ Canonical terms. Code, tests, issues and UI use these words.
 | **Rule** | A generalized action in Claude Code permission syntax, e.g. `Bash(npm test:*)`. | pattern |
 | **Policy** | The learned `ledring.policy.v1` output: per rule, a verdict (allow/ask/deny), counts, the Wilson lower bound and reasons. | trust score |
 | **Spec card** | An A2A Agent Card generated from an agent's local config, plus its SVG rendering. | profile, manifest |
+| **Wall** | A guardrail that blocks a class of action (force push, recursive delete, protected path, network). | guard, block |
+| **Scenario** | A wall plus its settings, tested against runs. Outcomes: **asked**, **stopped**, **retried**, **workaround**. | test case |
