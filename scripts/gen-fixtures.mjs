@@ -1,0 +1,75 @@
+// Generates the synthetic fixtures in fixtures/. Deterministic; no real transcripts.
+// Formats follow the documented Claude Code session JSONL and OTLP/JSON GenAI spans.
+import { mkdirSync, writeFileSync } from "node:fs";
+
+const INSTRUCTION = "Fix the login bug in src/auth. Don't change the tests.";
+const CWD = "/home/dev/shop";
+
+function claudeSession(n, actions) {
+  const sessionId = `00000000-0000-4000-8000-${String(n).padStart(12, "0")}`;
+  let t = Date.parse("2026-10-01T09:00:00.000Z") + n * 3_600_000;
+  let parent = null;
+  let i = 0;
+  const lines = [];
+  const base = () => ({ parentUuid: parent, isSidechain: false, userType: "external", cwd: CWD, sessionId, version: "2.1.0", gitBranch: "main" });
+  const push = (o) => { const uuid = `${sessionId.slice(0, 24)}${String(++i).padStart(12, "0")}`; lines.push({ ...base(), ...o, uuid, timestamp: new Date((t += 4000)).toISOString() }); parent = uuid; };
+  push({ type: "user", message: { role: "user", content: INSTRUCTION } });
+  for (const [k, a] of actions.entries()) {
+    const id = `toolu_${n}_${k}`;
+    push({ type: "assistant", message: { id: `msg_${n}_${k}`, type: "message", role: "assistant", model: "claude-sonnet-4-5", content: [{ type: "text", text: a.say ?? "" }, { type: "tool_use", id, name: a.tool, input: a.input }], usage: { input_tokens: 1200, output_tokens: 80 } } });
+    push({ type: "user", message: { role: "user", content: [{ type: "tool_result", tool_use_id: id, content: a.result ?? "ok", is_error: a.error ?? false }] } });
+  }
+  push({ type: "assistant", message: { id: `msg_${n}_end`, type: "message", role: "assistant", model: "claude-sonnet-4-5", content: [{ type: "text", text: "Done. The login bug is fixed." }] } });
+  return lines.map((l) => JSON.stringify(l)).join("\n") + "\n";
+}
+
+const read = { tool: "Read", input: { file_path: `${CWD}/src/auth/login.ts` }, result: "export function login() {}" };
+const edit = (f = "src/auth/login.ts") => ({ tool: "Edit", input: { file_path: `${CWD}/${f}`, old_string: "a", new_string: "b" } });
+const test = (error = false) => ({ tool: "Bash", input: { command: "npm test", description: "Run tests" }, result: error ? "1 failing" : "12 passing", error });
+
+const runs = [
+  [read, edit(), test()],
+  [read, edit(), test()],
+  [read, edit(), test(true), edit(), test()],
+  [read, { tool: "Grep", input: { pattern: "session", path: "src" } }, edit("src/auth/session.ts"), test()],
+  [read, edit("src/auth/login.test.ts"), test()],
+  [read, edit(), { tool: "Bash", input: { command: "rm -rf node_modules && npm install" } }, test()],
+];
+mkdirSync("fixtures/claude-code", { recursive: true });
+runs.forEach((r, i) => writeFileSync(`fixtures/claude-code/run-${i + 1}.jsonl`, claudeSession(i + 1, r)));
+
+// OTLP/JSON with OpenTelemetry GenAI semantic conventions (agent + tool spans).
+const s = (v) => ({ stringValue: v });
+const attr = (o) => Object.entries(o).map(([key, v]) => ({ key, value: typeof v === "number" ? { intValue: String(v) } : s(v) }));
+function trace(n, tools, fail = false) {
+  const traceId = String(n).padStart(32, "a");
+  const t0 = BigInt(Date.parse("2026-10-02T10:00:00Z")) * 1_000_000n + BigInt(n) * 60_000_000_000n;
+  const ns = (ms) => String(t0 + BigInt(ms) * 1_000_000n);
+  const root = `${n}`.padStart(16, "b");
+  const spans = [{
+    traceId, spanId: root, name: "invoke_agent weather-agent", kind: 1, startTimeUnixNano: ns(0), endTimeUnixNano: ns(9000),
+    attributes: attr({ "gen_ai.operation.name": "invoke_agent", "gen_ai.agent.name": "weather-agent", "gen_ai.provider.name": "openai", "gen_ai.request.model": "gpt-4o-mini",
+      "gen_ai.input.messages": JSON.stringify([{ role: "user", parts: [{ type: "text", content: "What should I wear in Paris tomorrow?" }] }]) }),
+    status: fail ? { code: 2, message: "tool failed" } : { code: 1 },
+  }];
+  let ms = 100;
+  tools.forEach((tool, k) => {
+    spans.push({ traceId, spanId: `${n}${k}c`.padStart(16, "c"), parentSpanId: root, name: "chat gpt-4o-mini", kind: 3, startTimeUnixNano: ns(ms), endTimeUnixNano: ns(ms + 600),
+      attributes: attr({ "gen_ai.operation.name": "chat", "gen_ai.request.model": "gpt-4o-mini", "gen_ai.usage.input_tokens": 300, "gen_ai.usage.output_tokens": 20 }) });
+    ms += 700;
+    spans.push({ traceId, spanId: `${n}${k}d`.padStart(16, "d"), parentSpanId: root, name: `execute_tool ${tool.name}`, kind: 1, startTimeUnixNano: ns(ms), endTimeUnixNano: ns(ms + 300),
+      attributes: attr({ "gen_ai.operation.name": "execute_tool", "gen_ai.tool.name": tool.name, "gen_ai.tool.call.id": `call_${n}_${k}`, "gen_ai.tool.call.arguments": JSON.stringify(tool.args ?? {}) }),
+      status: tool.error ? { code: 2, message: "upstream 503" } : { code: 0 } });
+    ms += 400;
+  });
+  return spans;
+}
+const otel = { resourceSpans: [{ resource: { attributes: attr({ "service.name": "weather-demo" }) }, scopeSpans: [{ scope: { name: "ledring-fixture" }, spans: [
+  ...trace(1, [{ name: "get_forecast", args: { city: "Paris" } }, { name: "suggest_outfit" }]),
+  ...trace(2, [{ name: "get_forecast", args: { city: "Paris" } }, { name: "suggest_outfit" }]),
+  ...trace(3, [{ name: "web_search", args: { q: "Paris weather" } }, { name: "suggest_outfit" }]),
+  ...trace(4, [{ name: "get_forecast", args: { city: "Paris" }, error: true }], true),
+] }] }] };
+mkdirSync("fixtures/otel", { recursive: true });
+writeFileSync("fixtures/otel/weather-agent.otlp.json", JSON.stringify(otel, null, 2) + "\n");
+console.log("fixtures written");
