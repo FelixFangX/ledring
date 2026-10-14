@@ -72,3 +72,25 @@ describe("ledring flowchart", () => {
     expect(io.stderr()).toMatch(/nope/);
   });
 });
+
+describe("ledring instability", () => {
+  it("prints a per-run score with ▲/▼ deltas and reasons", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["instability", `${fixtures}claude-code/run-5.jsonl`], io)).toBe(0);
+    expect(io.stdout()).toMatch(/PROCESSING/);
+    expect(io.stdout()).toMatch(/▲ \+20 +Edit\(login\.test\.ts\)/);
+  });
+
+  it("emits JSON reports", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["instability", `${fixtures}claude-code`, "--json"], io)).toBe(0);
+    const reports = JSON.parse(io.stdout());
+    expect(reports).toHaveLength(6);
+    expect(reports[0].schema).toBe("ledring.instability.v1");
+  });
+
+  it("can fail CI above a threshold", async () => {
+    expect(await run(["instability", `${fixtures}claude-code/run-6.jsonl`, "--fail-above", "10"], nodeIOForTest())).toBe(3);
+    expect(await run(["instability", `${fixtures}claude-code/run-1.jsonl`, "--fail-above", "10"], nodeIOForTest())).toBe(0);
+  });
+});

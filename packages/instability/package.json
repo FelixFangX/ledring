@@ -1,0 +1,14 @@
+{
+  "name": "@ledring/instability",
+  "version": "0.1.0",
+  "description": "Heuristic drift-from-instruction score for agent runs, with per-step deltas and reasons.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": { "build": "tsc -p tsconfig.build.json" },
+  "dependencies": { "@ledring/trace": "workspace:*" },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/instability" }
+}
