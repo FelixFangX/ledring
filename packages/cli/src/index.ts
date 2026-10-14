@@ -16,7 +16,7 @@ const HELP = `ledring — status lights for AI agents
 Usage:
   ledring inspect <traces...> [--adapter name]       Print normalized ledring.trace.v1 runs as JSON
   ledring flowchart <traces...> [--out report.html] [--json] [--highlight runId]
-                    [--title text] [--tokens tokens.json] [--adapter name]
+                    [--title text] [--tokens tokens.json] [--lang en|zh] [--adapter name]
                                                      Merge runs into a branch tree with divergence %
   ledring instability <traces...> [--json] [--instruction text] [--fail-above n]
                                                      Heuristic drift-from-instruction score per run
@@ -58,6 +58,7 @@ const commands: Record<string, Command> = {
         highlight: { type: "string" },
         title: { type: "string" },
         tokens: { type: "string" },
+        lang: { type: "string" },
         adapter: { type: "string" },
       },
     });
@@ -69,6 +70,7 @@ const commands: Record<string, Command> = {
     const themes = values.tokens ? readTokens(io.readFile(values.tokens)) : {};
     const html = renderHtml(tree, {
       ...themes,
+      ...(values.lang === "zh" ? { lang: "zh" as const } : {}),
       ...(values.title ? { title: values.title } : {}),
       ...(values.highlight ? { highlightRunId: values.highlight } : {}),
     });
@@ -223,10 +225,10 @@ const countForks = (n: TreeLike): number => (n.children.length > 1 ? 1 : 0) + n.
  * Accepts flat viewer tokens, `{ dark: {...}, light: {...} }`, or a structured
  * design-tokens file (`{ color: { bg: { base } }, font, radius, motion }`).
  */
-function readTokens(text: string): { tokens?: Partial<Tokens>; lightTokens?: Partial<Tokens> } {
+function readTokens(text: string): { tokens?: Partial<Tokens>; darkTokens?: Partial<Tokens> } {
   const t = JSON.parse(text) as Record<string, unknown>;
   if (t.color && typeof t.color === "object") return { tokens: fromDesignTokens(t) };
-  if (t.light || t.dark) return { tokens: (t.dark ?? {}) as Partial<Tokens>, lightTokens: (t.light ?? {}) as Partial<Tokens> };
+  if (t.light || t.dark) return { tokens: (t.light ?? {}) as Partial<Tokens>, darkTokens: (t.dark ?? {}) as Partial<Tokens> };
   return { tokens: t as Partial<Tokens> };
 }
 
