@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LEDRING — status lights for AI agents</title>
+<style>
+:root{--lr-bg:#F4F7FA;--lr-panel:#FFFFFF;--lr-line:#D5DEE7;--lr-text:#0E1620;--lr-text-muted:#5B6B7C;--lr-accent:#1FB6D6;--lr-font-sans:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;--lr-font-mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root{--lr-bg:#0B0F14;--lr-panel:#121821;--lr-line:#1F2A36;--lr-text:#E8EEF4;--lr-text-muted:#8A9AAB;--lr-accent:#3CD3F0}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--lr-bg);color:var(--lr-text);font:15px/1.6 var(--lr-font-sans);max-width:760px;margin:0 auto;padding:56px 24px}
+h1{font:600 22px var(--lr-font-mono);letter-spacing:.3em}
+.ring{display:inline-block;width:14px;height:14px;border-radius:50%;border:3px solid var(--lr-accent);margin-right:12px;vertical-align:-1px}
+p{color:var(--lr-text-muted);margin-top:12px}
+.lbl{font:500 11px var(--lr-font-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--lr-text-muted);margin-top:40px}
+a.card{display:block;margin-top:12px;padding:16px;background:var(--lr-panel);border:1px solid var(--lr-line);border-radius:2px;color:var(--lr-text);text-decoration:none}
+a.card:hover{border-color:var(--lr-accent)}
+code{font-family:var(--lr-font-mono);font-size:13px}
+</style></head><body>
+<h1><span class="ring"></span>LEDRING</h1>
+<p>Status lights for AI agents. Reads Claude Code sessions and OpenTelemetry GenAI spans, merges runs into a branch tree with divergence %, and scores drift from the instruction.</p>
+<div class="lbl">Sample reports · generated from synthetic fixtures</div>
+<a class="card" href="examples/claude-code.html"><b>Claude Code · fix login bug</b><br><code>ledring flowchart fixtures/claude-code --out report.html</code></a>
+<a class="card" href="examples/otel-genai.html"><b>OTel GenAI · weather agent</b><br><code>ledring flowchart fixtures/otel/weather-agent.otlp.json --out report.html</code></a>
+<a class="card" href="examples/instability.txt"><b>Instability · six runs</b><br><code>ledring instability fixtures/claude-code</code></a>
+<div class="lbl">Source</div>
+<a class="card" href="https://github.com/FelixFangX/ledring">github.com/FelixFangX/ledring</a>
+</body></html>
