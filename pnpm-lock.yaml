@@ -32,6 +32,15 @@ importers:
 
   packages/cli:
     dependencies:
+      '@ledring/flowchart':
+        specifier: workspace:*
+        version: link:../flowchart
+      '@ledring/trace':
+        specifier: workspace:*
+        version: link:../trace
+
+  packages/flowchart:
+    dependencies:
       '@ledring/trace':
         specifier: workspace:*
         version: link:../trace

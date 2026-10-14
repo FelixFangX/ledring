@@ -1,0 +1,14 @@
+{
+  "name": "@ledring/flowchart",
+  "version": "0.1.0",
+  "description": "Merge N agent runs into a branch tree with divergence %, and render it as a self-contained HTML report.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": { "build": "tsc -p tsconfig.build.json" },
+  "dependencies": { "@ledring/trace": "workspace:*" },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/flowchart" }
+}
