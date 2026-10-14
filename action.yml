@@ -1,0 +1,79 @@
+name: LEDRING report
+description: Render LEDRING branch-tree, instability and Red Wall reports from agent traces, as a job summary and an artifact.
+author: FelixFangX
+branding:
+  icon: activity
+  color: blue
+inputs:
+  traces:
+    description: Trace files or directories, space separated (Claude Code JSONL, OTLP/JSON GenAI spans).
+    required: true
+  instruction:
+    description: Instruction to score instability against. Defaults to the one recorded in each run.
+    required: false
+    default: ""
+  scenarios:
+    description: Path to a ledring.redwall.v1 scenarios file. Defaults to the built-in walls.
+    required: false
+    default: ""
+  fail-on:
+    description: Fail the step when a Red Wall outcome is at or beyond this (workaround, retried, stopped). Empty to never fail.
+    required: false
+    default: ""
+  fail-above:
+    description: Fail the step when any run's instability is above this score. Empty to never fail.
+    required: false
+    default: ""
+  title:
+    description: Report title.
+    required: false
+    default: LEDRING report
+  artifact-name:
+    description: Name of the uploaded artifact.
+    required: false
+    default: ledring-report
+outputs:
+  report-dir:
+    description: Directory with report.html, instability.txt, redwall.txt and redwall.json.
+    value: ${{ steps.report.outputs.dir }}
+  failed:
+    description: "true when a fail-on or fail-above gate tripped."
+    value: ${{ steps.report.outputs.failed }}
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Build LEDRING
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        corepack enable
+        pnpm install --frozen-lockfile --silent
+        pnpm -r --silent run build
+    - name: Render reports
+      id: report
+      shell: bash
+      env:
+        LEDRING_BIN: ${{ github.action_path }}/packages/cli/dist/bin.js
+        INPUT_TRACES: ${{ inputs.traces }}
+        INPUT_INSTRUCTION: ${{ inputs.instruction }}
+        INPUT_SCENARIOS: ${{ inputs.scenarios }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_FAIL_ABOVE: ${{ inputs.fail-above }}
+        INPUT_TITLE: ${{ inputs.title }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        OUT_DIR: ${{ runner.temp }}/ledring-report
+      run: node "${{ github.action_path }}/scripts/action-report.mjs"
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ${{ runner.temp }}/ledring-report
+    - name: Apply gates
+      if: steps.report.outputs.failed == 'true'
+      shell: bash
+      run: |
+        echo "::error::LEDRING gate tripped: ${{ steps.report.outputs.reason }}"
+        exit 1

@@ -1,0 +1,31 @@
+name: Action
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./
+        id: ledring
+        with:
+          traces: fixtures/claude-code fixtures/redwall
+          scenarios: fixtures/redwall.scenarios.json
+          title: LEDRING fixtures
+      - name: Gate trips on the workaround fixtures
+        uses: ./
+        id: gated
+        continue-on-error: true
+        with:
+          traces: fixtures/redwall
+          fail-on: workaround
+          artifact-name: ledring-gated
+      - name: Check outputs
+        shell: bash
+        run: |
+          test -f "${{ steps.ledring.outputs.report-dir }}/report.html"
+          test "${{ steps.ledring.outputs.failed }}" = "false"
+          test "${{ steps.gated.outputs.failed }}" = "true"
+          test "${{ steps.gated.outcome }}" = "failure"
