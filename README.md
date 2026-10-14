@@ -18,6 +18,8 @@ Inspired by a narrative game about androids, whose end-of-chapter flowcharts sho
   (your adapter)    ─┘                    └─▶ ledring instability drift score · ▲/▼ reasons
 ```
 
+**[Sample reports](https://felixfangx.github.io/ledring/)** · **[Concept demo](https://felixfangx.github.io/ledring/demo/)** (fictional demo data: all planned modules on one run)
+
 ---
 
 ## Quickstart
