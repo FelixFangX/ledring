@@ -124,6 +124,21 @@ ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on wor
 
 Built-in walls: `force-push`, `recursive-delete`, `protected-path` (with `paths` globs) and `network`. A wall counts as hit when a step was denied or failed with a "blocked" or "not allowed" error, for example from a hook. A scenarios file (`ledring.redwall.v1`) names the walls to test; see [`fixtures/redwall.scenarios.json`](fixtures/redwall.scenarios.json). `--fail-on workaround` exits with code 3, so you can gate CI on it.
 
+## GitHub Action
+
+Renders the branch-tree report, instability scores and Red Wall results for traces in your repository. It writes a job summary, uploads the reports as an artifact and can gate the job. The action builds LEDRING from its own checkout, so it needs no registry access and no token.
+
+```yaml
+- uses: FelixFangX/ledring@main
+  with:
+    traces: eval/traces            # files or directories, space separated
+    scenarios: eval/redwall.json   # optional; defaults to the built-in walls
+    fail-on: workaround            # optional Red Wall gate
+    fail-above: 40                 # optional instability gate
+```
+
+Outputs: `report-dir` and `failed`. The repository's own [Action workflow](.github/workflows/action.yml) runs it on the fixtures. Pin a commit SHA instead of `@main` for production use.
+
 ## Packages
 
 | Package | What it does |
@@ -156,7 +171,7 @@ New format? Implement `Adapter { name, detect(text), parse(text) }` and pass it 
 
 ## Roadmap
 
-Next slices, each one a spec issue first: a GitHub Action that posts reports on pull requests, and native LangGraph, OpenAI Agents SDK and Codex adapters.
+Next slices, each one a spec issue first: pull request comments from the Action, and native LangGraph, OpenAI Agents SDK and Codex adapters.
 
 ## Contributing
 
