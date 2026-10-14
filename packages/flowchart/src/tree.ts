@@ -6,6 +6,8 @@ export interface BranchNode {
   /** Path id, e.g. `0.1.0`. Root is `0`. */
   id: string;
   signature: string;
+  /** Step kind of the first run that reached this node; `start` for the root. */
+  kind: string;
   depth: number;
   /** Runs that reached this node. */
   count: number;
@@ -36,15 +38,15 @@ export interface BuildOptions {
 
 const DEFAULT_KINDS: readonly StepKind[] = ["plan", "tool", "agent", "handoff", "human"];
 
-function node(id: string, signature: string, depth: number): BranchNode {
-  return { id, signature, depth, count: 0, share: 0, runIds: [], errors: 0, ends: 0, outcomes: { success: 0, failure: 0, unknown: 0 }, children: [] };
+function node(id: string, signature: string, depth: number, kind: string): BranchNode {
+  return { id, signature, kind, depth, count: 0, share: 0, runIds: [], errors: 0, ends: 0, outcomes: { success: 0, failure: 0, unknown: 0 }, children: [] };
 }
 
 /** Merge runs into a prefix tree of step signatures, with divergence shares at every fork. */
 export function buildBranchTree(runs: readonly Run[], opts: BuildOptions = {}): BranchTree {
   if (runs.length === 0) throw new Error("buildBranchTree needs at least one run.");
   const kinds = new Set(opts.kinds ?? DEFAULT_KINDS);
-  const root = node("0", "start", 0);
+  const root = node("0", "start", 0, "start");
   const paths: BranchTree["runs"] = [];
   const instructions = new Map<string, number>();
 
@@ -62,7 +64,7 @@ export function buildBranchTree(runs: readonly Run[], opts: BuildOptions = {}): 
     for (const step of run.steps.filter((s) => kinds.has(s.kind))) {
       let next = cur.children.find((c) => c.signature === step.signature);
       if (!next) {
-        next = node(`${cur.id}.${cur.children.length}`, step.signature, cur.depth + 1);
+        next = node(`${cur.id}.${cur.children.length}`, step.signature, cur.depth + 1, step.kind);
         cur.children.push(next);
       }
       visit(next);

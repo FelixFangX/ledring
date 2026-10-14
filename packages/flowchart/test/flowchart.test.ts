@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parseTrace, TRACE_SCHEMA, type Run } from "@ledring/trace";
-import { buildBranchTree, renderHtml, type BranchNode } from "@ledring/flowchart";
+import { buildBranchTree, fromDesignTokens, renderHtml, type BranchNode } from "@ledring/flowchart";
 
 const dir = new URL("../../../fixtures/claude-code/", import.meta.url);
 const runs = readdirSync(dir).sort().flatMap((f) => parseTrace(readFileSync(new URL(f, dir), "utf8"), { filename: f }));
@@ -85,8 +85,36 @@ describe("renderHtml", () => {
     expect(themed).not.toMatch(/#1FB6D6[^;]*;}/i);
   });
 
+  it("is dark-first, with a light theme and reduced-motion fallback", () => {
+    expect(html).toMatch(/:root\{--lr-bg:#06080B/);
+    expect(html).toContain("prefers-color-scheme:light");
+    expect(html).toContain("prefers-reduced-motion:reduce");
+  });
+
+  it("reveals the taken path with animated edges and labels node kinds", () => {
+    expect(html).toMatch(/class="e-lit on" data-to="0\.0"/);
+    expect(html).toContain(">TOOL<");
+    expect(html).toContain(">START<");
+  });
+
+  it("overrides the light theme separately", () => {
+    expect(renderHtml(tree, { lightTokens: { accent: "#abcdef" } })).toMatch(/prefers-color-scheme:light\)\{:root\{[^}]*--lr-accent:#abcdef/);
+  });
+
   it("marks errored nodes", () => {
     const t = buildBranchTree([mk("a", ["x", "y"], true), mk("b", ["x", "z"])]);
     expect(renderHtml(t)).toMatch(/class="n (taken|locked) error" data-id="0\.0\.\d"/);
+  });
+});
+
+describe("fromDesignTokens", () => {
+  it("maps a structured design-tokens file onto viewer tokens", () => {
+    expect(fromDesignTokens({ color: { bg: { base: "#000" }, text: { "1": "#fff" }, ledring: { critical: "#f00" } }, radius: { md: "12px" }, motion: { "path-reveal": "linear" } }))
+      .toEqual({ bg: "#000", text: "#fff", critical: "#f00", radiusMd: "12px", easeReveal: "linear" });
+  });
+
+  it("ignores unknown or malformed fields", () => {
+    expect(fromDesignTokens({ color: { bg: 3 }, other: true })).toEqual({});
+    expect(fromDesignTokens(null)).toEqual({});
   });
 });

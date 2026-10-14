@@ -1,7 +1,7 @@
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 import { scoreInstability, type InstabilityReport } from "@ledring/instability";
-import { buildBranchTree, renderHtml, type Tokens } from "@ledring/flowchart";
+import { buildBranchTree, fromDesignTokens, renderHtml, type Tokens } from "@ledring/flowchart";
 import { parseTrace, type Run } from "@ledring/trace";
 import { nodeIO, type IO } from "./io.js";
 
@@ -98,10 +98,14 @@ function formatReport(r: InstabilityReport): string {
 interface TreeLike { children: TreeLike[] }
 const countForks = (n: TreeLike): number => (n.children.length > 1 ? 1 : 0) + n.children.reduce((a, c) => a + countForks(c), 0);
 
-/** Accepts `{...tokens}` or `{ light: {...}, dark: {...} }`. Unknown keys are ignored by the viewer. */
-function readTokens(text: string): { tokens?: Partial<Tokens>; darkTokens?: Partial<Tokens> } {
+/**
+ * Accepts flat viewer tokens, `{ dark: {...}, light: {...} }`, or a structured
+ * design-tokens file (`{ color: { bg: { base } }, font, radius, motion }`).
+ */
+function readTokens(text: string): { tokens?: Partial<Tokens>; lightTokens?: Partial<Tokens> } {
   const t = JSON.parse(text) as Record<string, unknown>;
-  if (t.light || t.dark) return { tokens: (t.light ?? {}) as Partial<Tokens>, darkTokens: (t.dark ?? {}) as Partial<Tokens> };
+  if (t.color && typeof t.color === "object") return { tokens: fromDesignTokens(t) };
+  if (t.light || t.dark) return { tokens: (t.dark ?? {}) as Partial<Tokens>, lightTokens: (t.light ?? {}) as Partial<Tokens> };
   return { tokens: t as Partial<Tokens> };
 }
 

@@ -66,6 +66,17 @@ describe("ledring flowchart", () => {
     expect(html).toContain("--lr-accent:#654321");
   });
 
+  it("accepts a structured design-tokens file", async () => {
+    const dir = tmp();
+    const tokens = join(dir, "tokens.json");
+    writeFileSync(tokens, JSON.stringify({ color: { bg: { base: "#010203" }, accent: { cyan: "#00ffee" } }, font: { mono: "Geist Mono, monospace" } }));
+    const out = join(dir, "r.html");
+    expect(await run(["flowchart", `${fixtures}otel`, "--tokens", tokens, "--out", out], nodeIOForTest())).toBe(0);
+    const html = readFileSync(out, "utf8");
+    expect(html).toContain("--lr-bg:#010203");
+    expect(html).toContain("--lr-accent:#00ffee");
+  });
+
   it("reports an unknown highlighted run as an error", async () => {
     const io = nodeIOForTest();
     expect(await run(["flowchart", `${fixtures}otel`, "--highlight", "nope", "--out", join(tmp(), "x.html")], io)).toBe(1);
