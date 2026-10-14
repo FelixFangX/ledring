@@ -139,7 +139,7 @@ select:focus-visible,.n:focus-visible{outline:2px solid var(--lr-calm);outline-o
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:20px;border-top:2px solid var(--lr-accent)}.legend .l2 i{border-top:1px dashed var(--lr-text-4)}.legend .l3 i{border-color:var(--lr-critical)}
 footer{margin-top:32px;padding-top:10px;border-top:1px solid var(--lr-line-2);display:flex;justify-content:space-between}
-${lang === "zh" ? `body{font-family:var(--lr-font-sans),${CJK_SANS};line-height:1.75}h1.disp{font-stretch:100%;text-transform:none;letter-spacing:.02em;line-height:1.15;font-family:${CJK_SANS};font-weight:600}.cap{letter-spacing:0}.empty{line-height:1.8}` : ""}
+${lang === "zh" ? `body{font-family:var(--lr-font-sans),${CJK_SANS};line-height:1.75;text-spacing-trim:normal;text-autospace:normal}h1.disp{font-stretch:100%;text-transform:none;letter-spacing:.02em;line-height:1.15;font-family:${CJK_SANS};font-weight:600}.cap{letter-spacing:0}.empty{line-height:1.8}` : ""}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.e-lit.on{stroke-dashoffset:0}}
 @media (max-width:900px){.layout{grid-template-columns:1fr}.head{grid-template-columns:1fr}}
 </style></head><body>

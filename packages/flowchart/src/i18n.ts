@@ -16,16 +16,17 @@ export const STRINGS = {
   },
   zh: {
     title: "分支回放",
-    section: "流程图 · ledring.branch-tree.v1",
-    runs: "运行", forks: "分岔", errored: "出错步骤",
-    figure: "图 1　分支树，共 {n} 次运行；边上数字为在该分岔选择此路的运行占比",
-    taken: "本次路径", others: "其他运行", erroredStep: "出错步骤",
-    highlighted: "高亮的运行", selected: "选中的铭牌",
-    empty: "尚未选中。点选图 1 中任一铭牌，可查看它的签名、经过的运行与结局。",
-    generated: "由 ledring 生成", offline: "单文件 · 离线可读",
-    kSignature: "签名", kKind: "类型", kRuns: "运行", kDivergence: "分流", ofParent: "%（相对上一步）",
-    kErrors: "错误", kEnded: "止于此处", kOutcomes: "结局", ok: "成功", fail: "失败",
+    section: "分岔 · ledring.branch-tree.v1",
+    runs: "运行", forks: "岔口", errored: "出错",
+    figure: "图一　分支树，{n} 次运行。边上的数字：走到这个岔口时，有多少次选了这边",
+    taken: "这次的路", others: "别的运行", erroredStep: "出错的一步",
+    highlighted: "看哪一次", selected: "选中",
+    empty: "还没选。点图一里任何一块，看它的签名、谁走过、结局如何。",
+    generated: "ledring 生成", offline: "单个文件，断网也能看",
+    kSignature: "签名", kKind: "类型", kRuns: "走过", kDivergence: "分流", ofParent: "%，相对上一步",
+    kErrors: "出错", kEnded: "止于此", kOutcomes: "结局", ok: "成", fail: "败",
   },
+
 } as const satisfies Record<Lang, Record<string, string>>;
 
 /** Extra font fallbacks per language, appended after the theme's own stack. */
