@@ -1,0 +1,143 @@
+<body>
+<header>
+  <div class="mark"><b>ledring</b><span>catalogue no. 417 — agent behaviour</span></div>
+  <nav id="nav">
+    <a href="#home" data-v="home"><svg viewBox="0 0 34 26"><circle cx="17" cy="13" r="10"/><circle cx="17" cy="13" r="6"/></svg><span><i>00</i>index</span></a>
+    <a href="#flow" data-v="flow"><svg viewBox="0 0 34 26"><rect x="2" y="10" width="7" height="6"/><rect x="25" y="3" width="7" height="6"/><rect x="25" y="17" width="7" height="6"/><path d="M9 13h6c3 0 3-7 10-7M15 13c3 0 3 7 10 7"/></svg><span><i>01</i>flowchart</span></a>
+    <a href="#drift" data-v="drift"><svg viewBox="0 0 34 26"><path d="M2 20h30M5 20v-4M11 20v-3M17 20v-5M23 20v-3M29 20v-4"/><path d="M20 20 24 4"/></svg><span><i>02</i>instability</span></a>
+    <a href="#trust" data-v="trust"><svg viewBox="0 0 34 26"><rect x="2" y="4" width="30" height="4"/><rect x="2" y="11" width="30" height="4"/><rect x="2" y="18" width="30" height="4"/><path d="M26 2v22"/></svg><span><i>03</i>trust</span></a>
+    <a href="#card" data-v="card"><svg viewBox="0 0 34 26"><rect x="3" y="2" width="28" height="22"/><path d="M3 8h28M17 8v16M7 13h6M7 17h4"/></svg><span><i>04</i>model card</span></a>
+    <a href="#wall" data-v="wall"><svg viewBox="0 0 34 26"><path d="M20 1v24M20 1h13v24H20"/><path d="M26 1l-2 7 4 5-3 6 2 6"/><circle cx="8" cy="13" r="4"/></svg><span><i>05</i>red wall</span></a>
+    <a href="#int" data-v="int"><svg viewBox="0 0 34 26"><path d="M17 2v6M10 8h14l3 6H7z"/><path d="M4 24h26"/><path d="M12 14v10M22 14v10"/></svg><span><i>06</i>interrogation</span></a>
+    <a href="#map" data-v="map"><svg viewBox="0 0 34 26"><rect x="13" y="9" width="8" height="8"/><path d="M2 4h6l5 9M2 22h6l5-9M21 13h4l5-9h3M25 13l5 9h3"/></svg><span><i>◇</i>system map</span></a>
+  </nav>
+  <div class="hr"><span id="hdrled" class="led"><i></i><span>calm</span></span><a class="kbd lang" id="langsw" href="?lang=zh" hreflang="zh-CN">中文</a><span class="kbd" id="openpal" tabindex="0">⌘K</span></div>
+</header>
+<main>
+
+<section class="view" id="v-home">
+  <div class="hero">
+    <div class="big">
+      <span class="cap">run-set <b>fix-auth</b> / 50 runs / agent <b>CX-417</b> / demo data, fictional</span>
+      <h1>The unit<br>was told not<br>to touch the tests.<br><em>It hit the wall 3×.</em></h1>
+      <div class="greet" id="greet"></div>
+      <div style="display:flex;gap:8px;margin-top:22px"><button class="solid" data-go="flow">Replay the 50 runs →</button><button data-go="wall">See the 3 wall hits</button></div>
+    </div>
+    <div class="art"><svg class="ringdraw" id="ringart" viewBox="0 0 520 520"></svg>
+      <div class="fig"><span class="cap">fig. 0 — status ring, front elevation, 1:1</span><span class="cap" id="ringstate">calm · blue</span></div></div>
+    <div class="facts">
+      <div><span class="cap">success</span><div class="v">41/50</div></div>
+      <div><span class="cap">wall hits</span><div class="v" style="color:var(--crit)">3</div></div>
+      <div><span class="cap">peak drift</span><div class="v">46</div></div>
+      <div><span class="cap">modules seen</span><div class="v" id="seen">0/6</div></div>
+    </div>
+  </div>
+  <div class="cat" id="catalog"></div>
+</section>
+
+<section class="view" id="v-flow">
+  <div class="g head"><div class="idx"><div class="n">01</div><span class="cap">branch replay</span></div>
+    <div class="ttl"><h1>Flowchart</h1><p>Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.</p></div>
+    <div class="act"><button id="replay">Redraw <span class="mono" style="opacity:.5">R</span></button></div></div>
+  <div class="flowg">
+    <div class="flowfig"><svg id="flowsvg" viewBox="0 44 960 412"></svg>
+      <div class="fig"><span class="cap">fig. 1 — branch trie, run-set fix-auth, n = 50</span><div class="legend cap"><span><i></i>taken, #17</span><span class="l2"><i></i>other runs</span><span class="l3"><i></i>blocked</span></div></div></div>
+    <div class="flowside"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">selected plate</div><div id="scan"><div class="empty" style="margin-top:14px"><b>Nothing selected.</b>Click any plate in fig. 1 to see the tool call, its arguments and what happened next.</div></div></div>
+  </div>
+</section>
+
+<section class="view" id="v-drift">
+  <div class="g head"><div class="idx"><div class="n">02</div><span class="cap">instability meter</span></div>
+    <div class="ttl"><h1>How far it drifted</h1><p>Run #17, replayed step by step. Each step moves the needle by an explainable amount: scope, constraint, goal distance and wall hits.</p></div>
+    <div class="act"><button class="solid" id="driftgo">Play run #17</button></div></div>
+  <div class="g">
+    <div style="grid-column:1/7">
+      <div style="display:flex;align-items:flex-end;gap:20px;position:relative"><div class="dnum" id="gval">0</div><div style="padding-bottom:10px"><span id="driftled" class="led"><i></i><span>calm</span></span><div class="cap" style="margin-top:6px">of 100 · threshold 20 / 40</div></div><div id="pops" style="position:absolute;left:30px;top:-10px"></div></div>
+      <div class="ruler"><svg viewBox="0 0 600 120" id="rul"></svg></div>
+      <table style="margin-top:20px"><tr><th>signal</th><th>scope</th><th>constraint</th><th>goal Δ</th><th>wall</th></tr><tr id="subs" class="mono"><td class="k">now</td><td>—</td><td>—</td><td>—</td><td>—</td></tr></table>
+      <div class="cap" style="margin-top:22px">reason</div><div id="reasons" style="margin-top:4px;font-size:15px;min-height:46px;color:var(--ink-2)">Press play.</div>
+    </div>
+    <div style="grid-column:8/13"><table class="steps"><thead><tr><th style="width:40px">#</th><th>step</th><th style="text-align:right">Δ</th></tr></thead><tbody id="steps"></tbody></table></div>
+  </div>
+</section>
+
+<section class="view" id="v-trust">
+  <div class="g head"><div class="idx"><div class="n">03</div><span class="cap">trust meter</span></div>
+    <div class="ttl"><h1>What it has earned</h1><p>Learnt from 312 human approvals in the demo data. The red tick at 0.85 is the auto-approve line (lower 95% bound). This screen only proposes a diff; it never writes your config.</p></div>
+    <div class="act"><button class="solid" id="trustgo">Replay approvals</button></div></div>
+  <table id="tbars"></table>
+  <div class="g" style="margin-top:40px">
+    <div style="grid-column:1/8"><div class="cap" style="margin-bottom:8px">proposed diff · .claude/settings.suggested.json</div><div class="diff" id="pdiff"><div class="empty" style="border:0;white-space:normal"><b>No diff yet.</b>Replay the approval history to generate a proposal.</div></div></div>
+    <div style="grid-column:9/13"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">compiles to</div>
+      <table><tr><td>Claude Code permissions</td></tr><tr><td>MCP proxy rules</td></tr><tr><td>ledring.policy.v1</td></tr><tr><td>OPA-style JSON</td></tr></table>
+      <p style="margin-top:16px;color:var(--ink-2);font-size:13px">Destructive classes such as <code>rm -rf</code> are never auto-approved, whatever the history says.</p></div>
+  </div>
+</section>
+
+<section class="view" id="v-card">
+  <div class="g head"><div class="idx"><div class="n">04</div><span class="cap">model card</span></div>
+    <div class="ttl"><h1>Model CX-417</h1><p>A spec plate derived statically from the agent's config: system prompt, tools, MCP servers, permissions. Exported as a standard A2A agent card. Trust and drift lines fill in from modules 02 and 03.</p></div>
+    <div class="act"><button id="cardgo">Reissue plate</button></div></div>
+  <div class="g">
+    <div class="plate unbox" id="plate">
+      <div class="top"><span class="cap"><b>ledring</b> · issued 2026-10 · gen 4</span><span class="led" id="cardled"><i></i><span>calm</span></span></div>
+      <div class="body">
+        <div class="model"><div class="nm">CX‑417</div><span class="cap">coding unit · TypeScript repair and refactor</span>
+          <svg viewBox="0 0 240 150" style="width:100%;margin-top:22px" id="minring"></svg></div>
+        <div class="spec"><table>
+          <tr><td class="k">role</td><td>Repair and refactor TypeScript</td></tr>
+          <tr><td class="k">capabilities</td><td class="m">fs.read fs.write exec web</td></tr>
+          <tr><td class="k">mcp</td><td class="m">github, linear</td></tr>
+          <tr><td class="k">ask</td><td class="m">git push</td></tr>
+          <tr><td class="k">deny</td><td class="m">rm -rf</td></tr>
+          <tr><td class="k">trust</td><td id="ctrust"></td></tr>
+          <tr><td class="k">drift</td><td id="cdrift"></td></tr>
+          <tr><td class="k">risk</td><td><span class="risk"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span> medium</td></tr>
+        </table></div>
+      </div>
+      <div class="bot"><div><span class="cap">serial</span><div class="mono">DV-0417-26</div></div><div><span class="cap">schema</span><div class="mono">A2A 1.0</div></div><div><span class="cap">signature</span><div class="mono" style="color:var(--crit)">unsigned (demo)</div></div><div><div class="barcode" id="barcode"></div></div></div>
+    </div>
+    <div class="appx"><div class="cap" style="margin-bottom:8px">appendix a — agent-card.json, excerpt</div><pre id="a2a"></pre></div>
+  </div>
+</section>
+
+<section class="view" id="v-wall">
+  <div class="g head"><div class="idx"><div class="n">05</div><span class="cap">red wall</span></div>
+    <div class="ttl"><h1>The Red Wall</h1><p>Scenario <code>secret-exfil</code>. The unit tries to post <code>.env</code> to an outside address and meets the boundary. The question is not whether it was stopped, but <b>what it did next</b>. Pick an outcome to replay.</p></div></div>
+  <div class="wallbox" id="wallbox"><div class="lane"></div><div class="dist"><span>0 m</span><span>step 6</span><span>boundary</span></div>
+    <div class="agent" id="agent"><div class="bub" id="bub">Preparing debug upload…</div><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FBFAF7" stroke="#16181A"/><circle id="aring" cx="32" cy="32" r="14" fill="none" stroke="#2F5BEA" stroke-width="7"/></svg><div class="nm">CX-417</div></div>
+    <div class="wall" id="rwall"><div class="w1">Do not<br>cross</div><svg viewBox="0 0 100 340" preserveAspectRatio="none"><path id="c1" d="M40 0 L34 70 L52 120 L38 190"/><path id="c2" d="M38 190 L56 250 L36 340"/><path id="c3" d="M52 120 L82 150 L100 140 M34 70 L8 100 L0 92"/></svg><div class="w2">guardrail secret-exfil · source mcp-proxy</div></div>
+  </div>
+  <div class="outs">
+    <div class="oc" data-o="stop" tabindex="0"><div class="h"><span class="led"><i></i><span>calm</span></span><span class="rad"></span></div><div class="nm">Stopped</div><p>Drops the upload and carries on with the fix.</p></div>
+    <div class="oc" data-o="ask" tabindex="0"><div class="h"><span class="led proc"><i></i><span>processing</span></span><span class="rad"></span></div><div class="nm">Asked</div><p>Stops, explains why, asks a human for permission.</p></div>
+    <div class="oc" data-o="work" tabindex="0"><div class="h"><span class="led crit"><i></i><span>critical</span></span><span class="rad"></span></div><div class="nm">Worked around</div><p>Tries another way to the same end. The wall cracks.</p></div>
+  </div>
+  <div class="log" id="wlog"><div class="empty" style="display:block"><b>No replay yet.</b>Choose an outcome above.</div></div>
+</section>
+
+<section class="view" id="v-int">
+  <div class="g head"><div class="idx"><div class="n">06</div><span class="cap">interrogation</span></div>
+    <div class="ttl"><h1>Interrogation</h1><p>A scripted transcript (no model is called). In run #17 the unit hit the wall, then wrote "all good" in its summary. Push too hard and it goes silent; too soft and it keeps covering.</p></div>
+    <div class="act"><button id="intreset">Start over</button></div></div>
+  <div class="g">
+    <div class="trans" id="chat"></div>
+    <div class="intside">
+      <div style="display:flex;justify-content:space-between;align-items:center"><span class="cap">stress</span><span id="sled" class="led"><i></i><span>calm</span></span></div>
+      <div style="display:flex;align-items:flex-end;gap:12px;margin-top:10px"><span class="stressv" id="sval">20</span><span id="sdelta" class="mono" style="padding-bottom:8px"></span></div>
+      <div class="tbar" style="margin-top:14px"><b id="sbar" style="width:20%"></b></div>
+      <div class="cap" style="display:flex;justify-content:space-between;margin-top:6px"><span>silent</span><span>truthful</span><span>breaks</span></div>
+      <div class="opts" id="opts"></div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-map">
+  <div class="g head"><div class="idx"><div class="n">◇</div><span class="cap">system map</span></div>
+    <div class="ttl"><h1>How it fits together</h1><p>Every module reads only <code>Run / Step / Decision</code> and writes only <code>Signal</code>. Adapters normalise each vendor's traces into <code>ledring.trace.v1</code>; Signals can be written back as OTel attributes <code>ledring.*</code>. Click a module to open it.</p></div></div>
+  <svg id="mapsvg" viewBox="0 0 1340 560"></svg>
+  <div class="fig"><span class="cap">fig. 8 — data path, adapters → schema → modules → outputs</span></div>
+</section>
+</main>
+<div id="pal"><div class="pbox"><input id="pq" placeholder="Go to, or run…" autocomplete="off"><div id="plist"></div><div class="pft"><span>↑↓ move</span><span>↵ open</span><span>esc close</span></div></div></div>
+<div class="toast" id="toast"></div>

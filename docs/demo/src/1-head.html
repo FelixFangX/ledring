@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script>(function(){var q=new URLSearchParams(location.search).get("lang"),l;try{l=q||localStorage.getItem("ledring-lang")}catch(e){l=q}if(l==="zh"){document.documentElement.lang="zh-CN";document.write('<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;900&display=swap" rel="stylesheet">')}})()</script>
+<title>ledring — catalogue no. 417</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+ --paper:#F3F2EE;--sheet:#FBFAF7;--ink:#16181A;--ink-2:#6B6E70;--ink-3:#A3A49F;--rule:#CFCDC6;--rule-2:#E3E1DA;
+ --calm:#2F5BEA;--proc:#E8B10A;--crit:#D7261E;
+ --disp:'Archivo','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;--text:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;
+ --col:calc((100vw - 96px - 11*24px)/12);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font:400 14px/1.5 var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::selection{background:var(--ink);color:var(--paper)}
+a{color:inherit}
+.mono{font-family:var(--mono);font-size:12px;letter-spacing:0;font-variant-numeric:tabular-nums}
+.cap{font-family:var(--mono);font-size:11px;color:var(--ink-2)}
+.cap b{color:var(--ink);font-weight:500}
+.cond{font-family:var(--disp);font-stretch:68%;font-weight:600;text-transform:uppercase;letter-spacing:.005em}
+.wide{font-family:var(--disp);font-stretch:125%;font-weight:700;letter-spacing:-.02em}
+button{font:500 13px var(--text);color:var(--ink);background:var(--sheet);border:1px solid var(--ink);border-radius:0;height:34px;padding:0 14px;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:background .12s,color .12s}
+button:hover{background:var(--ink);color:var(--paper)}
+button:active{transform:translateY(1px)}
+button:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:2px solid var(--calm);outline-offset:2px}
+button.solid{background:var(--ink);color:var(--paper)}button.solid:hover{background:#000}
+button:disabled{opacity:.4;pointer-events:none}
+/* masthead */
+header{display:grid;grid-template-columns:270px 1fr auto;align-items:end;gap:24px;padding:20px 48px 0;border-bottom:1px solid var(--ink);background:var(--paper);position:sticky;top:0;z-index:5}
+.mark{padding-bottom:14px;line-height:1}
+.mark b{font:700 22px/1 var(--disp);font-stretch:110%;letter-spacing:-.03em;display:block}
+.mark span{font:400 11px var(--mono);color:var(--ink-2)}
+nav{display:flex;gap:0}
+nav a{display:flex;flex-direction:column;gap:6px;padding:0 18px 12px;text-decoration:none;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .12s}
+nav a svg{width:48px;height:36px;stroke:currentColor;fill:none;stroke-width:1}
+nav a span{font:400 12px/1 var(--text);white-space:nowrap}
+nav a span i{font-style:normal;font-family:var(--mono);font-size:10px;margin-right:5px;color:var(--ink-3)}
+nav a:hover{color:var(--ink)}
+nav a.on{color:var(--ink);border-bottom-color:var(--ink)}
+.hr{display:flex;gap:16px;align-items:center;padding-bottom:14px}
+.kbd{font:400 11px var(--mono);border:1px solid var(--rule);padding:3px 6px;color:var(--ink-2);background:var(--sheet);cursor:pointer}
+.kbd:hover{border-color:var(--ink);color:var(--ink)}
+/* LED */
+.led{--c:var(--calm);display:inline-flex;align-items:center;gap:8px;font:500 11px var(--mono);text-transform:lowercase}
+.led i{width:13px;height:13px;border-radius:50%;border:3px solid var(--c);flex:none}
+.led.proc{--c:var(--proc)}.led.proc i{animation:spin 1.2s linear infinite;border-right-color:transparent}
+.led.crit{--c:var(--crit)}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* page grid */
+main{padding:40px 48px 80px}
+.view{display:none}.view.on{display:block}
+.g{display:grid;grid-template-columns:repeat(12,1fr);column-gap:24px}
+.idx{grid-column:1/3;padding-top:6px}
+.idx .n{font:600 72px/0.8 var(--disp);font-stretch:62%;letter-spacing:-.01em}
+.idx .cap{display:block;margin-top:12px;max-width:150px}
+.ttl{grid-column:3/10}
+.ttl h1{font:600 64px/.92 var(--disp);font-stretch:66%;text-transform:uppercase;letter-spacing:-.005em}
+.ttl p{max-width:620px;margin-top:14px;color:var(--ink-2);font-size:14.5px}
+.ttl p b{color:var(--ink);font-weight:500}
+.act{grid-column:10/13;display:flex;justify-content:flex-end;align-items:flex-end;gap:8px}
+.head{margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--ink)}
+code,.code{font:400 12.5px var(--mono);background:var(--rule-2);padding:0 4px}
+.sheet{background:var(--sheet);border:1px solid var(--ink)}
+.fig{margin-top:10px;display:flex;justify-content:space-between}
+.rule{border-top:1px solid var(--rule)}
+table{border-collapse:collapse;width:100%}
+td,th{text-align:left;font-weight:400;padding:9px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font:400 11px var(--mono);color:var(--ink-2);border-bottom:1px solid var(--ink)}
+td.k{font:400 11px var(--mono);color:var(--ink-2);width:110px;padding-top:11px}
+td.m{font:400 12.5px var(--mono)}
+.empty{padding:28px 0;color:var(--ink-2);font-size:13px;border-top:1px dashed var(--ink-3);border-bottom:1px dashed var(--ink-3)}
+.empty b{display:block;color:var(--ink);font-weight:500;margin-bottom:2px}
