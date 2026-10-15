@@ -15,8 +15,10 @@ import {
   type Provider,
 } from "@ledring/play-providers";
 import { JudgeRuntime, JudgeUnavailableError, judgeArtifact, judgeBody } from "@ledring/play-judge";
+import { streamTrace } from "@ledring/play-core";
 import { z } from "zod";
 import { providerSecrets, type BridgeConfig } from "./config.js";
+import { appendSessionLog, listSessionIds, readSessionLog } from "./store.js";
 
 const judgeSchema = z
   .object({
@@ -51,6 +53,8 @@ interface Session {
   generation: number;
   resolvers: Array<() => void>;
   abort?: AbortController;
+  /** Append one event to the on-disk log, when a home directory is set. */
+  save?: (event: StoredEvent) => void;
 }
 
 export interface BridgeHandle {
@@ -71,6 +75,8 @@ export interface StartBridgeOptions {
   siwc?: { enabled?: boolean; authBase?: string; apiBase?: string; home?: string };
   /** Closed when the bridge closes. Defaults to a runtime owned by this process. */
   judgeRuntime?: JudgeRuntime;
+  /** Session JSONL is stored at `<home>/sessions`. Omit for an in-memory bridge. */
+  home?: string;
 }
 
 const PAGE = `<!doctype html>
@@ -96,7 +102,9 @@ function wake(session: Session): void {
 }
 
 function push(session: Session, event: StepEvent, data: unknown): void {
-  session.events.push({ id: session.events.length + 1, event, data });
+  const stored: StoredEvent = { id: session.events.length + 1, event, data };
+  session.events.push(stored);
+  session.save?.(stored);
   wake(session);
 }
 
@@ -250,7 +258,19 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
     ...(opts.sleep ? { sleep: opts.sleep } : {}),
   });
   const providers = providersFor(config, opts, siwc.provider);
+  const sessionDir = opts.home ? join(opts.home, "sessions") : undefined;
   const sessions = new Map<string, Session>();
+  const attach = (session: Session): Session => {
+    if (sessionDir) session.save = (stored) => appendSessionLog(sessionDir, session.id, stored);
+    return session;
+  };
+  if (sessionDir) {
+    for (const id of listSessionIds(sessionDir)) {
+      const session = attach(createSession(id));
+      session.events = readSessionLog(sessionDir, id) as StoredEvent[];
+      sessions.set(id, session);
+    }
+  }
   const logs: string[] = [];
   const log = (line: string) => {
     logs.push(redactSecrets(line, secrets));
@@ -352,7 +372,7 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
       }
 
       if (method === "POST" && pathname === "/api/sessions") {
-        const session = createSession(randomUUID());
+        const session = attach(createSession(randomUUID()));
         sessions.set(session.id, session);
         send(res, 201, { id: session.id });
         finishLog(201);
@@ -411,8 +431,8 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
       }
 
       if (session && method === "GET" && parts[3] === "trace" && parts.length === 4) {
-        send(res, 501, { error: "trace export is not available yet" });
-        finishLog(501);
+        send(res, 200, streamTrace(session.id, session.events));
+        finishLog(200);
         return;
       }
 

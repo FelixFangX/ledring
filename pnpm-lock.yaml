@@ -74,6 +74,9 @@ importers:
 
   packages/play-bridge:
     dependencies:
+      '@ledring/play-core':
+        specifier: workspace:*
+        version: link:../play-core
       '@ledring/play-judge':
         specifier: workspace:*
         version: link:../play-judge

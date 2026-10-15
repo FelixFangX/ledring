@@ -6,7 +6,7 @@ import { buildBranchTree, fromDesignTokens, renderHtml, type Tokens } from "@led
 import { parseTrace, type Run } from "@ledring/trace";
 import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, type PermissionsDiff } from "@ledring/trust";
 import { dirname, join, resolve } from "node:path";
-import { cardFromConfig, renderCardSvg } from "@ledring/cards";
+import { cardFromConfig, cardFromPlayTrace, renderCardSvg } from "@ledring/cards";
 import { defaultScenarios, OUTCOMES, parseScenarios, runScenarios, type Outcome, type RedWallReport } from "@ledring/redwall";
 import { formatProviderConfig, readProviderHome, startBridge } from "@ledring/play-bridge";
 import { spawn } from "node:child_process";
@@ -26,7 +26,7 @@ Usage:
   ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out suggested.json]
                 [--threshold 0.6] [--min-samples 5]
                                                      Learn auto-approve rules from allow/deny history
-  ledring card <agent.md> [--settings path] [--mcp path] [--url a2a-endpoint] [--version v]
+  ledring card <agent.md|session.json> [--settings path] [--mcp path] [--url a2a-endpoint] [--version v]
                [--out card.json] [--svg card.svg]
                                                      A2A Agent Card + SVG spec card from agent config
   ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
@@ -143,7 +143,22 @@ const commands: Record<string, Command> = {
       options: { settings: { type: "string" }, mcp: { type: "string" }, url: { type: "string" }, version: { type: "string" }, out: { type: "string" }, svg: { type: "string" } },
     });
     const [agentPath] = positionals;
-    if (!agentPath || positionals.length > 1) throw new Error("expects exactly one agent markdown file");
+    if (!agentPath || positionals.length > 1) throw new Error("expects exactly one agent markdown file or play trace");
+    const source = io.readFile(agentPath);
+    if (source.trimStart().startsWith("{")) {
+      const parsed = JSON.parse(source) as { schema?: unknown; instruction?: unknown; "x-ledring-play"?: { ending?: unknown } };
+      if (parsed.schema !== "ledring.trace.v1") throw new Error("JSON card input must be a ledring.trace.v1 play trace");
+      const ending = typeof parsed["x-ledring-play"]?.ending === "string" ? parsed["x-ledring-play"].ending : undefined;
+      const card = cardFromPlayTrace({
+        ...(typeof parsed.instruction === "string" ? { instruction: parsed.instruction } : {}),
+        ...(ending ? { ending } : {}),
+      });
+      const json = JSON.stringify(card, null, 2) + "\n";
+      if (values.svg) io.writeFile(values.svg, renderCardSvg(card));
+      if (values.out) io.writeFile(values.out, json);
+      else io.out(json);
+      return 0;
+    }
     // In a project layout (.claude/agents/x.md) pick up settings and .mcp.json unless given.
     const claudeDir = dirname(dirname(resolve(agentPath)));
     const tryRead = (explicit: string | undefined, fallback: string) => {
@@ -154,7 +169,7 @@ const commands: Record<string, Command> = {
     const settings = tryRead(values.settings, join(claudeDir, "settings.json"));
     const mcp = tryRead(values.mcp, join(dirname(claudeDir), ".mcp.json"));
     const card = cardFromConfig({
-      agent: io.readFile(agentPath),
+      agent: source,
       ...(settings ? { settings } : {}),
       ...(mcp ? { mcp } : {}),
       ...(values.url ? { url: values.url } : {}),
@@ -219,6 +234,7 @@ const commands: Record<string, Command> = {
       port,
       config: loaded.config,
       siwc,
+      home,
       ...(values["no-open"] ? {} : { open: openBrowser }),
     });
     io.out(`ledring play ${bridge.url}\n`);
