@@ -319,4 +319,89 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 30_000);
+
+  it("streams into the Run screen with auto-scroll pause/resume, diff highlights, version scrubber, offline preview CSP, and zero overflow at 1280/820/390", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    const externalRequests: string[] = [];
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const page = await ctx.newPage();
+      page.on("request", (req) => {
+        const u = new URL(req.url());
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost") {
+          externalRequests.push(req.url());
+        }
+      });
+
+      // Run snake preset through v1 (block red-wall) -> QTE v2 (demand tests) -> QTE v3 (polish)
+      await page.goto(`${site.url}?idea=snake&script=block,tests,polish&fast`, { waitUntil: "domcontentloaded" });
+      await page.locator("#end.on").waitFor({ state: "visible", timeout: 15_000 });
+
+      // Switch back to #run to inspect the completed run state
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { show: (id: string) => void } };
+        w.__ledring.show("run");
+      });
+      await page.locator("#run.on").waitFor({ state: "visible" });
+
+      // 1. Self-tests tab is visible because tests were demanded
+      expect(await page.locator("#tab-test").isVisible()).toBe(true);
+
+      // 2. Version pills exist in #pvvers and diff highlights (.add) render on v2/v3
+      const versCount = await page.locator("#pvvers .vpill").count();
+      expect(versCount).toBeGreaterThanOrEqual(2);
+      const addLines = await page.locator("#code .add").count();
+      expect(addLines).toBeGreaterThan(0);
+
+      // Click v1 pill -> #pvbuild shows v1
+      await page.locator("#pvvers .vpill").first().click();
+      expect(await page.locator("#pvbuild").textContent()).toBe("v1");
+
+      // 3. Auto-scroll pause when scrolled up, resume when scrolled to bottom
+      const scrollBehavior = await page.evaluate(async () => {
+        const el = document.querySelector("#code") as HTMLElement;
+        const w = window as unknown as { __ledring: { setCode: (h: string) => void } };
+        const tall = Array.from({ length: 120 }, (_, i) => `line ${i + 1}`).join("\n");
+        w.__ledring.setCode(tall);
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        el.scrollTop = 0;
+        el.dispatchEvent(new Event("scroll"));
+        // Stream while scrolled up: should NOT jump to bottom
+        const showFn = (window as unknown as { showCode: (t: string, s: boolean, tab: string) => void }).showCode;
+        showFn(tall + "\nline 121", true, "html");
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const pausedTop = el.scrollTop;
+        // Scroll back to bottom: should resume auto-scroll
+        el.scrollTop = el.scrollHeight;
+        el.dispatchEvent(new Event("scroll"));
+        showFn(tall + "\nline 121\nline 122\nline 123", true, "html");
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const resumedAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 24;
+        return { pausedTop, resumedAtBottom };
+      });
+      expect(scrollBehavior.pausedTop).toBe(0);
+      expect(scrollBehavior.resumedAtBottom).toBe(true);
+
+      // 4. Zero horizontal overflow at 1280x800, 820x1180, 390x844
+      for (const vp of [
+        { width: 1280, height: 800 },
+        { width: 820, height: 1180 },
+        { width: 390, height: 844 },
+      ]) {
+        await page.setViewportSize(vp);
+        const overflow = await page.locator("#run").evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+        expect(overflow).toBe(false);
+      }
+
+      // 5. Preview iframe made zero external requests
+      expect(externalRequests).toEqual([]);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
 });
