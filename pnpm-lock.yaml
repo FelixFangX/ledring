@@ -75,6 +75,8 @@ importers:
         specifier: workspace:*
         version: link:../trace
 
+  packages/play-providers: {}
+
   packages/play-risk:
     dependencies:
       acorn:
