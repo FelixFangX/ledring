@@ -7,6 +7,9 @@ import { AxeBuilder } from "@axe-core/playwright";
 import { loadCassette, playCassette } from "@ledring/play-core";
 import { chromium, type Browser, type Page } from "playwright";
 import { handleStrands, memoryStore } from "../../play-strands/src/index.js";
+
+// The deployed strands worker is Play's default backend and the only allowed external request.
+const DEFAULT_STRANDS_HOST = "strands.ledring.workers.dev";
 import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
 
 const root = fileURLToPath(new URL("../../..", import.meta.url));
@@ -106,7 +109,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       const page: Page = await browser.newPage();
       page.on("request", (req) => {
         const u = new URL(req.url());
-        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost") {
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST) {
           externalRequests.push(req.url());
         }
       });
@@ -333,7 +336,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       const page = await ctx.newPage();
       page.on("request", (req) => {
         const u = new URL(req.url());
-        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost") {
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST) {
           externalRequests.push(req.url());
         }
       });
@@ -913,7 +916,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
     }
   }, 30_000);
 
-  it("enforces simulated vs server-backed Strands label rules across Menu, Chapter 0, and Ending in EN and zh", async () => {
+  it("enforces server-backed-by-default and simulated-fallback Strands label rules across Menu, Chapter 0, and Ending in EN and zh", async () => {
     if (!installed) throw new Error("chromium is not installed");
     const site = await serve(playDir);
     let browser: Browser | undefined;
@@ -927,7 +930,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
         const page = await ctx.newPage();
 
-        await page.route("https://strands.ledring.test/**", async (route) => {
+        await page.route(/^https:\/\/strands\.ledring\.(test|workers\.dev)\//, async (route) => {
           if (backendOffline) {
             await route.fulfill({ status: 503, body: "offline" });
             return;
@@ -947,14 +950,11 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           });
         });
 
-        // 1. Default offline / simulated state: menu, Chapter 0, and ending all show simulated label
+        // 1. Default state is server-backed: with no configuration Play uses the deployed strands worker
         await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
         await page.locator("#menu").waitFor({ state: "visible" });
-        const menuSimTag = (await page.locator("#strandtag").textContent()) || "";
-        expect(menuSimTag).toContain(simWord);
-        expect(await page.locator("#strandtag").getAttribute("data-simulated")).toBe("true");
 
-        // Ending simulated strand fallback when no server is configured
+        // Ending publishes to the default server instead of a simulated strand
         await page.evaluate(() => {
           const w = window as unknown as {
             __ledring: {
@@ -991,9 +991,8 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           });
         });
         await page.locator("#e-strand").click();
-        await page.waitForTimeout(40);
-        expect(await page.locator("#e-strand").getAttribute("data-simulated")).toBe("true");
-        expect(await page.locator("#e-strand").textContent()).toContain(simWord);
+        await page.waitForFunction(() => document.querySelector("#e-strand")?.getAttribute("data-simulated") === "false");
+        expect(await page.locator("#e-strand").textContent()).not.toContain(simWord);
 
         // 2. Wire real @ledring/play-strands backend and publish a real strand
         await page.evaluate(() => {

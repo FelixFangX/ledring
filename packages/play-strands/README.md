@@ -36,4 +36,4 @@ npx wrangler deploy
 
 `schema.sql` is the whole schema. Do not add an embedding column. The placeholder database id will refuse to deploy, which is intentional until the create step above has been run.
 
-Simulated strand ghosts in the Play UI stay labelled simulated until a Gemini slice reads this worker. This package does not remove that label.
+The worker is deployed as `strands` at https://strands.ledring.workers.dev, and Play uses it by default: strands are server-backed out of the box. The `?strandsUrl=` query parameter, `window.__LEDRING_STRANDS_URL__`, and the saved localStorage value still override it. Play falls back to labelled simulated strands only when the server is unreachable or returns no strands. `strands.ledring.workers.dev` is the only external host Play's offline tests allow.
