@@ -302,4 +302,168 @@ describe("session resume", () => {
       await second.close();
     }
   });
+
+  it("reloads mid-build and continues from the last event id", async () => {
+    let release: (() => void) | undefined;
+    const upstream = createServer((_req, res) => {
+      res.writeHead(200, { "content-type": "text/event-stream" });
+      res.write('data: {"choices":[{"delta":{"content":"he"}}]}\n\n');
+      void new Promise<void>((resolve) => {
+        release = resolve;
+      }).then(() => {
+        if (res.writableEnded) return;
+        res.write('data: {"choices":[{"delta":{"content":"llo"}}]}\n\n');
+        res.write("data: [DONE]\n\n");
+        res.end();
+      });
+    });
+    await new Promise<void>((resolve) => upstream.listen(0, "127.0.0.1", resolve));
+    const address = upstream.address();
+    if (!address || typeof address === "string") throw new Error("no port");
+    const bridge = await startBridge({
+      token: TOKEN,
+      config: { openai: { apiKey: SECRET, baseUrl: `http://127.0.0.1:${address.port}`, model: "m" } },
+    });
+    const headers = { "x-ledring-token": TOKEN, "content-type": "application/json" };
+    const decoder = new TextDecoder();
+    try {
+      const created = await fetch(new URL("/api/sessions", bridge.url), { method: "POST", headers });
+      const { id } = (await created.json()) as { id: string };
+      const live = await fetch(new URL(`/api/sessions/${id}/steps`, bridge.url), {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ provider: "openai-compat", system: "s", user: "build a page", model: "m" }),
+      });
+      const reader = live.body?.getReader();
+      if (!reader) throw new Error("no body");
+      let buffered = "";
+      while (!buffered.includes("he")) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        buffered += decoder.decode(chunk.value, { stream: true });
+      }
+      const eventId = buffered.match(/id: (\d+)/)?.[1];
+      expect(eventId).toBeTruthy();
+
+      const continued = await fetch(new URL(`/api/sessions/${id}/stream?from=${eventId}`, bridge.url), { headers });
+      const continuedReader = continued.body?.getReader();
+      if (!continuedReader) throw new Error("no continuation");
+      let rest = "";
+      const follow = (async () => {
+        const deadline = Date.now() + 1000;
+        while (Date.now() < deadline) {
+          const chunk = await continuedReader.read();
+          if (chunk.done) break;
+          rest += decoder.decode(chunk.value, { stream: true });
+          if (rest.includes("llo")) break;
+        }
+      })();
+      const quietUntil = Date.now() + 40;
+      while (!rest && Date.now() < quietUntil) await new Promise((resolve) => setTimeout(resolve, 5));
+      expect(rest).not.toContain('"he"');
+      release?.();
+      await follow;
+      expect(rest).toContain("llo");
+      expect(rest).not.toContain('"he"');
+
+      const restored = await fetch(new URL(`/api/sessions/${id}/stream?from=0`, bridge.url), { headers });
+      const restoredReader = restored.body?.getReader();
+      if (!restoredReader) throw new Error("no restore");
+      let full = "";
+      const restoreDeadline = Date.now() + 1000;
+      while (!full.includes("he") && Date.now() < restoreDeadline) {
+        const chunk = await restoredReader.read();
+        if (chunk.done) break;
+        full += decoder.decode(chunk.value, { stream: true });
+      }
+      expect(full).toContain("he");
+      await restoredReader.cancel();
+      await continuedReader.cancel();
+      await reader.cancel();
+    } finally {
+      release?.();
+      await bridge.close();
+      upstream.closeAllConnections();
+      await new Promise<void>((resolve, reject) => upstream.close((error) => (error ? reject(error) : resolve())));
+    }
+  });
+
+  it("stops a partial build within 1s and restores that text after restart", async () => {
+    let release: (() => void) | undefined;
+    let closed = false;
+    const upstream = createServer((req, res) => {
+      req.on("close", () => {
+        if (!res.writableEnded) closed = true;
+      });
+      res.writeHead(200, { "content-type": "text/event-stream" });
+      res.write('data: {"choices":[{"delta":{"content":"he"}}]}\n\n');
+      void new Promise<void>((resolve) => {
+        release = resolve;
+      }).then(() => {
+        if (res.writableEnded) return;
+        res.write('data: {"choices":[{"delta":{"content":"llo"}}]}\n\n');
+        res.write("data: [DONE]\n\n");
+        res.end();
+      });
+    });
+    await new Promise<void>((resolve) => upstream.listen(0, "127.0.0.1", resolve));
+    const address = upstream.address();
+    if (!address || typeof address === "string") throw new Error("no port");
+    const home = mkdtempSync(join(tmpdir(), "ledring-play-"));
+    const bridge = await startBridge({
+      token: TOKEN,
+      home,
+      config: { openai: { apiKey: SECRET, baseUrl: `http://127.0.0.1:${address.port}`, model: "m" } },
+    });
+    const headers = { "x-ledring-token": TOKEN, "content-type": "application/json" };
+    let id = "";
+    try {
+      const created = await fetch(new URL("/api/sessions", bridge.url), { method: "POST", headers });
+      id = ((await created.json()) as { id: string }).id;
+      const live = await fetch(new URL(`/api/sessions/${id}/steps`, bridge.url), {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ provider: "openai-compat", system: "s", user: "build a page", model: "m" }),
+      });
+      const reader = live.body?.getReader();
+      if (!reader) throw new Error("no body");
+      const decoder = new TextDecoder();
+      let buffered = "";
+      while (!buffered.includes("he")) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        buffered += decoder.decode(chunk.value, { stream: true });
+      }
+      expect(buffered).toContain("he");
+      const stopped = await fetch(new URL(`/api/sessions/${id}/stop`, bridge.url), { method: "POST", headers });
+      expect((await stopped.json()) as { stopped: boolean }).toEqual({ stopped: true });
+      const began = Date.now();
+      while (!closed && Date.now() - began < 1000) await new Promise((resolve) => setTimeout(resolve, 10));
+      expect(closed).toBe(true);
+      expect(Date.now() - began).toBeLessThan(1000);
+    } finally {
+      release?.();
+      await bridge.close();
+      upstream.closeAllConnections();
+      await new Promise<void>((resolve, reject) => upstream.close((error) => (error ? reject(error) : resolve())));
+    }
+
+    const restored = await startBridge({ token: TOKEN, home });
+    try {
+      const replay = await fetch(new URL(`/api/sessions/${id}/stream?from=0`, restored.url), {
+        headers: { "x-ledring-token": TOKEN },
+      });
+      const text = await replay.text();
+      expect(text).toContain("he");
+      expect(text).not.toContain("llo");
+      const from = await fetch(new URL(`/api/sessions/${id}/stream?from=1`, restored.url), {
+        headers: { "x-ledring-token": TOKEN },
+      });
+      const rest = await from.text();
+      expect(rest).not.toContain("he");
+      expect(rest).toContain("stopped");
+    } finally {
+      await restored.close();
+    }
+  });
 });
