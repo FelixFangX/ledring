@@ -142,14 +142,48 @@ function afterArtifacts(version: number): Phase {
 }
 
 /**
- * How a scan should move the session.
- * `wall` opens a Red Wall for categories the human has not seen.
- * `fix` is reserved for the BLOCK retry contract (S5): a blocked category is still present.
- * `continue` moves on to the next choice or the judge.
+ * BLOCK contract. A category the human has not seen opens a Red Wall.
+ * A category they blocked may be fixed at most twice. The second dirty fix is
+ * `leakedDespiteBlock` and the session continues. This does not mutate `state`.
  */
+export function classifyScan(state: PlayState, findings: readonly RiskFinding[]): {
+  disposition: "wall" | "fix" | "continue";
+  pending: RiskFinding[];
+  blockAttempts: Record<string, number>;
+  leakedDespiteBlock: string[];
+} {
+  const pending = freshFindings(state, findings);
+  if (pending.length > 0) {
+    return { disposition: "wall", pending, blockAttempts: state.blockAttempts, leakedDespiteBlock: state.leakedDespiteBlock };
+  }
+  const still = unique(
+    findings
+      .map((finding) => finding.category)
+      .filter((category) => state.blocked.includes(category) && !state.leakedDespiteBlock.includes(category)),
+  );
+  if (still.length === 0) {
+    return { disposition: "continue", pending: [], blockAttempts: state.blockAttempts, leakedDespiteBlock: state.leakedDespiteBlock };
+  }
+  const blockAttempts = { ...state.blockAttempts };
+  const leaked = [...state.leakedDespiteBlock];
+  let needFix = false;
+  for (const category of still) {
+    const next = (blockAttempts[category] ?? 0) + 1;
+    blockAttempts[category] = next;
+    if (next >= 2) leaked.push(category);
+    else needFix = true;
+  }
+  return {
+    disposition: needFix ? "fix" : "continue",
+    pending: [],
+    blockAttempts,
+    leakedDespiteBlock: unique(leaked),
+  };
+}
+
+/** How a scan should move the session. See `classifyScan` for the retry cap. */
 export function scanDisposition(state: PlayState, findings: readonly RiskFinding[]): "wall" | "fix" | "continue" {
-  if (freshFindings(state, findings).length > 0) return "wall";
-  return "continue";
+  return classifyScan(state, findings).disposition;
 }
 
 /** Apply one Play event. Pure: the input session is not mutated. */
@@ -213,11 +247,16 @@ export function transition(state: PlayState, event: PlayEvent): PlayState {
         signals,
         snaps: [...state.snaps, { label, html: event.html }],
       };
-      const pending = freshFindings(next, findings);
-      if (scanDisposition(next, findings) === "wall") {
-        return commit(next, event, { phase: "codeWall", pendingFindings: pending });
+      const classified = classifyScan(next, findings);
+      if (classified.disposition === "wall") {
+        return commit(next, event, { phase: "codeWall", pendingFindings: classified.pending });
       }
-      return commit(next, event, { phase: afterArtifacts(version), pendingFindings: [] });
+      return commit(next, event, {
+        phase: classified.disposition === "fix" ? "fixing" : afterArtifacts(version),
+        pendingFindings: [],
+        blockAttempts: classified.blockAttempts,
+        leakedDespiteBlock: classified.leakedDespiteBlock,
+      });
     }
     case "choose": {
       assertPhase(state, "qte");
