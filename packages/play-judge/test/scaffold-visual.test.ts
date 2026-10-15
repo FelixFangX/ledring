@@ -1219,4 +1219,87 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 25_000);
+
+  it("defaults to silent SFX, persists keyboard toggle across reloads, synthesizes all 12 cues, and ducks during codec in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.locator("#menu").waitFor({ state: "visible" });
+
+        // 1. Default is silent (off) and playing a cue returns false without recording
+        expect(await page.locator("#sfx").getAttribute("aria-pressed")).toBe("false");
+        expect(await page.locator("#sfx").textContent()).toContain(lang === "zh" ? "声音关" : "sound off");
+        const silentPlay = await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: { sfx: { on: boolean; play: (k: string) => boolean; played: string[] } };
+          };
+          return {
+            on: w.__ledring.sfx.on,
+            res: w.__ledring.sfx.play("click"),
+            played: w.__ledring.sfx.played.length,
+          };
+        });
+        expect(silentPlay).toEqual({ on: false, res: false, played: 0 });
+
+        // 2. Toggle via keyboard focus + Enter, verify aria-pressed & label update, and persistence across reload
+        await page.locator("#sfx").focus();
+        await page.keyboard.press("Enter");
+        expect(await page.locator("#sfx").getAttribute("aria-pressed")).toBe("true");
+        expect(await page.locator("#sfx").textContent()).toContain(lang === "zh" ? "声音开" : "sound on");
+
+        await page.reload();
+        await page.locator("#menu").waitFor({ state: "visible" });
+        expect(await page.locator("#sfx").getAttribute("aria-pressed")).toBe("true");
+        expect(await page.locator("#sfx").textContent()).toContain(lang === "zh" ? "声音开" : "sound on");
+
+        // 3. Play all 12 synthesized cues and verify ducking during miniCodec
+        const allPlayed = await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              sfx: { cues: string[]; play: (k: string) => boolean; played: string[]; ducked: boolean };
+              miniCodec: (text: string) => void;
+            };
+          };
+          w.__ledring.sfx.played.length = 0;
+          const results = w.__ledring.sfx.cues.map((c) => w.__ledring.sfx.play(c));
+          w.__ledring.miniCodec("Audio ducking check");
+          return {
+            cues: w.__ledring.sfx.cues,
+            allTrue: results.every(Boolean),
+            playedCount: w.__ledring.sfx.played.length,
+            duckedDuringCodec: w.__ledring.sfx.ducked,
+          };
+        });
+        expect(allPlayed.cues).toEqual([
+          "click",
+          "tick",
+          "alert",
+          "thud",
+          "stamp",
+          "ring",
+          "blip",
+          "scan",
+          "ping",
+          "win",
+          "lose",
+          "like",
+        ]);
+        expect(allPlayed.allTrue).toBe(true);
+        expect(allPlayed.playedCount).toBeGreaterThanOrEqual(12);
+        expect(allPlayed.duckedDuringCodec).toBe(true);
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
 });

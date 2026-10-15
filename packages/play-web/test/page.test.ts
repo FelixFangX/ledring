@@ -32,4 +32,11 @@ describe("play page", () => {
   it("never uses getUserMedia, geolocation, or clipboard read/write in play-web", () => {
     expect(html).not.toMatch(/getUserMedia|geolocation|navigator\.clipboard/i);
   });
+
+  it("synthesizes all SFX via Web Audio API with zero external audio asset references", () => {
+    expect(html).not.toMatch(/\.(mp3|wav|ogg|m4a|aac|flac)\b/i);
+    for (const cue of ["click", "tick", "alert", "thud", "stamp", "ring", "blip", "scan", "ping", "win", "lose", "like"]) {
+      expect(html).toContain(`${cue}:()=>`);
+    }
+  });
 });
