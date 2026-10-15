@@ -9,6 +9,9 @@ The page talks to `/api/*`. Provider API keys stay in this process (`~/.ledring/
 | `GET /api/status` | none | Secretless liveness probe. The only route that sends `Access-Control-Allow-Origin: *`. |
 | `GET /api/providers` | token | Ready flags and model ids. No keys. |
 | `POST /api/sessions` | token | Create a session. |
+| `GET /api/sessions` | token | List the session index (idea, ending, date). Does not read each session log. |
+| `POST /api/sessions/:id/library` | token | Save play events, update the index, and return the projected ending. |
+| `GET /api/sessions/:id/replay` | token | Load that session's play log and re-project it. Event ids stay as stored. |
 | `POST /api/sessions/:id/steps` | token | SSE deltas (`id`, `event`, `data`). |
 | `GET /api/sessions/:id/stream?from=` | token | Replay and follow from an event id. |
 | `POST /api/sessions/:id/stop` | token | Abort the upstream request. |

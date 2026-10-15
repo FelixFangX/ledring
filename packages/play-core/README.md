@@ -4,6 +4,8 @@ The Play engine: a dependency-free state machine, the versioned instability func
 
 A **cassette** replays a session without a live model. Synthetic cassettes say so in `provenance.note`. A recorded cassette must name `model` and `recordedAt`.
 
+`replayEvents` folds a saved list of play events from an idle session. The ending, the session id, and each choice id match the original run.
+
 ```sh
 node scripts/play-headless.mjs --cassette fixtures/play/snake-polished.json
 # POLISHED
