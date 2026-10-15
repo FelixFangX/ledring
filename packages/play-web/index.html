@@ -1879,11 +1879,21 @@ async function synth(){pips();INSP.sel=new Set();$("#in-freerow").style.display=
   const A={loop:INSP.a.loop||INSP.a.ans1,trust:INSP.a.trust||INSP.a.ans2||{text:"",val:""},seen:INSP.a.seen||INSP.a.ans3||{text:"",val:"me"}};
   const seed=INSP.frags().map(f=>f.text).join("|")+"#"+INSP.seed;dirs=generateDirs(A,seed);typeOut($("#in-q"),T.inSynth);
   inspEv("directions",{generator:"combinatorial-v2",seed:hashS(seed),directions:dirs.map(d=>({id:d.id,title:d.title,brief:d.brief,from:d.from}))},"model","generator");}
- INSP.dirs=dirs;ringSVG($("#inring"),"calm");renderDirs();}
+ INSP.dirs=dirs;if(STRANDS_URL&&dirs&&dirs[0])await syncStrands(dirs[0].brief);ringSVG($("#inring"),"calm");renderDirs();}
+function dirStrandHtml(d){
+ if(typeof STRAND_STATE!=="undefined"&&!STRAND_STATE.simulated&&STRAND_STATE.remote.length){
+  const b=getBriefBucket(d.brief||d.title||""),near=getNearBuckets(b)||[b];
+  const matched=STRAND_STATE.remote.filter(s=>near.includes(s.bucket));
+  const pool=matched.length?matched:STRAND_STATE.remote;
+  const likes=pool.reduce((sum,s)=>sum+(s.l||0),0);
+  return `<div class="dstr small" data-simulated="false">${fill(T.strandDir,{s:pool.length,l:likes})}</div>`;
+ }
+ return `<div class="dstr small" data-simulated="true">${fill(T.strandDir,{s:2+hashS(d.title)%9,l:9+hashS(d.title+"l")%80})} <i>(${T.strandSim})</i></div>`;
+}
 function renderDirs(){const D=INSP.dirs;
  $("#in-opts").innerHTML=`<div class="dirs">${D.map((d,i)=>`<div class="dir${INSP.picked&&INSP.picked.title===d.title?" on":""}${d.fused?" fused":""}" data-i="${i}">
   <div class="dh"><b>${esc(d.title)}</b><span class="tagk ${d.kind}">${d.kind}${d.wild?" · "+T.inWild:""}${d.fused?" · "+T.inFused:""}</span></div>
-  <div class="db">${esc(d.brief)}</div><div class="dstr small">${fill(T.strandDir,{s:2+hashS(d.title)%9,l:9+hashS(d.title+"l")%80})} <i>(${T.strandSim})</i></div>
+  <div class="db">${esc(d.brief)}</div>${dirStrandHtml(d)}
   <div class="df"><span class="cap">${T.inFrom}</span>${d.from.map(f=>`<span class="fchip${f[0]==="T"?" t":""}">${f}</span>`).join("")}
    <span class="dact"><label class="fz"><input type="checkbox" data-i="${i}" ${INSP.sel.has(i)?"checked":""}> ⨯</label><button class="btn sm" data-pick="${i}">${T.inPick}</button></span></div></div>`).join("")}</div>
   <div class="diracts"><button class="btn ghost sm" id="in-more">${T.inMore}</button><button class="btn ghost sm" id="in-fuse" ${INSP.sel.size===2?"":"disabled"}>${T.inFuse}</button><span class="small">${T.inFuseHint}</span></div>`;
@@ -1943,7 +1953,7 @@ Object.assign(DICT.en,{
  cComp:"You let a network call through last time. I remember.",cTabs:(n)=>`You've switched tabs ${n} times since you opened me.`,
  cEnd:"Don't worry. None of this left your browser. I only looked.",
  cAway:(s)=>`You left for ${s} seconds. I kept writing. Was that the plan?`,cIdle:"Still there? Your cursor hasn't moved in a while.",
- scanTag:"SCAN",alertTag:"!",strandTag:"STRANDS · {n} builds nearby (simulated)",strandLeave:"◇ Leave a strand",strandLeft:"Strand left on this device. Simulated porters: ♥ {n}",strandSim:"simulated",
+ scanTag:"SCAN",alertTag:"!",strandTag:"STRANDS · {n} builds nearby (simulated)",strandTagLive:"STRANDS · {n} builds nearby",strandLeave:"◇ Leave a strand",strandLeft:"Strand left on this device. Simulated porters: ♥ {n}",strandLeftLive:"Strand published · ♥ {n}",strandModeration:"Strand rejected by content filter.",strandSim:"simulated",
  strandDir:"◇ {s} similar strands · ♥ {l}",youNode:"you"});
 Object.assign(DICT.zh,{
  sfxOn:"♪ 声音开",sfxOff:"♪ 声音关",codecSkip:"跳过 ▸",codecTap:"轻触继续",codecFreq:"线路 417.0",codecYou:"你",codecLocal:"仅本地 · 不会离开这个标签页",
@@ -1955,7 +1965,7 @@ Object.assign(DICT.zh,{
  cComp:"上次你放过了一个网络请求。我记得。",cTabs:(n)=>`从打开我到现在，你切走了 ${n} 次标签页。`,
  cEnd:"放心，这些都没离开你的浏览器。我只是看了一眼。",
  cAway:(s)=>`你离开了 ${s} 秒。我一直在写。这是你的安排吗？`,cIdle:"还在吗？你的光标很久没动了。",
- scanTag:"扫描",alertTag:"！",strandTag:"连结 · 附近 {n} 个构建（模拟）",strandLeave:"◇ 留下一条连结",strandLeft:"连结已留在本设备。模拟的同行点赞：♥ {n}",strandSim:"模拟",
+ scanTag:"扫描",alertTag:"！",strandTag:"连结 · 附近 {n} 个构建（模拟）",strandTagLive:"连结 · 附近 {n} 个构建",strandLeave:"◇ 留下一条连结",strandLeft:"连结已留在本设备。模拟的同行点赞：♥ {n}",strandLeftLive:"连结已发布 · ♥ {n}",strandModeration:"连结未通过内容过滤。",strandSim:"模拟",
  strandDir:"◇ {s} 条相似连结 · ♥ {l}",youNode:"你"});
 
 /* ---------- SFX (WebAudio, synthesized, off by default) ---------- */
@@ -2028,21 +2038,122 @@ async function scanPulse(finds,where){const tab=where==="plan"?"plan":"html";set
  await sleep(FAST?30:700);}
 function clearScan(){const ov=$("#odradek");if(ov){ov.classList.remove("on");ov.innerHTML="";}}
 
-/* ---------- STRANDS: canvas centerpiece (menu) ---------- */
+/* ---------- STRANDS: canvas centerpiece (menu) + real async backend client ---------- */
 const GHOSTS=(()=>{const en=["Off Switch","Cat Dash","Fair Split","Loop Breaker","Stop on Time","Obey or Deviate","Rent Fair","Toast Poster","One More Try","Desk Knockout","Still Here?","Pixel Vow"],
  zh=["停下键","猫冲冲","公平分账","断环格子","准点停下","服从或偏离","房租平分","吐司发帖机","再试一次","桌面清空","你还在吗","像素誓言"];
- return (LANG==="zh"?zh:en).map((t,i)=>({t,l:7+hashS(t)%60,a:(i/12)*Math.PI*2+(hashS(t)%100)/180,r:.58+(hashS(t+"r")%40)/100,ph:(hashS(t+"p")%628)/100}));})();
+ return (LANG==="zh"?zh:en).map((t,i)=>({t,l:7+hashS(t)%60,a:(i/12)*Math.PI*2+(hashS(t)%100)/180,r:.58+(hashS(t+"r")%40)/100,ph:(hashS(t+"p")%628)/100,simulated:true}));})();
+let STRANDS_URL=P.get("strandsUrl")||window.__LEDRING_STRANDS_URL__||(()=>{try{return localStorage.getItem("ledring-strands-url")||""}catch(e){return ""}})();
+const STRAND_STATE={simulated:true,remote:[]};
+function getBriefBucket(brief){
+ if(typeof window.__ledringBriefBucket==="function")return window.__ledringBriefBucket(String(brief||""));
+ const tokens=String(brief||"").toLowerCase().split(/[^a-z0-9\u4e00-\u9fff]+/).filter(t=>t.length>1);
+ const txt=[...new Set(tokens)].sort().join(" ");
+ return (hashS(txt)%256).toString(16).padStart(2,"0");
+}
+function getNearBuckets(bucket){
+ if(typeof window.__ledringNearBuckets==="function")return window.__ledringNearBuckets(String(bucket||""));
+ if(!/^[0-9a-f]{2}$/i.test(String(bucket||"")))return null;
+ const c=parseInt(bucket,16);
+ return [c-1,c,c+1].map(v=>((v+256)%256).toString(16).padStart(2,"0"));
+}
+function getDeviceKey(){
+ try{
+  let k=localStorage.getItem("ledring-device-key");
+  if(!k||k.length<8){k="dev-"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);localStorage.setItem("ledring-device-key",k);}
+  return k;
+ }catch(e){return "dev-ephemeral-123456";}
+}
+async function hashTraceHex(str){
+ try{
+  if(crypto&&crypto.subtle){
+   const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(str));
+   return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("").slice(0,32);
+  }
+ }catch(e){}
+ return [0,1,2,3].map(i=>hashS(str+"#"+i).toString(16).padStart(8,"0")).join("").slice(0,32);
+}
+function paintStrandTag(){
+ const el=$("#strandtag");
+ if(!el)return;
+ if(!STRAND_STATE.simulated&&STRAND_STATE.remote.length>0){
+  el.textContent=fill(T.strandTagLive,{n:STRAND_STATE.remote.length});
+  el.dataset.simulated="false";
+ }else{
+  el.textContent=fill(T.strandTag,{n:GHOSTS.length});
+  el.dataset.simulated="true";
+ }
+}
+async function syncStrands(brief){
+ if(!STRANDS_URL){
+  STRAND_STATE.simulated=true;STRAND_STATE.remote=[];
+  paintStrandTag();if(Strands.g)Strands.draw(performance.now());
+  return STRAND_STATE;
+ }
+ try{
+  const lastB=SAVE.strands&&SAVE.strands.length&&SAVE.strands[SAVE.strands.length-1].bucket;
+  const bucket=brief?getBriefBucket(brief):(lastB||getBriefBucket((RUN&&RUN.idea)||(SAVE.last&&SAVE.last.idea)||"timer stop"));
+  const r=await fetch(`${STRANDS_URL.replace(/\/$/,"")}/strands?near=${encodeURIComponent(bucket)}`);
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const j=await r.json();
+  if(j&&Array.isArray(j.strands)&&j.strands.length>0){
+   STRAND_STATE.simulated=false;
+   STRAND_STATE.remote=j.strands.slice(0,20).map((s,i)=>({
+    id:s.id,
+    t:String(s.title||"Build").slice(0,40),
+    l:typeof s.likes==="number"?s.likes:0,
+    ending:s.ending||"SHIPPED",
+    brief:s.brief||"",
+    bucket:s.bucket||bucket,
+    simulated:false,
+    a:(i/Math.max(1,j.strands.length))*Math.PI*2+(hashS(String(s.id||s.title))%100)/180,
+    r:.58+(hashS(String(s.title)+"r")%40)/100,
+    ph:(hashS(String(s.title)+"p")%628)/100,
+   }));
+  }else{
+   STRAND_STATE.simulated=true;STRAND_STATE.remote=[];
+  }
+ }catch(e){
+  STRAND_STATE.simulated=true;STRAND_STATE.remote=[];
+ }
+ paintStrandTag();
+ if(Strands.g)Strands.draw(performance.now());
+ if(curScene==="insp"&&INSP&&INSP.dirs&&INSP.dirs.length)renderDirs();
+ return STRAND_STATE;
+}
+async function setStrandsUrl(url,brief){
+ STRANDS_URL=String(url||"").trim();
+ try{if(STRANDS_URL)localStorage.setItem("ledring-strands-url",STRANDS_URL);else localStorage.removeItem("ledring-strands-url");}catch(e){}
+ return syncStrands(brief);
+}
+async function likeStrand(id){
+ if(!STRANDS_URL||!id)return {ok:false};
+ try{
+  const r=await fetch(`${STRANDS_URL.replace(/\/$/,"")}/strands/${encodeURIComponent(id)}/like`,{
+   method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({deviceKey:getDeviceKey()})
+  });
+  if(!r.ok)return {ok:false,status:r.status};
+  const j=await r.json();
+  const likes=typeof j.likes==="number"?j.likes:0;
+  const rem=STRAND_STATE.remote.find(s=>s.id===id);if(rem)rem.l=likes;
+  const loc=(SAVE.strands||[]).find(s=>s.id===id);if(loc){loc.likes=likes;persist();}
+  const b=$("#e-strand");if(b&&b.dataset.strandId===id){const num=b.querySelector(".num");if(num)num.textContent=String(likes);}
+  SFX.play("like");
+  if(Strands.g)Strands.draw(performance.now());
+  return {ok:true,likes};
+ }catch(e){return {ok:false};}
+}
 const Strands={raf:0,t0:performance.now(),likes:[],mx:0,my:0,
  start(){const c=$("#strandc");if(!c)return;const g=c.getContext("2d");if(!g){c.remove();return;}this.c=c;this.g=g;document.body.classList.add("has-strands");this.resize();
   addEventListener("resize",()=>this.resize());$("#menu").addEventListener("pointermove",e=>{const r=c.getBoundingClientRect();this.mx=(e.clientX-r.left)/r.width-.5;this.my=(e.clientY-r.top)/r.height-.5;},{passive:true});
-  document.addEventListener("visibilitychange",()=>this.loop());this.loop();},
+  document.addEventListener("visibilitychange",()=>this.loop());this.loop();if(STRANDS_URL)syncStrands();},
  resize(){const c=this.c,r=c.parentElement.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=r.width*d;c.height=r.height*d;c.style.width=r.width+"px";c.style.height=r.height+"px";this.d=d;this.draw(performance.now());},
  loop(){cancelAnimationFrame(this.raf);if(RM||document.hidden||curScene!=="menu"){this.draw(performance.now());return;}const f=t=>{this.draw(t);this.raf=requestAnimationFrame(f);};this.raf=requestAnimationFrame(f);},
  center(){const s=$("#menuring").getBoundingClientRect(),r=this.c.getBoundingClientRect();return [(s.left+s.width/2-r.left)*this.d,(s.top+s.height/2-r.top)*this.d,s.width/2*this.d];},
  draw(t){const g=this.g;if(!g)return;const W=this.c.width,H=this.c.height,d=this.d;g.clearRect(0,0,W,H);const [cx,cy,R]=this.center();const time=(t-this.t0)/1000;
   const st=SAVE.last&&SAVE.last.end==="COMPROMISED"?COL.crit:SAVE.last&&/BUGGY|FAKE/.test(SAVE.last.end||"")?COL.proc:COL.calm;
-  const mine=(SAVE.strands||[]).slice(-6);const nodes=GHOSTS.map((n,i)=>{const rr=Math.min(W,H*1.6)*.5*n.r,a=n.a+time*.03*(i%2?1:-1);
-   return {x:cx+Math.cos(a)*rr*1.25+this.mx*30*d*(1+n.r),y:cy+Math.sin(a)*rr*.62+R*1.4+this.my*20*d,n};}).concat(mine.map((m,i)=>{const sd=i%2?-1:1;return {x:cx+sd*R*(2.3+Math.floor(i/2)*.5)-(sd<0?R*1.6:0),y:cy-R*.5+Math.floor(i/2)*16*d,n:{t:m.title,l:m.likes||0,you:1,ph:i}};}));
+  const pool=!STRAND_STATE.simulated&&STRAND_STATE.remote.length>0?STRAND_STATE.remote:GHOSTS;
+  const mine=(SAVE.strands||[]).slice(-6);const nodes=pool.map((n,i)=>{const rr=Math.min(W,H*1.6)*.5*n.r,a=n.a+time*.03*(i%2?1:-1);
+   return {x:cx+Math.cos(a)*rr*1.25+this.mx*30*d*(1+n.r),y:cy+Math.sin(a)*rr*.62+R*1.4+this.my*20*d,n};}).concat(mine.map((m,i)=>{const sd=i%2?-1:1;return {x:cx+sd*R*(2.3+Math.floor(i/2)*.5)-(sd<0?R*1.6:0),y:cy-R*.5+Math.floor(i/2)*16*d,n:{t:m.title,l:m.likes||0,you:1,sim:m.sim!==false,ph:i}};}));
   const kr=$("#menu .menu-wrap").getBoundingClientRect(),cr=this.c.getBoundingClientRect(),kx0=(kr.left-cr.left+kr.width*.12)*d,kx1=(kr.right-cr.left-kr.width*.12)*d,ky0=(kr.top-cr.top+(R*2.4/d))*d;
   nodes.forEach(p=>{if(!p.n.you&&p.x>kx0&&p.x<kx1&&p.y>ky0){p.x=p.x<cx?kx0-(p.x-kx0<0?0:(cx-p.x)*.35)-30*d:kx1+(p.x-cx)*.35+30*d;}});
   // strands
@@ -2056,10 +2167,49 @@ const Strands={raf:0,t0:performance.now(),likes:[],mx:0,my:0,
   for(let k=0;k<3;k++){const a0=time*(k===0?.9:k===1?-.6:.35)+k*2.1,len=k===0?1.6:k===1?.9:.5;g.beginPath();g.arc(cx,cy,R*(.98-k*.16),a0,a0+len);g.strokeStyle=st;g.globalAlpha=k===0?1:.55;g.lineWidth=(k===0?9:5)*d*(R/(60*d));g.lineCap="round";g.stroke();g.globalAlpha=1;}
   g.beginPath();g.arc(cx,cy,R*.98,0,7);g.strokeStyle="rgba(14,17,20,.08)";g.lineWidth=9*d*(R/(60*d));g.stroke();
   const pulse=1+Math.sin(time*2.2)*.06;g.beginPath();g.arc(cx,cy,R*.3*pulse,0,7);g.fillStyle=st;g.fill();}};
-function leaveStrand(){if(!RUN)return;SAVE.strands=SAVE.strands||[];const likes=3+hashS(RUN.idea)%19;SAVE.strands.push({title:(RUN.insp&&RUN.insp.title)||RUN.idea.slice(0,24),end:RUN.end,at:new Date().toISOString(),likes,sim:true});persist();
- const b=$("#e-strand");b.disabled=true;const r=b.getBoundingClientRect();SFX.play("like");
+async function leaveStrand(){
+ if(!RUN)return {ok:false};
+ SAVE.strands=SAVE.strands||[];
+ const b=$("#e-strand");
+ const r=b.getBoundingClientRect();
+ const title=String((RUN.insp&&RUN.insp.title)||RUN.idea||"LEDRING Build").trim().slice(0,80);
+ const brief=String((RUN.insp&&RUN.insp.brief)||RUN.idea||"LEDRING Build").trim().slice(0,280);
+ const ending=RUN.end||"SHIPPED";
+ const sigs=[...new Set(((RUN.steps||[]).map(s=>String(s&&s.signature||"").trim()).filter(s=>/^[a-z0-9:-]{1,40}$/i.test(s))))].slice(0,8);
+ if(STRANDS_URL){
+  try{
+   const traceHash=await hashTraceHex(traceJSON());
+   const resp=await fetch(`${STRANDS_URL.replace(/\/$/,"")}/strands`,{
+    method:"POST",
+    headers:{"content-type":"application/json"},
+    body:JSON.stringify({traceHash,title,ending,brief,signatures:sigs,lang:LANG==="zh"?"zh":"en",optIn:true,deviceKey:getDeviceKey()})
+   });
+   if(resp.status===422){
+    toast(T.strandModeration,2600);
+    return {ok:false,status:422,simulated:false};
+   }
+   if(resp.status===201){
+    const j=await resp.json();
+    SAVE.strands.push({id:j.id,bucket:j.bucket,title:title.slice(0,24),end:ending,at:new Date().toISOString(),likes:0,sim:false});
+    persist();
+    b.disabled=true;b.dataset.simulated="false";b.dataset.strandId=j.id||"";
+    SFX.play("like");
+    Motion.burst(r.left+r.width/2,r.top,{n:6,color:COL.calm,dist:60,size:8,grav:-90,angle:-Math.PI/2,spread:1.2});
+    toast(fill(T.strandLeftLive,{n:0}),2600);
+    b.innerHTML=`◇ ♥ <span class="num">0</span>`;
+    await syncStrands(brief);
+    return {ok:true,simulated:false,id:j.id,bucket:j.bucket,likes:0};
+   }
+  }catch(e){}
+ }
+ const likes=3+hashS(RUN.idea)%19;
+ SAVE.strands.push({title:title.slice(0,24),end:ending,at:new Date().toISOString(),likes,sim:true});persist();
+ b.disabled=true;b.dataset.simulated="true";delete b.dataset.strandId;
+ SFX.play("like");
  for(let i=0;i<Math.min(likes,12);i++)setTimeout(()=>{Motion.burst(r.left+r.width*Math.random(),r.top,{n:2,color:COL.calm,dist:60,size:8,grav:-90,angle:-Math.PI/2,spread:1.2});if(i%2==0)SFX.play("like");},i*70);
- toast(fill(T.strandLeft,{n:likes}),2600);b.innerHTML=`◇ ♥ <span class="num">0</span> <small>(${T.strandSim})</small>`;Motion.count(b.querySelector(".num"),likes,900);}
+ toast(fill(T.strandLeft,{n:likes}),2600);b.innerHTML=`◇ ♥ <span class="num">0</span> <small>(${T.strandSim})</small>`;Motion.count(b.querySelector(".num"),likes,900);
+ return {ok:true,simulated:true,likes};
+}
 /* ================= UI ================= */
 const MODES=[["chatgpt","modeChatgpt"],["demo","modeDemo"],["openai","modeOpenai"],["anthropic","modeAnth"],["ollama","modeOllama"]];
 let BSTAT=null;
@@ -2387,7 +2537,7 @@ function paintRm(){const b=$("#rm-btn");if(b){b.textContent=RM?T.motionOff:T.mot
 $("#rm-btn").onclick=()=>Motion.toggleReduced();paintRm();
 $("#sfx").onclick=()=>SFX.set(!SFX.on);paintSfx();
 $("#e-strand").onclick=leaveStrand;
-$("#strandtag").textContent=fill(T.strandTag,{n:GHOSTS.length});Strands.start();
+paintStrandTag();Strands.start();
 $("#m-how").onclick=()=>toast(T.howText,7000);
 $("#ms-back").onclick=()=>{paintMenu();show("menu");};
 $("#i-go").onclick=startIdea;$("#ideacard").onclick=e=>{if(e.target.id!=="i-go")$("#idea-in").focus();};
@@ -2402,7 +2552,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";

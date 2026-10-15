@@ -11,6 +11,7 @@ import {
 import { fetchTrends, hackerNews, modelWebSearch } from "../../play-providers/src/trends.js";
 import { scanHtml, scanPlan } from "@ledring/play-risk";
 import { DEGRADED_JUDGE_NOTICE, DEGRADED_JUDGE_NOTICE_ZH, withHarness } from "@ledring/play-sandbox";
+import { briefBucket, nearBuckets } from "@ledring/play-strands";
 import { PLAY_TOKENS } from "./tokens.js";
 import { MOTION_TOKENS, createMotionEngine, type MotionEngine } from "./motion.js";
 import "./tokens.css";
@@ -36,6 +37,8 @@ declare global {
     __ledringFetchTrends?: typeof fetchTrends;
     __ledringHackerNews?: typeof hackerNews;
     __ledringModelWebSearch?: typeof modelWebSearch;
+    __ledringBriefBucket?: typeof briefBucket;
+    __ledringNearBuckets?: typeof nearBuckets;
   }
 }
 
@@ -57,3 +60,5 @@ window.__ledringInspirationRun = inspirationRun;
 window.__ledringFetchTrends = fetchTrends;
 window.__ledringHackerNews = hackerNews;
 window.__ledringModelWebSearch = modelWebSearch;
+window.__ledringBriefBucket = briefBucket;
+window.__ledringNearBuckets = nearBuckets;
