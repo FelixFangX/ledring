@@ -4,11 +4,11 @@
 <style>
 :root{
  --bg:#EEF1F3;--bg2:#E4E8EB;--panel:#FFFFFF;--ink:#0E1114;--ink2:#5A6168;--ink3:#949BA1;--line:#D4DADE;--line2:#BAC2C8;
- --calm:#1E63E9;--proc:#E8A50A;--crit:#E01E2B;--ok:#1C9D54;--cyan:#06B6D4;
- --sans:'Helvetica Neue',Arial,sans-serif;--mono:ui-monospace,Menlo,Consolas,monospace;
+ --calm:#1E63E9;--proc:#E8A50A;--crit:#E01E2B;--ok:#1C9D54;
+ --sans:'Archivo','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
  --t:cubic-bezier(.2,.8,.2,1);
 }
-html:lang(zh-CN){--sans:'PingFang SC','Microsoft YaHei','Noto Sans SC',sans-serif}
+html:lang(zh-CN){--sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif}
 html:lang(zh-CN) body{line-height:1.7;text-spacing-trim:normal;text-autospace:normal}
 html:lang(zh-CN) .huge,html:lang(zh-CN) .big,html:lang(zh-CN) h1,html:lang(zh-CN) h2{letter-spacing:0}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -28,7 +28,7 @@ html:lang(zh-CN) .cap{letter-spacing:.02em;text-transform:none}
 .scene.on{opacity:1;transform:none;pointer-events:auto}
 /* top bar */
 .hud{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:40;
- border-bottom:1px solid var(--line);background:rgba(255,255,255,.7);backdrop-filter:blur(6px)}
+ border-bottom:1px solid var(--line);background:rgba(255,255,255,.94)}
 .hud .brand{font:800 15px var(--sans);letter-spacing:.02em;display:flex;align-items:center;gap:9px}
 .hud .brand .d{width:9px;height:9px;border-radius:50%;background:var(--calm);box-shadow:0 0 0 3px color-mix(in srgb,var(--calm) 22%,transparent)}
 .hud .mid{font-family:var(--mono);font-size:11px;color:var(--ink2);letter-spacing:.06em}
@@ -114,7 +114,7 @@ pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .steplabel{font:600 11px var(--mono);color:var(--ink2);letter-spacing:.08em}
 /* ---------- CHOICE / QTE ---------- */
 #choicelayer{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
- background:rgba(230,234,237,.55);backdrop-filter:blur(3px) saturate(.7)}
+ background:rgba(230,234,237,.84)}
 #choicelayer.on{display:flex}
 .stage.slowmo .scene.on{filter:saturate(.6) brightness(1.02)}
 .qbox{background:#fff;border:2px solid var(--ink);border-radius:12px;padding:26px 28px;width:min(560px,86%);box-shadow:0 24px 60px -18px rgba(14,17,20,.45);transform:scale(.9);opacity:0;transition:transform .3s var(--t),opacity .3s}
@@ -432,7 +432,8 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}}
 html.rm *,html.rm *::before,html.rm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}
 html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:none}
-</style>  <script type="module" crossorigin src="./assets/index-BTuqo6_u.js"></script>
+</style>  <script type="module" crossorigin src="./assets/index-Bby-ji8F.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-3IYS3jOk.css">
 </head>
 <style>
 /* ===== v7 wow layer ===== */
@@ -610,6 +611,21 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
   </div>
  </div>
  <div class="small" id="e-unlocks"></div>
+</div></section>
+
+<!-- COMPONENT GALLERY -->
+<section class="scene" id="gallery"><div class="gal-wrap">
+ <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+  <div><div class="eye" id="gal-eye">DESIGN SYSTEM · V1</div><h2 class="huge" style="font-size:clamp(28px,4vw,40px);margin:4px 0 0" id="gal-title">Component Gallery</h2></div>
+  <button class="btn ghost sm" id="gal-back">← Menu</button>
+ </div>
+ <div class="gal-swatches" id="gal-swatches"></div>
+ <div class="gal-grid">
+  <div class="gal-card" id="gal-rings-card"><div class="cap" id="gal-rings-cap">LED RING STATES</div><div class="gal-rings"><div class="gal-ring-item"><svg class="ring" id="gal-ring-calm" viewBox="0 0 62 62"></svg><span style="color:var(--calm)">● CALM</span></div><div class="gal-ring-item"><svg class="ring" id="gal-ring-proc" viewBox="0 0 62 62"></svg><span style="color:var(--proc)">● PROCESSING</span></div><div class="gal-ring-item"><svg class="ring" id="gal-ring-crit" viewBox="0 0 62 62"></svg><span style="color:var(--crit)">● CRITICAL</span></div></div></div>
+  <div class="gal-card" id="gal-btns-card"><div class="cap" id="gal-btns-cap">BUTTONS</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn solid" id="gal-btn-solid">▶ Solid</button><button class="btn" id="gal-btn-def">Default</button><button class="btn ghost" id="gal-btn-ghost">Ghost</button><button class="btn" disabled id="gal-btn-dis">Disabled</button></div></div>
+  <div class="gal-card" id="gal-meter-card"><div class="cap" id="gal-meter-cap">METER &amp; TOAST</div><div class="meter" style="margin:0"><div class="mtop"><span class="cap">INSTABILITY</span><span class="num">42</span></div><div class="gal-bar"><span class="gal-bar-fill"></span><span class="gal-bar-thr"></span></div></div><button class="btn ghost sm" id="gal-toast-btn">Trigger Toast</button></div>
+ </div>
+ <div class="gal-card" id="gal-log-card"><div class="cap" id="gal-log-cap">LOG STREAM</div><div style="display:flex;flex-direction:column;gap:4px"><div class="logln" style="opacity:1;transform:none;animation:none"><span class="t mono">01</span><span><b>CX-417</b> reads the idea, writes a plan</span></div><div class="logln s" style="opacity:1;transform:none;animation:none"><span class="t mono">02</span><span><b>CX-417</b> v1 done · 142 lines · new</span></div><div class="logln w" style="opacity:1;transform:none;animation:none"><span class="t mono">03</span><span><b>CX-417</b> BLOCKED — network call. agent must remove it</span></div></div></div>
 </div></section>
 
 <!-- MODEL DRAWER -->
@@ -1886,8 +1902,24 @@ let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0)
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
 window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,setCode(html){CODE.html=html;renderCode();}};
 /* boot */
-paintStatic();paintMenu();paintHints();ringSVG($("#runring"),"calm");
-if(P.get("idea")){const k=P.get("idea");if(PRESETS[k]&&usesRecorded())playRun(PRESETS[k][LANG],k);else{paintIdea();$("#idea-in").value=PRESETS[k]?PRESETS[k][LANG]:k;startIdea();}}
+function paintGallery(){
+ const zh=LANG==="zh";
+ $("#gal-eye").textContent=zh?"设计规范 · V1":"DESIGN SYSTEM · V1";
+ $("#gal-title").textContent=zh?"组件画廊":"Component Gallery";
+ $("#gal-back").textContent=zh?"← 菜单":"← Menu";
+ $("#gal-rings-cap").textContent=zh?"指示环状态":"LED RING STATES";
+ $("#gal-btns-cap").textContent=zh?"按钮":"BUTTONS";
+ $("#gal-meter-cap").textContent=zh?"仪表与提示":"METER & TOAST";
+ $("#gal-log-cap").textContent=zh?"运行日志":"LOG STREAM";
+ const sw=[["bg","#EEF1F3"],["panel","#FFFFFF"],["ink","#0E1114"],["ink2","#5A6168"],["calm","#1E63E9"],["proc","#E8A50A"],["crit","#E01E2B"],["ok","#1C9D54"]];
+ $("#gal-swatches").innerHTML=sw.map(([k,v])=>`<div class="gal-swatch" data-token="${k}"><i style="background:${v}"></i><span>--${k} · ${v}</span></div>`).join("");
+ ringSVG($("#gal-ring-calm"),"calm");ringSVG($("#gal-ring-proc"),"proc");ringSVG($("#gal-ring-crit"),"crit");
+}
+$("#gal-back").onclick=()=>{paintMenu();show("menu");};
+$("#gal-toast-btn").onclick=()=>toast("<span class='up'>▲ </span>"+T.tTrustUp+" +6",1400);
+paintStatic();paintMenu();paintHints();ringSVG($("#runring"),"calm");paintGallery();
+if(P.has("gallery")||P.get("scene")==="gallery"){paintGallery();show("gallery");}
+else if(P.get("idea")){const k=P.get("idea");if(PRESETS[k]&&usesRecorded())playRun(PRESETS[k][LANG],k);else{paintIdea();$("#idea-in").value=PRESETS[k]?PRESETS[k][LANG]:k;startIdea();}}
 else if(P.get("scene")==="idea"){paintIdea();show("missions");}
 else if(P.get("scene")==="insp")startInsp(true);
 if(P.has("drawer"))setTimeout(openDrawer,300);
