@@ -407,6 +407,7 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
           "cache-control": "no-store",
           "x-accel-buffering": "no",
         });
+        res.flushHeaders();
         await pipe(session, start, res);
         await task;
         finishLog(200);
@@ -417,6 +418,7 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
         const from = Number(url.searchParams.get("from") ?? "0");
         const start = session.events.findIndex((event) => event.id > from);
         res.writeHead(200, { "content-type": "text/event-stream; charset=utf-8", "cache-control": "no-store" });
+        res.flushHeaders();
         await pipe(session, start === -1 ? session.events.length : start, res);
         finishLog(200);
         return;
