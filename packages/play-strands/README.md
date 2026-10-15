@@ -37,3 +37,38 @@ npx wrangler deploy
 `schema.sql` is the whole schema. Do not add an embedding column. The placeholder database id will refuse to deploy, which is intentional until the create step above has been run.
 
 The worker is deployed as `strands` at https://strands.ledring.workers.dev, and Play uses it by default: strands are server-backed out of the box. The `?strandsUrl=` query parameter, `window.__LEDRING_STRANDS_URL__`, and the saved localStorage value still override it. Play falls back to labelled simulated strands only when the server is unreachable or returns no strands. `strands.ledring.workers.dev` is the only external host Play's offline tests allow.
+
+## Free AI (`POST /ai/chat`)
+
+Play's default provider, LEDRING Free AI, calls this route. The worker uses the Workers AI binding. There is no API key in the repo, in the request, or in D1. Prompts are not stored. The actor stored for the counter is a SHA-256 prefix, never the raw address.
+
+`wrangler.toml` contains:
+
+```toml
+[ai]
+binding = "AI"
+```
+
+Model: `@cf/openai/gpt-oss-120b`. Checked on 2026-10-15 against the Workers AI catalog: it is Cloudflare-hosted, it is not on the paid-only list (that list was Kimi K2.6, Kimi K2.7 Code, and GLM 5.2), and the published price is 31,818 neurons per million input tokens and 68,182 neurons per million output tokens. Workers Free includes 10,000 neurons per day. This route therefore caps each reply at 2,048 tokens, each address at 12 requests per day, and the whole worker at 40 requests per day. Past either cap it returns `429` and does not call the model:
+
+- per address: `error.code` `rate_limited`
+- shared daily quota, or a Workers AI failure: `error.code` `quota_exhausted`
+
+The body is an OpenAI chat request (`messages`, optional `max_tokens`, optional `temperature`). The response is OpenAI-compatible SSE (`choices[0].delta.content`, then `data: [DONE]`). The client model id is ignored; the worker always runs `@cf/openai/gpt-oss-120b`. Bodies over 48,000 bytes, or message text over 24,000 characters, return `413`.
+
+CORS allows `https://felixfangx.github.io`, plus `http://localhost` and `http://127.0.0.1` on any port (https on those hosts too). Any other `Origin` gets `403` and no `Access-Control-Allow-Origin`. Strand routes stay `*`.
+
+## Deploy Free AI (on your machine, after merge)
+
+CI does not deploy. The D1 database id in `wrangler.toml` is already filled in. From the repo root, with Node 20+:
+
+```sh
+pnpm install
+pnpm --filter @ledring/play-risk build
+pnpm --filter @ledring/play-strands build
+cd packages/play-strands
+npx wrangler login
+npx wrangler deploy
+```
+
+The `[ai]` binding needs no secret. Workers AI has to be available on the account. Keep the worker name `strands` so https://strands.ledring.workers.dev serves both `/strands` and `/ai/chat`. Re-run `npx wrangler d1 execute ledring-play-strands --remote --file=schema.sql` only when the database is new; the quota counter reuses `strand_quotas`.

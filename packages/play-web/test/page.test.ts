@@ -40,7 +40,7 @@ describe("play page", () => {
     }
   });
 
-  it("includes the first-run onboarding flow with all 5 providers, local bridge command, SIWC gate, and literary zh copy", () => {
+  it("includes the first-run onboarding flow with LEDRING Free AI preselected, BYOK, the bridge, SIWC, and literary zh copy", () => {
     for (const id of [
       "onboard",
       "ob-cards",
@@ -64,5 +64,21 @@ describe("play page", () => {
     expect(html).toContain("敬请期待");
     expect(html).toContain("临阵校准 · 心智接引");
     expect(html).toContain("为 CX-417 择定心智之源。");
+  });
+
+  it("defaults to LEDRING Free AI and does not call /ai/chat until streamChat", () => {
+    expect(html).toContain('mode:"ledring"');
+    expect(html).toContain('return "ledring"');
+    expect(html).toContain("LEDRING Free AI");
+    expect(html).toContain("LEDRING 无偿心智");
+    expect(html).toContain('root+"/ai/chat"');
+    expect(html).toContain("T.obQuota");
+    expect(html).toContain("今日无偿额度已尽");
+    expect(html).not.toContain("FREE_PRESETS");
+    expect(html).not.toContain("ob-presets");
+    expect(html).not.toContain("activeBridgePreset");
+    const boot = html.slice(html.lastIndexOf("/* boot */"));
+    expect(boot).not.toContain("streamChat");
+    expect(boot).not.toContain("/ai/chat");
   });
 });

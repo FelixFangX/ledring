@@ -485,9 +485,11 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
           finishLog(400);
           return;
         }
+        const provider = providers[parsed.data.provider];
+        const stepSecrets = secrets;
         const start = session.events.length;
         session.done = false;
-        const task = runStep(session, providers[parsed.data.provider], parsed.data, secrets);
+        const task = runStep(session, provider, parsed.data, stepSecrets);
         res.writeHead(200, {
           "content-type": "text/event-stream; charset=utf-8",
           "cache-control": "no-store",

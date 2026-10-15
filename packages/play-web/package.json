@@ -2,7 +2,7 @@
   "name": "@ledring/play-web",
   "private": true,
   "version": "0.1.0",
-  "description": "LEDRING Play in the browser. Demo is a labelled synthetic cassette. Live runs use a bring-your-own key.",
+  "description": "LEDRING Play in the browser. The default is LEDRING Free AI on the strands worker. Demo is a labelled synthetic cassette. Bring-your-own-key and the local bridge remain available.",
   "license": "MIT",
   "type": "module",
   "scripts": {

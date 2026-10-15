@@ -3,6 +3,11 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ENDING_IDS as CORE_ENDINGS } from "@ledring/play-core";
 import {
+  AI_GLOBAL_DAY_LIMIT,
+  AI_IP_DAY_LIMIT,
+  AI_MAX_BODY_BYTES,
+  AI_MAX_TOKENS,
+  AI_MODEL,
   ENDING_IDS,
   LIKE_DEVICE_LIMIT,
   LIST_LIMIT,
@@ -17,6 +22,7 @@ import {
   type D1Database,
   type D1Prepared,
   type StrandStore,
+  type WorkersAi,
 } from "@ledring/play-strands";
 
 const DEVICE = "device-key-1";
@@ -161,6 +167,151 @@ describe("strands worker", () => {
     expect(readme).toContain("no pgvector");
     expect(schema.toLowerCase()).not.toMatch(/\b(email|password|ip|html|code|embedding)\b/);
     expect(schema).toContain("CREATE TABLE IF NOT EXISTS strands");
+    const wrangler = readFileSync(fileURLToPath(new URL("../wrangler.toml", import.meta.url)), "utf8");
+    expect(wrangler).toContain('binding = "AI"');
+    expect(readme).toContain("POST /ai/chat");
+    expect(readme).toContain("npx wrangler deploy");
+    expect(readme).toContain(AI_MODEL);
+    expect(readme).toContain("does not deploy");
+  });
+});
+
+describe("free AI chat", () => {
+  const prompt = "do-not-store-this-prompt";
+
+  function sse(chunks: string[]): ReadableStream<Uint8Array> {
+    const encoder = new TextEncoder();
+    return new ReadableStream({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(encoder.encode(chunk));
+        controller.close();
+      },
+    });
+  }
+
+  function ai(chunks: string[], seen: { inputs?: Record<string, unknown>; calls: number } = { calls: 0 }): WorkersAi {
+    return {
+      async run(_model, inputs) {
+        seen.calls += 1;
+        seen.inputs = inputs;
+        return sse(chunks);
+      },
+    };
+  }
+
+  function chat(body: unknown, extra: { origin?: string; ip?: string; method?: string } = {}): Request {
+    const headers = new Headers({ "content-type": "application/json", "cf-connecting-ip": extra.ip ?? IP });
+    if (extra.origin) headers.set("origin", extra.origin);
+    return new Request("https://strands.ledring.test/ai/chat", {
+      method: extra.method ?? "POST",
+      headers,
+      ...(body === undefined ? {} : { body: typeof body === "string" ? body : JSON.stringify(body) }),
+    });
+  }
+
+  const okBody = { messages: [{ role: "user", content: prompt }], max_tokens: 99_999, temperature: 0.6, stream: true };
+
+  it("streams Workers AI text as OpenAI SSE and caps max_tokens", async () => {
+    const seen = { calls: 0 } as { inputs?: Record<string, unknown>; calls: number };
+    const store = memoryStore();
+    const response = await handleStrands(
+      chat(okBody, { origin: "https://felixfangx.github.io" }),
+      store,
+      1_000,
+      ai(['data: {"response":"O"}\n\n', 'data: {"response":"OK"}\n\ndata: [DONE]\n\n'], seen),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("content-type")).toContain("text/event-stream");
+    expect(response.headers.get("access-control-allow-origin")).toBe("https://felixfangx.github.io");
+    const text = await response.text();
+    expect(text).toContain('"content":"O"');
+    expect(text).toContain('"content":"K"');
+    expect(text.trim().endsWith("data: [DONE]")).toBe(true);
+    expect(seen.inputs).toMatchObject({ stream: true, max_tokens: AI_MAX_TOKENS, messages: [{ role: "user", content: prompt }] });
+    expect(seen.inputs && "model" in seen.inputs).toBe(false);
+    expect(await store.persisted()).not.toContain(IP);
+    expect(await store.persisted()).not.toContain(prompt);
+  });
+
+  it("allows localhost and refuses every other origin", async () => {
+    const store = memoryStore();
+    const model = ai(['data: {"choices":[{"delta":{"content":"OK"}}]}\n\n', "data: [DONE]\n\n"]);
+    const local = await handleStrands(chat(okBody, { origin: "http://localhost:4173" }), store, 2_000, model);
+    expect(local.headers.get("access-control-allow-origin")).toBe("http://localhost:4173");
+    const loopback = await handleStrands(chat(okBody, { origin: "http://127.0.0.1:8787", ip: "203.0.113.11" }), store, 2_000, model);
+    expect(loopback.status).toBe(200);
+    expect(loopback.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:8787");
+    const denied = await handleStrands(chat(okBody, { origin: "https://evil.example" }), store, 2_000, model);
+    expect(denied.status).toBe(403);
+    expect(denied.headers.get("access-control-allow-origin")).toBeNull();
+    const preflight = await handleStrands(
+      new Request("https://strands.ledring.test/ai/chat", { method: "OPTIONS", headers: { origin: "https://felixfangx.github.io" } }),
+      store,
+      2_000,
+      model,
+    );
+    expect(preflight.status).toBe(204);
+    expect(preflight.headers.get("access-control-allow-origin")).toBe("https://felixfangx.github.io");
+    expect(preflight.headers.get("access-control-allow-headers")).toContain("content-type");
+    const strands = await handleStrands(new Request("https://strands.ledring.test/strands"), store, 2_000);
+    expect(strands.status).toBe(400);
+    expect(strands.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("rejects an oversized body before calling the model", async () => {
+    const seen = { calls: 0 };
+    const store = memoryStore();
+    const huge = "x".repeat(AI_MAX_BODY_BYTES + 1);
+    const response = await handleStrands(chat(huge), store, 3_000, ai([], seen));
+    expect(response.status).toBe(413);
+    const body = (await response.json()) as { error: { code: string } };
+    expect(body.error.code).toBe("input_too_large");
+    expect(seen.calls).toBe(0);
+  });
+
+  it("rate-limits one address and then the shared daily quota without calling the model", async () => {
+    const seen = { calls: 0 };
+    const store = memoryStore();
+    const model = ai(['data: {"response":"OK"}\n\n'], seen);
+    for (let i = 0; i < AI_IP_DAY_LIMIT; i += 1) {
+      const response = await handleStrands(chat(okBody), store, 4_000, model);
+      expect(response.status).toBe(200);
+    }
+    const limited = await handleStrands(chat(okBody), store, 4_000, model);
+    expect(limited.status).toBe(429);
+    const limitedBody = (await limited.json()) as { error: { code: string; message: string } };
+    expect(limitedBody.error.code).toBe("rate_limited");
+    expect(limitedBody.error.message).toContain("your own key");
+    expect(seen.calls).toBe(AI_IP_DAY_LIMIT);
+
+    let globalCalls = AI_IP_DAY_LIMIT;
+    for (let n = AI_IP_DAY_LIMIT; n < AI_GLOBAL_DAY_LIMIT; n += 1) {
+      const response = await handleStrands(chat(okBody, { ip: `203.0.113.${20 + Math.floor(n / 10)}` }), store, 4_000, model);
+      expect(response.status).toBe(200);
+      globalCalls += 1;
+    }
+    const exhausted = await handleStrands(chat(okBody, { ip: "198.51.100.9" }), store, 4_000, model);
+    expect(exhausted.status).toBe(429);
+    const exhaustedBody = (await exhausted.json()) as { error: { code: string; message: string } };
+    expect(exhaustedBody.error.code).toBe("quota_exhausted");
+    expect(exhaustedBody.error.message).toContain("shared quota");
+    expect(seen.calls).toBe(globalCalls);
+  });
+
+  it("turns a model failure into the shared-quota error and never needs a key", async () => {
+    const store = memoryStore();
+    const failing: WorkersAi = {
+      async run() {
+        throw new Error("neurons exceeded for account");
+      },
+    };
+    const response = await handleStrands(chat(okBody), store, 5_000, failing);
+    expect(response.status).toBe(429);
+    const body = (await response.json()) as { error: { code: string; message: string } };
+    expect(body.error.code).toBe("quota_exhausted");
+    expect(body.error.message).not.toContain("account");
+    const missing = await handleStrands(chat(okBody, { ip: "198.51.100.8" }), store, 5_000);
+    expect(missing.status).toBe(503);
   });
 });
 

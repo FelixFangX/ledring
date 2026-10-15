@@ -11,6 +11,7 @@ import {
   POST_IP_LIMIT,
   STRAND_FIELDS,
 } from "./limits.js";
+import { handleAiChat, type WorkersAi } from "./ai.js";
 import type { Strand, StrandStore } from "./store.js";
 
 const PII = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}|sk-[A-Za-z0-9]{8,}/i;
@@ -136,8 +137,9 @@ async function likeStrand(request: Request, store: StrandStore, id: string, now:
   return json(200, { likes: fresh.likes });
 }
 
-export async function handleStrands(request: Request, store: StrandStore, now = Date.now()): Promise<Response> {
+export async function handleStrands(request: Request, store: StrandStore, now = Date.now(), ai?: WorkersAi): Promise<Response> {
   const url = new URL(request.url);
+  if (url.pathname === "/ai/chat") return handleAiChat(request, store, now, ai);
   if (request.method === "OPTIONS") return json(204, {});
   await store.purge(now);
   if (request.method === "POST" && url.pathname === "/strands") return postStrand(request, store, now);

@@ -342,7 +342,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       });
 
       // Run snake preset through v1 (block red-wall) -> QTE v2 (demand tests) -> QTE v3 (polish)
-      await page.goto(`${site.url}?idea=snake&script=block,tests,polish&fast`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${site.url}?idea=snake&script=block,tests,polish&fast&mode=demo`, { waitUntil: "domcontentloaded" });
       await page.locator("#end.on").waitFor({ state: "visible", timeout: 15_000 });
 
       // Switch back to #run to inspect the completed run state
@@ -420,7 +420,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       // 1. Timer-pause mode (?hold), interrogate (I), keyboard choice (2), and Red Wall (B) + ruleId + ARIA live region
       const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
       const page = await ctx.newPage();
-      await page.goto(`${site.url}?hold&fast`, { waitUntil: "domcontentloaded" });
+      await page.goto(`${site.url}?hold&fast&mode=demo`, { waitUntil: "domcontentloaded" });
       await page.evaluate(() => {
         const w = window as unknown as {
           __ledring: {
@@ -488,7 +488,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       // 2. Reduced motion: hazard bands are hidden and static red border is used
       const ctxRm = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
       const pageRm = await ctxRm.newPage();
-      await pageRm.goto(`${site.url}?rm&hold&fast`, { waitUntil: "domcontentloaded" });
+      await pageRm.goto(`${site.url}?rm&hold&fast&mode=demo`, { waitUntil: "domcontentloaded" });
       await pageRm.evaluate(() => {
         const w = window as unknown as {
           __ledring: {
@@ -775,7 +775,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           await route.abort();
         });
 
-        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&mode=demo`);
         expect(trendHits).toHaveLength(0);
         expect(await page.locator("#in-opts .trend").count()).toBe(0);
 
@@ -1045,7 +1045,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         await page.screenshot({ path: join(diffDir, `strands-live-menu-1280-${lang}.png`) });
 
         // Chapter 0 direction cards omit "(simulated)" when backed by server strands
-        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&strandsUrl=${encodeURIComponent("https://strands.ledring.test")}`);
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&mode=demo&strandsUrl=${encodeURIComponent("https://strands.ledring.test")}`);
         await page.waitForSelector("#in-opts .qopt");
         for (let step = 0; step < 3; step += 1) {
           await page.keyboard.press("1");
@@ -1427,7 +1427,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
             const w = window as unknown as { __ledring: { show: (id: string) => void } };
             w.__ledring.show("insp");
           });
-          await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+          await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&mode=demo`);
           await page.waitForSelector("#in-opts .qopt");
           await checkScene("insp", "#insp");
 
@@ -1510,7 +1510,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
     }
   }, 45_000);
 
-  it("runs first-run onboarding with zero external requests before action, all 5 providers, bridge polling, SIWC gating, live connection test, localStorage persistence, skip, and settings reopen in EN and zh", async () => {
+  it("runs first-run onboarding with zero external requests before action, LEDRING Free AI preselected, BYOK and the bridge, SIWC gating, live connection test, localStorage persistence, skip, and settings reopen in EN and zh", async () => {
     if (!installed) throw new Error("chromium is not installed");
     mkdirSync(diffDir, { recursive: true });
     const site = await serve(playDir);
@@ -1538,17 +1538,20 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         expect(externalBeforeAction).toEqual([]);
         await page.screenshot({ path: join(diffDir, `onboard-initial-1280-${lang}.png`) });
 
-        // Verify all 5 provider cards exist
         const cardIds = await page.locator("#ob-cards .ob-card").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.choice));
-        expect(cardIds).toEqual(["anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo"]);
+        expect(cardIds).toEqual(["ledring", "anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo"]);
+        expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
+        expect(externalBeforeAction.some((url) => url.includes("/ai/chat"))).toBe(false);
 
         if (lang === "zh") {
           expect(await page.locator("#ob-eye").textContent()).toBe("临阵校准 · 心智接引");
           expect(await page.locator("#ob-title").textContent()).toBe("为 CX-417 择定心智之源。");
-          expect(await page.locator("#ob-priv").textContent()).toContain("密钥唯留本机");
+          expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 无偿心智");
+          expect(await page.locator("#ob-priv").textContent()).toContain("无须密钥");
         } else {
           expect(await page.locator("#ob-eye").textContent()).toBe("PRE-FLIGHT · UPLINK CALIBRATION");
           expect(await page.locator("#ob-title").textContent()).toBe("Choose how CX-417 thinks.");
+          expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING Free AI");
           expect(await page.locator("#ob-priv").textContent()).toContain("localStorage");
         }
 
@@ -1701,6 +1704,99 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
 
         await ctx.close();
       }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
+
+  it("calls LEDRING Free AI only after the user tests, shows the quota error, and keeps the demo cassette offline", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      const external: string[] = [];
+      page.on("request", (req) => {
+        const url = new URL(req.url());
+        if (url.protocol.startsWith("http") && url.hostname !== "127.0.0.1" && url.hostname !== "localhost") {
+          external.push(`${req.method()} ${url.host}${url.pathname}`);
+        }
+      });
+      let quota = true;
+      await page.route("https://strands.ledring.workers.dev/ai/chat", async (route) => {
+        const origin = route.request().headers().origin ?? "*";
+        const cors = {
+          "access-control-allow-origin": origin,
+          "access-control-allow-headers": "content-type",
+          "access-control-allow-methods": "POST, OPTIONS",
+        };
+        if (route.request().method() === "OPTIONS") {
+          await route.fulfill({ status: 204, headers: cors, body: "" });
+          return;
+        }
+        if (quota) {
+          await route.fulfill({
+            status: 429,
+            contentType: "application/json",
+            headers: cors,
+            body: JSON.stringify({ error: { message: "shared quota", code: "quota_exhausted" } }),
+          });
+          return;
+        }
+        const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: "OK" } }] })}\n\ndata: [DONE]\n\n`;
+        await route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: sse });
+      });
+
+      await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=en`);
+      await page.waitForSelector("#onboard.on");
+      await page.waitForTimeout(150);
+      expect(external).toEqual([]);
+      expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
+      expect(await page.locator("#ob-fields").isHidden()).toBe(true);
+
+      await page.locator("#ob-test").click();
+      await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
+      expect(await page.locator("#ob-test-status").textContent()).toContain("Try again tomorrow");
+      expect(external.filter((entry) => entry.startsWith("POST"))).toEqual(["POST strands.ledring.workers.dev/ai/chat"]);
+
+      quota = false;
+      await page.locator("#ob-test").click();
+      await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("ok"));
+      expect(await page.locator("#ob-test-status").textContent()).toContain("OK");
+      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("ledring-provider") || "{}"));
+      expect(stored.mode).toBe("ledring");
+      expect(stored.ledring?.key ?? "").toBe("");
+
+      await page.locator('.ob-card[data-choice="demo"]').click();
+      await page.locator("#ob-test").click();
+      expect(await page.locator("#ob-test-status").textContent()).toContain("offline");
+      expect(external.filter((entry) => entry.startsWith("POST"))).toEqual([
+        "POST strands.ledring.workers.dev/ai/chat",
+        "POST strands.ledring.workers.dev/ai/chat",
+      ]);
+
+      await page.locator('.ob-card[data-choice="openai-custom"]').click();
+      expect(await page.locator("#ob-presets").count()).toBe(0);
+      expect(await page.locator("#ob-fields").isVisible()).toBe(true);
+      await page.locator("#ob-base").fill("https://custom.openai.test/v1");
+      expect(await page.locator("#ob-bridge-box").isHidden()).toBe(true);
+
+      await page.setViewportSize({ width: 390, height: 800 });
+      await page.locator('.ob-card[data-choice="ledring"]').click();
+      const chip = await page.locator('.ob-card[data-choice="ledring"]').boundingBox();
+      expect(chip?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+      await page.evaluate(() => localStorage.clear());
+      await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=zh`);
+      await page.waitForSelector("#onboard.on");
+      expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
+      expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 无偿心智");
+      expect(await page.locator("#ob-priv").textContent()).toContain("一万神经元");
+
+      await ctx.close();
     } finally {
       await browser?.close();
       await site.close();
