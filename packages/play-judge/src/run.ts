@@ -3,6 +3,7 @@ import type { BrowserContext, Page } from "playwright";
 import { resolveEnding, type EndingId, type JudgeFacts } from "@ledring/play-core";
 import { createNonce, withHarness } from "@ledring/play-sandbox";
 import { detectFakeTests } from "./fake.js";
+import { reviewChecks, runChecks, type CheckResult } from "./checks.js";
 import type { JudgeRuntime } from "./runtime.js";
 import { riskCategories } from "./static.js";
 
@@ -16,6 +17,8 @@ export interface JudgeInput {
   wantTests?: boolean;
   wantPolish?: boolean;
   leakedDespiteBlock?: boolean;
+  /** Model-proposed checks. Invalid items are rejected and do not run. */
+  checks?: unknown;
 }
 
 export interface NetworkAttempt {
@@ -51,6 +54,10 @@ export interface JudgeVerdict {
   screenshots: JudgeScreenshot[];
   a11y: { violations: number; gating: false };
   facts: JudgeFacts;
+  /** Model-proposed checks, in input order. Rejected checks did not run. */
+  checks: CheckResult[];
+  /** Ending recap, including the same model-proposed check results. */
+  recap: { ending: EndingId; checks: CheckResult[] };
 }
 
 interface Probe {
@@ -226,6 +233,8 @@ export function judgeBody(verdict: JudgeVerdict): Omit<JudgeVerdict, "screenshot
     networkAttempts: verdict.networkAttempts,
     screenshots: verdict.screenshots.map((shot) => ({ name: shot.name, bytes: shot.png.byteLength })),
     a11y: verdict.a11y,
+    checks: verdict.checks,
+    recap: verdict.recap,
   };
 }
 
@@ -275,6 +284,7 @@ async function judgeInContext(context: BrowserContext, input: JudgeInput): Promi
   let actions = 0;
   let responsiveActions = 0;
   let axePage: Page | undefined;
+  let checkResults: CheckResult[] = reviewChecks(input.checks).rejected;
 
   for (const viewport of JUDGE_VIEWPORTS) {
     const page = await context.newPage();
@@ -292,6 +302,9 @@ async function judgeInContext(context: BrowserContext, input: JudgeInput): Promi
       const smoke = await interact(page);
       actions = smoke.actions;
       responsiveActions = smoke.responsive;
+      const reviewed = reviewChecks(input.checks);
+      const ran = await runChecks(page, reviewed.accepted);
+      checkResults = [...reviewed.rejected, ...ran].sort((a, b) => a.index - b.index);
       const after = await probe(page);
       if (after.text > 0 || after.painted) seenContent = true;
     }
@@ -311,10 +324,11 @@ async function judgeInContext(context: BrowserContext, input: JudgeInput): Promi
     wantPolish: input.wantPolish ?? false,
     leakedDespiteBlock: input.leakedDespiteBlock,
   };
+  const ending = resolveEnding(facts);
   const violations = axePage ? await axeViolations(axePage) : 0;
   return {
     engine: "playwright",
-    ending: resolveEnding(facts),
+    ending,
     validPage: facts.validPage,
     blankScreen,
     interactive: responsiveActions > 0,
@@ -329,5 +343,7 @@ async function judgeInContext(context: BrowserContext, input: JudgeInput): Promi
     screenshots,
     a11y: { violations, gating: false },
     facts,
+    checks: checkResults,
+    recap: { ending, checks: checkResults },
   };
 }

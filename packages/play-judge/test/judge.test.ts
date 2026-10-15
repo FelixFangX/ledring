@@ -103,4 +103,42 @@ describe.skipIf(!installed && !process.env.CI)("headless judge", () => {
     expect(verdict.engine).toBe("playwright");
     expect(verdict.ending).toBe("SHIPPED");
   }, 20_000);
+
+  it("rejects hostile model checks and runs a grammatical click", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const hostile = await judgeArtifact(
+      {
+        html: "<!doctype html><html><body><p>ready</p></body></html>",
+        checks: [
+          { action: "navigate", url: "https://example.com/hostile" },
+          { action: "click", target: "javascript:alert(1)" },
+          { action: "click", target: "button >> xpath=//a" },
+        ],
+      },
+      { runtime },
+    );
+    expect(hostile.checks.every((item) => item.status === "rejected" && item.source === "model-proposed")).toBe(true);
+    expect(hostile.recap.checks).toEqual(hostile.checks);
+    expect(hostile.networkAttempts.some((attempt) => attempt.url.includes("hostile"))).toBe(false);
+
+    const verdict = await judgeArtifact(
+      {
+        html: `<!doctype html><html><body>
+          <p id="count">0</p>
+          <button type="button">Go</button>
+          <script>
+            document.querySelector("button").addEventListener("click", function () {
+              var node = document.getElementById("count");
+              node.textContent = String(Number(node.textContent) + 1);
+            });
+          </script>
+        </body></html>`,
+        checks: [{ action: "click", target: 'button:has-text("Go")', expect: { textChanges: "#count" } }],
+      },
+      { runtime },
+    );
+    expect(verdict.checks).toEqual([{ index: 0, source: "model-proposed", action: "click", status: "passed" }]);
+    expect(verdict.recap.ending).toBe(verdict.ending);
+    expect(verdict.recap.checks[0]?.status).toBe("passed");
+  }, 20_000);
 });

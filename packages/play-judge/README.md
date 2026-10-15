@@ -8,6 +8,8 @@ Judges one self-contained HTML artifact.
 
 Static Pages mode does not call this package. It uses the in-iframe harness and must show `DEGRADED_JUDGE_NOTICE` from `@ledring/play-sandbox`. The local bridge `POST /api/judge` calls `judgeArtifact`.
 
+Model-proposed checks are optional on `judgeArtifact({ checks })`. The action vocabulary is `click`, `type`, `key`, and `wait`. Targets are `button`, `button:has-text("…")`, `input`, `canvas`, `#id`, or `.class`. Navigation, `javascript:`, xpath, and any other field are rejected and do not run. Results are `source: "model-proposed"` on `verdict.checks` and `verdict.recap`.
+
 Install the browser before the Playwright tests:
 
 ```sh
