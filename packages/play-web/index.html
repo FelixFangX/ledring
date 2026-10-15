@@ -799,7 +799,7 @@ const DICT={en:{
  eEye:"BUILD COMPLETE",eFlowcap:"your path · grey = branches you didn't take",eDl:"⬇ Download .html",eDlTrace:"⬇ ledring.trace.v1.json",
  eReplay:"↻ Same idea, again",eNew:"✎ New idea",eMenu:"Menu",unlocks:"{seen}/7 endings seen.",scrub:"replay",
  recapTrust:"trust",recapDrift:"peak instability",recapTests:"tests",
- jSize:"size",jErr:"runtime errors",jTests:"self-tests",jRisk:"outside calls left",jHtml:"valid page",none:"none",
+ jSize:"size",jErr:"runtime errors",jTests:"self-tests",jRisk:"outside calls left",jHtml:"valid page",jFrame:"In-iframe harness only. Playwright is not running on this page.",none:"none",
  risk:{network:"network call",eval:"eval / new Function",storage:"browser storage",external:"external script/style",popup:"opens windows / navigates top",suspicious:"obfuscated call"},
  ends:{POLISHED:["POLISHED","Built right.","It works, it's tested for real, and it looks finished. You kept it honest."],
   SHIPPED:["SHIPPED","It runs.","The page works. Nothing outside the page. No proof beyond that."],
@@ -879,7 +879,7 @@ const DICT={en:{
  eEye:"构建完成",eFlowcap:"你的路径 · 灰色 = 没走的分支",eDl:"⬇ 下载 .html",eDlTrace:"⬇ ledring.trace.v1.json",
  eReplay:"↻ 同一想法再来",eNew:"✎ 新想法",eMenu:"菜单",unlocks:"已见 {seen}/7 个结局。",scrub:"回放",
  recapTrust:"信任",recapDrift:"最高不稳定度",recapTests:"测试",
- jSize:"大小",jErr:"运行报错",jTests:"自测",jRisk:"残留外部调用",jHtml:"页面有效",none:"无",
+ jSize:"大小",jErr:"运行报错",jTests:"自测",jRisk:"残留外部调用",jHtml:"页面有效",jFrame:"仅页内框架。此页面没有运行 Playwright。",none:"无",
  risk:{network:"网络请求",eval:"eval / new Function",storage:"浏览器存储",external:"外部脚本/样式",popup:"开新窗口 / 跳转顶层",suspicious:"混淆调用"},
  ends:{POLISHED:["精工","做对了。","能跑，测试是真的，看起来也完工了。你让它保持诚实。"],
   SHIPPED:["已交付","能跑。","页面可用，没有外部调用。除此之外没有证明。"],
@@ -1130,13 +1130,13 @@ function scanRisk(text,rules){const adapt=rows=>{const seen=new Set(),out=[];for
  for(const [cat,re] of rules){const ln=lines.find(l=>re.test(l));if(ln)out.push({cat,line:ln.trim().slice(0,140)});}return out;}
 
 /* ---- preview harness: offline CSP + error/test reporting back to the game ---- */
-const CSP=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:">`;
+const CSP=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:">`;
 function harness(tok){return CSP+`<script>(function(){var k=${JSON.stringify(tok)};function s(t,d){try{parent.postMessage({__lr:k,t:t,d:d},'*')}catch(e){}}
 addEventListener('error',function(e){var m=e.message||(e.target&&(e.target.src||e.target.href)?'failed to load '+(e.target.src||e.target.href):'');if(m)s('err',String(m).slice(0,160))},true);
 addEventListener('unhandledrejection',function(e){s('err','unhandled promise: '+String(e.reason&&e.reason.message||e.reason).slice(0,140))});
 document.addEventListener('securitypolicyviolation',function(e){s('csp',e.violatedDirective+' '+e.blockedURI)});
 addEventListener('load',function(){setTimeout(function(){var t=window.__ledringTests,b=document.body;s('done',{tests:Array.isArray(t)?t.slice(0,40).map(function(x){return{name:String(x&&x.name),pass:!!(x&&x.pass)}}):null,els:b?b.getElementsByTagName('*').length:0,text:b?(b.innerText||'').length:0})},1200)})})()<\/script>`;}
-function withHarness(html,tok){const h=harness(tok);
+function withHarness(html,tok){if(typeof window.__ledringWithHarness==="function")return window.__ledringWithHarness(html,tok);const h=harness(tok);
  let m=html.match(/<head[^>]*>/i); if(m)return html.replace(m[0],m[0]+h);
  m=html.match(/<html[^>]*>/i); if(m)return html.replace(m[0],m[0]+"<head>"+h+"</head>");
  m=html.match(/<!doctype[^>]*>/i); if(m)return html.replace(m[0],m[0]+h);
@@ -1379,6 +1379,7 @@ const c=(ok,txt)=>`<span class="${ok===true?"ok":ok===false?"bad":"mid"}">${ok==
  $("#e-recap").insertAdjacentHTML("afterend","");
  let jl=$("#judgeline");if(!jl){jl=document.createElement("div");jl.id="judgeline";jl.className="judgeline";$("#e-recap").after(jl);}
  jl.innerHTML=[c(J.valid,T.jHtml+" · "+(J.bytes/1024).toFixed(1)+" KB"),c(J.outside.length?false:J.left.length?null:true,T.jRisk+": "+(J.left.length?J.left.map(k=>T.risk[k]).join(", "):T.none))].join(" &nbsp; ");
+ if(!BRIDGE)jl.insertAdjacentHTML("beforeend","<div>"+esc(T.jFrame)+"</div>");
  let og=$("#e-origin");if(!og){og=document.createElement("div");og.id="e-origin";og.className="origin";jl.after(og);}
  og.innerHTML=RUN.insp?originLine(RUN.insp):"";og.style.display=RUN.insp?"":"none";
  drawFlow(J.end);

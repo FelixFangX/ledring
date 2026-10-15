@@ -14,8 +14,18 @@ import {
   type Delta,
   type Provider,
 } from "@ledring/play-providers";
+import { JudgeRuntime, JudgeUnavailableError, judgeArtifact, judgeBody } from "@ledring/play-judge";
 import { z } from "zod";
 import { providerSecrets, type BridgeConfig } from "./config.js";
+
+const judgeSchema = z
+  .object({
+    html: z.string().max(1_500_000),
+    wantTests: z.boolean().optional(),
+    wantPolish: z.boolean().optional(),
+    leakedDespiteBlock: z.boolean().optional(),
+  })
+  .strict();
 
 const stepSchema = z.object({
   provider: z.enum(["demo", "openai-compat", "anthropic", "ollama", "chatgpt-plan"]),
@@ -58,6 +68,8 @@ export interface StartBridgeOptions {
   sleep?: (ms: number) => Promise<void>;
   open?: (url: string) => void;
   siwc?: { enabled?: boolean; authBase?: string; apiBase?: string; home?: string };
+  /** Closed when the bridge closes. Defaults to a runtime owned by this process. */
+  judgeRuntime?: JudgeRuntime;
 }
 
 const PAGE = `<!doctype html>
@@ -143,13 +155,13 @@ function originAllowed(origin: string | undefined, port: number): boolean {
   return origin === `http://127.0.0.1:${port}` || origin === `http://localhost:${port}`;
 }
 
-async function readBody(req: IncomingMessage): Promise<string> {
+async function readBody(req: IncomingMessage, max = 1_000_000): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
   for await (const chunk of req) {
     const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
     size += buf.length;
-    if (size > 1_000_000) throw new Error("body too large");
+    if (size > max) throw new Error("body too large");
     chunks.push(buf);
   }
   return Buffer.concat(chunks).toString("utf8");
@@ -225,6 +237,7 @@ async function runStep(session: Session, provider: Provider, input: z.infer<type
 
 export async function startBridge(opts: StartBridgeOptions = {}): Promise<BridgeHandle> {
   const token = opts.token ?? randomBytes(24).toString("hex");
+  const judgeRuntime = opts.judgeRuntime ?? new JudgeRuntime();
   const config = opts.config ?? {};
   const secrets = [token, ...providerSecrets(config)];
   const siwc = createSiwc({
@@ -403,8 +416,32 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
       }
 
       if (method === "POST" && pathname === "/api/judge") {
-        send(res, 501, { error: "judge is not running in this process" });
-        finishLog(501);
+        const parsed = judgeSchema.safeParse(JSON.parse((await readBody(req, 1_500_000)) || "{}"));
+        if (!parsed.success) {
+          send(res, 400, { error: "invalid request" });
+          finishLog(400);
+          return;
+        }
+        try {
+          const verdict = await judgeArtifact(
+            {
+              html: parsed.data.html,
+              wantTests: parsed.data.wantTests ?? false,
+              wantPolish: parsed.data.wantPolish ?? false,
+              leakedDespiteBlock: parsed.data.leakedDespiteBlock ?? false,
+            },
+            { runtime: judgeRuntime },
+          );
+          send(res, 200, judgeBody(verdict));
+          finishLog(200);
+        } catch (error) {
+          const unavailable = error instanceof JudgeUnavailableError;
+          const message = redactSecrets(error instanceof Error ? error.message : "judge failed", secrets);
+          send(res, unavailable ? 503 : 500, {
+            error: unavailable ? "judge browser is unavailable" : message.slice(0, 180),
+          });
+          finishLog(unavailable ? 503 : 500);
+        }
         return;
       }
 
@@ -436,13 +473,15 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
     url: `http://127.0.0.1:${address.port}/`,
     token,
     logs,
-    close: () =>
-      new Promise((resolve, reject) => {
-        for (const session of sessions.values()) session.abort?.abort();
-        void siwc.close();
+    close: async () => {
+      for (const session of sessions.values()) session.abort?.abort();
+      await siwc.close();
+      await judgeRuntime.close();
+      await new Promise<void>((resolve, reject) => {
         server.closeAllConnections();
         server.close((error) => (error ? reject(error) : resolve()));
-      }),
+      });
+    },
   };
   if (address.address !== "127.0.0.1") throw new Error(`bridge bound ${address.address}, expected 127.0.0.1`);
   opts.open?.(handle.url);
