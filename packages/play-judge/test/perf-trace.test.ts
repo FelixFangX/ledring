@@ -91,4 +91,94 @@ describe.skipIf(!installed && !process.env.CI)("play perf trace", () => {
       if (!failed) expect(existsSync(tracePath)).toBe(false);
     }
   }, 20_000);
+
+  it("supports interrupting a scene wipe and picking during QTE stagger without leaving elements stuck, and starts no transform animations under prefers-reduced-motion", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const baseUrl = site.url.split("?")[0]!;
+
+      // 1. Interruptibility check (full motion)
+      const ctxFull = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const pageFull = await ctxFull.newPage();
+      await pageFull.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await pageFull.locator("#menu").waitFor({ state: "visible" });
+
+      const interruptedState = await pageFull.evaluate(async () => {
+        const hook = (window as unknown as {
+          __ledring: {
+            show: (id: string, caption?: string) => void;
+            qte: (v: number) => Promise<{ id: string; by: string }>;
+          };
+        }).__ledring;
+        // Start a wipe to insp and immediately interrupt it with a wipe to missions
+        hook.show("insp", "FIRST WIPE");
+        hook.show("missions", "SECOND WIPE");
+        const t0 = Date.now();
+        while (document.querySelector("#wipe")?.classList.contains("on") && Date.now() - t0 < 2500) {
+          await new Promise((r) => setTimeout(r, 25));
+        }
+        const wipeOn = document.querySelector("#wipe")?.classList.contains("on") ?? false;
+        const missionsOn = document.querySelector("#missions")?.classList.contains("on") ?? false;
+
+        // Open QTE and pick immediately during stagger (at 30ms)
+        hook.show("run");
+        (window as unknown as { RUN: { st: { shortcut: number } } }).RUN = { st: { shortcut: 0 } };
+        const p = hook.qte(2);
+        await new Promise((r) => setTimeout(r, 30));
+        const btn = document.querySelector('.qopt[data-id="tests"]') as HTMLElement | null;
+        btn?.click();
+        const res = await p;
+        const layerOn = document.querySelector("#choicelayer")?.classList.contains("on") ?? false;
+        return { wipeOn, missionsOn, picked: res.id, layerOn };
+      });
+      expect(interruptedState).toEqual({
+        wipeOn: false,
+        missionsOn: true,
+        picked: "tests",
+        layerOn: false,
+      });
+      await ctxFull.close();
+
+      // 2. prefers-reduced-motion check: starts no transform animations
+      const ctxRm = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+      const pageRm = await ctxRm.newPage();
+      await pageRm.goto(baseUrl, { waitUntil: "domcontentloaded" });
+      await pageRm.locator("#menu").waitFor({ state: "visible" });
+
+      const rmCheck = await pageRm.evaluate(() => {
+        const hasRmClass = document.documentElement.classList.contains("rm");
+        const spinNodes = document.querySelectorAll("animateTransform").length;
+        const el = document.querySelector("#m-play") as HTMLElement;
+        const hook = (window as unknown as {
+          __ledring: {
+            motion: {
+              run: (el: HTMLElement, kf: Keyframe[]) => Animation | null;
+              shake: (el: HTMLElement, amt?: number) => Animation | null;
+            };
+          };
+        }).__ledring;
+        const anim = hook.motion.run(el, [
+          { opacity: 0, transform: "translate3d(0, 30px, 0)" },
+          { opacity: 1, transform: "none" },
+        ]);
+        const kf = (anim?.effect as KeyframeEffect | undefined)?.getKeyframes() ?? [];
+        const hasTransformMove = kf.some((f) => f.transform && f.transform !== "none");
+        const shook = hook.motion.shake(el, 10);
+        return { hasRmClass, spinNodes, hasTransformMove, shook: Boolean(shook) };
+      });
+      expect(rmCheck).toEqual({
+        hasRmClass: true,
+        spinNodes: 0,
+        hasTransformMove: false,
+        shook: false,
+      });
+      await ctxRm.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 20_000);
 });
