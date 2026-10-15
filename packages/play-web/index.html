@@ -10,9 +10,9 @@
  --t:cubic-bezier(.2,.8,.2,1);
 }
 html:lang(zh-CN){--sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif}
-html:lang(zh-CN) body,html:lang(zh-CN) .host,html:lang(zh-CN) .db,html:lang(zh-CN) .keynote,html:lang(zh-CN) #e-sub{line-height:1.7;text-spacing-trim:normal;text-autospace:normal}
-html:lang(zh-CN) .huge,html:lang(zh-CN) .big,html:lang(zh-CN) h1,html:lang(zh-CN) h2{letter-spacing:0}
-html:lang(zh-CN) .cap,html:lang(zh-CN) .eye,html:lang(zh-CN) #drawer label,html:lang(zh-CN) .previewwrap .ph,html:lang(zh-CN) .banner,html:lang(zh-CN) .strandtag{letter-spacing:0;text-transform:none}
+html:lang(zh-CN) body,html:lang(zh-CN) .host,html:lang(zh-CN) .db,html:lang(zh-CN) .keynote,html:lang(zh-CN) #e-sub,html:lang(zh-CN) .ob-sub,html:lang(zh-CN) .ob-priv{line-height:1.7;text-spacing-trim:normal;text-autospace:normal}
+html:lang(zh-CN) .huge,html:lang(zh-CN) .big,html:lang(zh-CN) h1,html:lang(zh-CN) h2,html:lang(zh-CN) .ob-title{letter-spacing:0}
+html:lang(zh-CN) .cap,html:lang(zh-CN) .eye,html:lang(zh-CN) #drawer label,html:lang(zh-CN) #onboard label,html:lang(zh-CN) .ob-step,html:lang(zh-CN) .ob-badge,html:lang(zh-CN) .previewwrap .ph,html:lang(zh-CN) .banner,html:lang(zh-CN) .strandtag{letter-spacing:0;text-transform:none}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
@@ -328,6 +328,45 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 .mode .st{font:600 10px var(--mono)}
 /* ================= CHAPTER 0: INSPIRATION ================= */
 #insp{padding:70px 40px 20px}
+/* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
+#onboard{padding:64px 36px 18px;overflow:auto}
+.ob-wrap{max-width:1080px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:12px}
+.ob-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ob-steps{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.ob-step{font:700 10px var(--mono);letter-spacing:.1em;padding:4px 9px;border:1.5px solid var(--line2);border-radius:4px;color:var(--ink3);background:#fff;text-transform:uppercase;transition:border-color .2s,color .2s,background .2s}
+.ob-step.cur{border-color:var(--calm);color:var(--calm);background:color-mix(in srgb,var(--calm) 8%,#fff)}
+.ob-step.done{border-color:var(--ink);color:#fff;background:var(--ink)}
+.ob-hero{display:flex;gap:14px;align-items:center;border:2px solid var(--ink);border-radius:10px;background:#fff;padding:12px 16px;box-shadow:5px 5px 0 var(--ink)}
+.ob-hero .ring{width:50px;height:50px;flex:none}
+.ob-title{font:900 clamp(20px,2.5vw,28px)/1.12 var(--sans);letter-spacing:-.02em;margin:0}
+.ob-sub{font:600 13.5px/1.4 var(--sans);color:var(--ink2);margin-top:3px}
+.ob-main{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
+.ob-cards{display:flex;flex-direction:column;gap:8px}
+.ob-card{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--line2);border-radius:8px;background:#fff;padding:10px 13px;cursor:pointer;font:600 14px var(--sans);color:var(--ink);transition:transform .16s var(--t),border-color .16s,box-shadow .16s,background .16s}
+.ob-card:hover{transform:translate3d(4px,0,0);border-color:var(--ink)}
+.ob-card.on{border:2px solid var(--ink);background:var(--bg);box-shadow:4px 4px 0 var(--calm)}
+.ob-card.soon{opacity:.72;border-style:dashed}
+.ob-card .ob-ct{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ob-card .ob-ct b{font:800 14.5px var(--sans)}
+.ob-card .ob-ct small{font:500 12px var(--sans);color:var(--ink2)}
+.ob-badge{font:700 10px var(--mono);letter-spacing:.08em;padding:3px 8px;border-radius:4px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap;text-transform:uppercase;background:#fff}
+.ob-badge.ok{border-color:var(--ok);color:var(--ok)}
+.ob-badge.calm{border-color:var(--calm);color:var(--calm)}
+.ob-badge.proc{border-color:var(--proc);color:#7A5000}
+.ob-panel{border:2px solid var(--ink);border-radius:10px;background:#fff;padding:14px 16px;box-shadow:5px 5px 0 var(--line2);display:flex;flex-direction:column;gap:10px}
+.ob-panel label{display:block;font:700 10px var(--mono);color:var(--ink2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px}
+.ob-panel input{width:100%;font:500 12.5px var(--mono);padding:8px 10px;border:1.5px solid var(--line2);border-radius:6px;background:#fff;color:var(--ink);outline:0}
+.ob-panel input:focus{border-color:var(--ink)}
+.ob-cmdrow{display:flex;gap:8px;align-items:center}
+.ob-cmdrow input{background:var(--bg);font-weight:700}
+.ob-bridge-st{font:700 11.5px var(--mono);padding:7px 10px;border-radius:6px;border:1.5px solid var(--line2);background:var(--bg);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ob-bridge-st.ok{border-color:var(--ok);color:#116B36;background:#EBF8F0}
+.ob-bridge-st.wait{border-color:var(--proc);color:#7A5000;background:#FFF9EB}
+.ob-priv{font:500 12px/1.45 var(--sans);color:var(--ink2);border-left:3px solid var(--calm);background:var(--bg);padding:8px 11px;border-radius:0 6px 6px 0}
+.ob-testrow{display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px}
+.ob-tstat{font:700 12px var(--mono);min-height:18px;flex:1;min-width:160px}
+.ob-tstat.ok{color:#116B36}.ob-tstat.err{color:#B8141E}.ob-tstat.wait{color:#7A5000}
+.ob-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-top:4px}
 .ins-wrap{display:grid;grid-template-columns:1fr 360px;gap:26px;height:100%;min-height:0;max-width:1100px;margin:0 auto;width:100%}
 .ins-left{display:flex;flex-direction:column;min-height:0}
 .ins-top{display:flex;justify-content:space-between;align-items:center}
@@ -425,6 +464,8 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  .qbox{width:100%;max-width:640px;border-radius:16px 16px 0 0;max-height:86dvh;overflow:auto;padding:20px 18px calc(18px + env(safe-area-inset-bottom))}
  .banner{left:14px;top:60px}
  #insp{padding:66px 16px 20px;overflow-y:auto}
+ #onboard{padding:64px 16px 20px;overflow-y:auto}
+ .ob-main{grid-template-columns:1fr}
  .ins-wrap{display:flex;flex-direction:column;grid-template-columns:1fr;height:auto;flex:none}
  .ins-left{flex:none;min-height:auto}
  .ins-board{flex:none;overflow:visible}
@@ -450,10 +491,12 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  #hold-btn,#rm-btn{display:none}
  .hud .hudr{gap:6px}
  .sfx,.lang,.modechip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;margin-right:0}
- .btn,.qopt,.mode,.dx,.rp,.vpill,.linkbtn,.samp,.rr,.ptab[data-f]{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
- .qopt,.mode{justify-content:space-between}
+ .btn,.qopt,.mode,.ob-card,.dx,.rp,.vpill,.linkbtn,.samp,.rr,.ptab[data-f]{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+ .qopt,.mode,.ob-card{justify-content:space-between}
  .lib-acts .btn{min-height:44px;min-width:44px;padding:6px 10px}
- input#idea-in,input#in-free,textarea#in-brief,#drawer input,input#scrubrange{min-height:44px}
+ input#idea-in,input#in-free,textarea#in-brief,#drawer input,#onboard input,input#scrubrange{min-height:44px}
+ .ob-cmdrow,.ob-testrow,.ob-foot{flex-wrap:wrap}
+ .ob-foot .btn{flex:1 1 auto;justify-content:center}
  .demohint{display:none}
  .frag{flex:1 1 40%}.frag .ft{font-size:13px}
  .brow{flex-direction:column}.brow .btn{width:100%;justify-content:center}
@@ -543,6 +586,34 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
  </div>
  <div class="stat-row" id="m-stats"></div>
  <div class="mlib" id="m-lib" hidden><div class="cap" id="lib-cap"></div><div class="lib-list" id="lib-list" role="list"></div></div>
+</div></section>
+
+<!-- ONBOARDING (PRE-FLIGHT CALIBRATION) -->
+<section class="scene" id="onboard"><div class="ob-wrap">
+ <div class="ob-top"><div class="eye" id="ob-eye"></div><div class="ob-steps" id="ob-steps"></div></div>
+ <div class="ob-hero"><svg class="ring" id="obring" viewBox="0 0 62 62"></svg><div><div class="cap">CX-417</div><h2 class="ob-title" id="ob-title"></h2><div class="ob-sub" id="ob-sub"></div></div></div>
+ <div class="ob-main">
+  <div class="ob-cards" id="ob-cards" role="radiogroup" aria-labelledby="ob-title"></div>
+  <div class="ob-panel" id="ob-panel">
+   <div id="ob-bridge-box" style="display:none">
+    <label id="ob-l-cmd" for="ob-cmd"></label>
+    <div class="ob-cmdrow"><input id="ob-cmd" value="npx ledring play" readonly aria-label="npx ledring play"><button type="button" class="btn sm" id="ob-copy"></button></div>
+    <div class="ob-bridge-st wait" id="ob-bridge-st" style="margin-top:8px" role="status"><span id="ob-bridge-txt"></span><button type="button" class="btn ghost sm" id="ob-poll-btn"></button></div>
+   </div>
+   <div id="ob-siwc-box" style="display:none"></div>
+   <div id="ob-fields">
+    <div id="ob-baserow"><label id="ob-l-base" for="ob-base"></label><input id="ob-base" spellcheck="false" autocomplete="off"></div>
+    <div id="ob-modelrow" style="margin-top:8px"><label id="ob-l-model" for="ob-model"></label><input id="ob-model" spellcheck="false" autocomplete="off"></div>
+    <div id="ob-keyrow" style="margin-top:8px"><label id="ob-l-key" for="ob-key"><span id="ob-l-key-txt"></span> <span id="ob-key-saved" class="key-saved"></span></label><input id="ob-key" type="password" spellcheck="false" autocomplete="off"></div>
+   </div>
+   <div class="ob-priv" id="ob-priv"></div>
+   <div class="ob-testrow" id="ob-testrow"><button type="button" class="btn sm" id="ob-test"></button><div class="ob-tstat" id="ob-test-status" role="status" aria-live="polite"></div></div>
+  </div>
+ </div>
+ <div class="ob-foot">
+  <button type="button" class="btn ghost" id="ob-skip"></button>
+  <button type="button" class="btn solid" id="ob-continue"></button>
+ </div>
 </div></section>
 
 <!-- CHAPTER 0: INSPIRATION -->
@@ -674,7 +745,8 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   <div id="keyrow"><label id="l-key" for="p-key">API key <span id="p-key-saved" class="key-saved"></span></label><input id="p-key" type="password" spellcheck="false" autocomplete="off"></div>
  </div>
  <div class="keynote" id="p-note"></div>
- <div style="display:flex;gap:8px;margin-top:12px" id="p-acts"><button class="btn ghost sm" id="p-test"></button><button class="btn ghost sm" id="p-forget"></button></div>
+ <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap" id="p-acts"><button class="btn ghost sm" id="p-test"></button><button class="btn ghost sm" id="p-forget"></button></div>
+ <div style="margin-top:10px"><button type="button" class="btn ghost sm" id="d-onboard" style="width:100%;justify-content:center"></button></div>
  <div class="mono small" id="p-status" style="margin-top:8px;min-height:16px"></div>
 </div>
 <div id="drawerbg"></div>
@@ -1031,6 +1103,7 @@ function show(id,caption){if(id===curScene&&!caption){enterScene(id);return;}
  if(caption)Motion.wipe(caption,swap);else swap();}
 function enterScene(id){if(typeof Strands!=="undefined")setTimeout(()=>Strands.loop(),0);
  if(id==="menu"){Motion.split($("#m-title"));Motion.stagger([$("#menuring"),$("#m-eye"),$("#host"),...$$("#menu .menu-btns .btn"),...$$("#m-stats .chip")],{y:16,each:70,delay:120});}
+ if(id==="onboard"){Motion.stagger([$(".ob-top"),$(".ob-hero"),...$$("#ob-cards .ob-card"),$("#ob-panel"),$(".ob-foot")],{y:16,each:45,delay:60});}
  if(id==="missions"){Motion.split($("#ms-title"),{each:16});Motion.stagger($$("#missions .mcard"),{y:28,each:60,delay:160});Motion.stagger($$("#missions .eye,#ms-back,#ms-model"),{y:8,each:40});}
  if(id==="run"){Motion.stagger([$(".agentcard"),$(".meter"),$("#run .right")],{x:-24,y:0,each:90});}
 }
@@ -2157,7 +2230,7 @@ async function likeStrand(id){
 const Strands={raf:0,t0:performance.now(),likes:[],mx:0,my:0,
  start(){const c=$("#strandc");if(!c)return;const g=c.getContext("2d");if(!g){c.remove();return;}this.c=c;this.g=g;document.body.classList.add("has-strands");this.resize();
   addEventListener("resize",()=>this.resize());$("#menu").addEventListener("pointermove",e=>{const r=c.getBoundingClientRect();this.mx=(e.clientX-r.left)/r.width-.5;this.my=(e.clientY-r.top)/r.height-.5;},{passive:true});
-  document.addEventListener("visibilitychange",()=>this.loop());this.loop();if(STRANDS_URL)syncStrands();},
+  document.addEventListener("visibilitychange",()=>this.loop());this.loop();if(STRANDS_URL&&!(P.has("onboard")||P.get("scene")==="onboard"))syncStrands();},
  resize(){const c=this.c,r=c.parentElement.getBoundingClientRect(),d=Math.min(2,devicePixelRatio||1);c.width=r.width*d;c.height=r.height*d;c.style.width=r.width+"px";c.style.height=r.height+"px";this.d=d;this.draw(performance.now());},
  loop(){cancelAnimationFrame(this.raf);if(RM||document.hidden||curScene!=="menu"){this.draw(performance.now());return;}const f=t=>{this.draw(t);this.raf=requestAnimationFrame(f);};this.raf=requestAnimationFrame(f);},
  center(){const s=$("#menuring").getBoundingClientRect(),r=this.c.getBoundingClientRect();return [(s.left+s.width/2-r.left)*this.d,(s.top+s.height/2-r.top)*this.d,s.width/2*this.d];},
@@ -2375,7 +2448,7 @@ function paintIdea(){
 /* ---- model drawer ---- */
 let drawerPrevFocus=null;
 function openDrawer(){drawerPrevFocus=document.activeElement;paintDrawer();$("#drawer").classList.add("on");$("#drawerbg").classList.add("on");refreshBridge();
- setTimeout(()=>{const f=$("#drawer .mode.on")||$("#d-close");if(f&&f.focus)f.focus();},20);}
+ setTimeout(()=>{if(!$("#drawer").classList.contains("on"))return;const f=$("#drawer .mode.on")||$("#d-close");if(f&&f.focus)f.focus();},20);}
 function closeDrawer(){readFields();$("#drawer").classList.remove("on");$("#drawerbg").classList.remove("on");if($("#missions").classList.contains("on"))paintIdea();paintHints();
  if(drawerPrevFocus&&drawerPrevFocus.focus){try{drawerPrevFocus.focus();}catch(e){}drawerPrevFocus=null;}}
 async function refreshBridge(){
@@ -2458,7 +2531,7 @@ async function siwcSignOut(){
  applySiwcState(BRIDGE?"signed_out":"unavailable");saveSiwc();paintDrawer();paintHints();
 }
 function paintDrawer(){
- $("#d-title").textContent=T.dTitle;$("#p-test").textContent=T.pTest;$("#p-forget").textContent=T.pForget;
+ $("#d-title").textContent=T.dTitle;$("#p-test").textContent=T.pTest;$("#p-forget").textContent=T.pForget;if($("#d-onboard"))$("#d-onboard").textContent=T.obReopen;
  $("#modes").innerHTML=MODES.map(([k,lab])=>{let st="";if(k==="chatgpt")st=SIWC.connected&&SIWC.ready?`<span class="st ok">● ${T.siwcConnected}</span>`:"";
   return `<div class="mode${PROV.mode===k?" on":""}" data-mode="${k}" tabindex="0" role="button"><span>${T[lab]}</span>${st}</div>`+(k==="chatgpt"&&PROV.mode==="chatgpt"?siwcCard():"")}).join("");
  $$(".mode").forEach(m=>{m.onclick=()=>{readFields();PROV.mode=m.dataset.mode;saveProv();paintDrawer();paintHints();};m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();m.click();}};});
@@ -2501,7 +2574,280 @@ $("#p-forget").onclick=()=>{PROV[PROV.mode].key="";PROV[PROV.mode].bridgeConfigu
 $("#p-test").onclick=async()=>{readFields();$("#p-status").textContent="…";
  try{const t=await streamChat("Reply with the single word OK.","ping",()=>{},16);$("#p-status").innerHTML=`<span style="color:#116B36">${T.pOk}</span> ${esc(t.slice(0,30))}`}
  catch(e){$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(redactMsg(e.message||e))}`}};
-function canLive(){const m=PROV.mode;if(m==="chatgpt")return SIWC.connected&&SIWC.ready;return m==="ollama"||!!PROV[m].key||!!PROV[m].bridgeConfigured;}
+/* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
+Object.assign(DICT.en,{
+ obEye:"PRE-FLIGHT · UPLINK CALIBRATION",
+ obTitle:"Choose how CX-417 thinks.",
+ obSub:"Pick a neural source before launch. Keys stay in this browser's localStorage and never touch our servers.",
+ obS1:"01 · Provider",obS2:"02 · Credential",obS3:"03 · Ping Test",obS4:"04 · Launch",
+ obPAnth:"Anthropic BYOK",obPAnthSub:"Direct browser call to api.anthropic.com — no server needed.",obPAnthTag:"BROWSER DIRECT",
+ obPBridge:"OpenAI BYOK · Local Bridge",obPBridgeSub:"Route via 127.0.0.1 daemon (npx ledring play).",obPBridgeTag:"127.0.0.1 BRIDGE",
+ obPCustom:"Custom OpenAI-Compatible",obPCustomSub:"OpenRouter, vLLM, local proxy, or any /v1/chat/completions.",obPCustomTag:"CUSTOM /V1",
+ obPSiwc:"Sign in with ChatGPT",obPSiwcSub:"Official ChatGPT plan bridge session.",obPSiwcSoon:"Coming soon — set LEDRING_SIWC=1 on local bridge.",obPSiwcTagSoon:"COMING SOON",obPSiwcTagLive:"SIWC READY",
+ obPDemo:"No-Key Demo Mode",obPDemoSub:"Pre-recorded synthetic cassettes. Zero network calls.",obPDemoTag:"OFFLINE DEMO",
+ obCmdLabel:"Run in terminal · Local Bridge on 127.0.0.1",obCopy:"Copy command",obCopied:"Copied ✓",
+ obPollWait:"Polling 127.0.0.1 for npx ledring play…",obPollOk:"Bridge connected on 127.0.0.1 ✓",obPollBtn:"Detect now",
+ obBaseLabel:"Endpoint Base URL",obModelLabel:"Model ID",obKeyLabel:"API Key (stored locally only)",
+ obPrivAnth:"Stored only in this browser's localStorage. Sent directly to api.anthropic.com with anthropic-dangerous-direct-browser-access.",
+ obPrivBridge:"Your OpenAI key is stored locally (browser or ~/.ledring/play) and routed via 127.0.0.1.",
+ obPrivCustom:"Stored only in this browser's localStorage. Sent exclusively to the endpoint URL above.",
+ obPrivSiwcSoon:"Sign in with ChatGPT is gated by LEDRING_SIWC. It is never faked on static pages.",
+ obPrivDemo:"Demo mode runs 100% offline from hand-crafted synthetic cassettes. No key or network required.",
+ obTestBtn:"⚡ Run live connection test",obTesting:"Pinging provider…",obTestOk:"Link verified ✓",obTestDemoOk:"Synthetic cassette verified · offline ready ✓",
+ obSkip:"Skip to Inspiration →",obCont:"Continue to Inspiration ▶",obReopen:"⇄ Connection onboarding"
+});
+Object.assign(DICT.zh,{
+ obEye:"临阵校准 · 心智接引",
+ obTitle:"为 CX-417 择定心智之源。",
+ obSub:"启程之前，先定信令所归。密钥唯驻本机浏览器之内，绝不外泄分毫。",
+ obS1:"壹 · 择源",obS2:"贰 · 授钥",obS3:"叁 · 叩验",obS4:"肆 · 启行",
+ obPAnth:"Anthropic 自携密钥",obPAnthSub:"浏览器直通官方端点，毋须中转。",obPAnthTag:"直连信令",
+ obPBridge:"OpenAI 自携密钥 · 本机桥接",obPBridgeSub:"经由 127.0.0.1 守护进程（npx ledring play）渡引。",obPBridgeTag:"本机桥接",
+ obPCustom:"自定兼容端点",obPCustomSub:"OpenRouter、本地推理或任意兼容 /v1 接口。",obPCustomTag:"自定端点",
+ obPSiwc:"ChatGPT 席位登录",obPSiwcSub:"借本机桥接核验官方套餐席位。",obPSiwcSoon:"敬请期待——需于本机桥接开启 LEDRING_SIWC=1。",obPSiwcTagSoon:"敬请期待",obPSiwcTagLive:"席位已启",
+ obPDemo:"无钥预演模式",obPDemoSub:"内载合成卡带，断网亦可畅行。",obPDemoTag:"离线预演",
+ obCmdLabel:"终端指令 · 唤醒 127.0.0.1 桥接进程",obCopy:"复制指令",obCopied:"已录剪贴板 ✓",
+ obPollWait:"正在巡检 127.0.0.1 桥接信令……",obPollOk:"127.0.0.1 本机桥接已贯通 ✓",obPollBtn:"即刻巡检",
+ obBaseLabel:"端点基准地址",obModelLabel:"模型标识",obKeyLabel:"接口密钥（仅驻本机）",
+ obPrivAnth:"密钥唯留本机 localStorage，由浏览器直发 api.anthropic.com，绝无第三方经手。",
+ obPrivBridge:"密钥唯留本机（浏览器或 ~/.ledring/play），经 127.0.0.1 本地守护进程转发。",
+ obPrivCustom:"密钥唯留本机 localStorage，仅向您所填之端点发信，绝不旁落。",
+ obPrivSiwcSoon:"ChatGPT 席位须由 LEDRING_SIWC 显式开启；本页绝不伪造连接。",
+ obPrivDemo:"预演模式全凭内置合成卡带运转，不涉外网，亦无须密钥。",
+ obTestBtn:"⚡ 叩问链路（实连验证）",obTesting:"正在叩问远端信令……",obTestOk:"信令畅通 ✓",obTestDemoOk:"合成卡带核验完毕 · 随时启行 ✓",
+ obSkip:"略过向导 →",obCont:"步入灵感回廊 ▶",obReopen:"⇄ 链路校准向导"
+});
+function isSiwcEnabled(){
+ return Boolean(window.__LEDRING_SIWC===true||P.get("siwc")==="1"||(BRIDGE&&BRIDGE.siwcEnabled)||SIWC.state!=="unavailable");
+}
+function isOnboarded(){
+ try{return localStorage.getItem("ledring-onboarded")==="1"||SAVE.onboarded===1;}catch(e){return SAVE.onboarded===1;}
+}
+function markOnboarded(){
+ SAVE.onboarded=1;persist();
+ try{localStorage.setItem("ledring-onboarded","1");}catch(e){}
+}
+const OB={
+ choice:(()=>{
+  if(P.get("obChoice"))return P.get("obChoice");
+  if(PROV.mode==="anthropic")return "anthropic";
+  if(PROV.mode==="chatgpt")return "chatgpt";
+  if(PROV.mode==="openai")return /127\.0\.0\.1|localhost/.test(PROV.openai.base||"")?"openai-bridge":"openai-custom";
+  return "anthropic";
+ })(),
+ bridgeConnected:Boolean(BRIDGE&&BRIDGE.active),
+ bridgeUrl:(()=>{
+  const b=P.get("bridgeUrl")||window.__LEDRING_BRIDGE_URL||"";
+  if(b)return String(b).replace(/\/$/,"");
+  if(BRIDGE&&BRIDGE.url)return String(BRIDGE.url).replace(/\/$/,"");
+  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)&&BRIDGE)return location.origin;
+  return "http://127.0.0.1:4170";
+ })(),
+ pollTimer:0,
+ tested:false,
+ testing:false,
+ testStatus:"",
+ testTone:"",
+ copied:false,
+ fromDrawer:false
+};
+function stopBridgePoll(){if(OB.pollTimer){clearInterval(OB.pollTimer);OB.pollTimer=0;}}
+async function probeLocalBridge(){
+ const urls=[];
+ const bUrl=($("#ob-base")&&OB.choice==="openai-bridge"?$("#ob-base").value.trim().replace(/\/v1\/?$/,""):OB.bridgeUrl).replace(/\/$/,"");
+ if(bUrl&&/^https?:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/i.test(bUrl))urls.push(bUrl+"/api/status");
+ if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname)){const so=location.origin+"/api/status";if(!urls.includes(so))urls.unshift(so);}
+ for(const u of urls){
+  try{
+   const r=await fetch(u,{method:"GET"});
+   if(r.ok){
+    const j=await r.json();
+    if(j&&j.ok&&j.service==="ledring-play"){
+     const origin=new URL(u,location.origin).origin;
+     OB.bridgeConnected=true;OB.bridgeUrl=origin;
+     BRIDGE=BRIDGE||{active:true,url:origin};
+     if(OB.choice==="openai-bridge"){PROV.mode="openai";PROV.openai.base=origin+"/v1";saveProv();}
+     stopBridgePoll();
+     if(origin===location.origin)await refreshBridge();
+     paintOnboard();paintHints();
+     return true;
+    }
+   }
+  }catch(e){}
+ }
+ OB.bridgeConnected=false;paintOnboard();return false;
+}
+function startBridgePoll(){
+ stopBridgePoll();
+ if(OB.bridgeConnected||curScene!=="onboard"||OB.choice!=="openai-bridge")return;
+ OB.pollTimer=setInterval(()=>{if(curScene!=="onboard"||OB.choice!=="openai-bridge"){stopBridgePoll();return;}void probeLocalBridge();},1200);
+}
+function syncObToProv(){
+ const ch=OB.choice;
+ if(ch==="demo"){PROV.mode="demo";saveProv();paintHints();return;}
+ if(ch==="chatgpt"){if(isSiwcEnabled()){PROV.mode="chatgpt";saveProv();paintHints();}return;}
+ const m=ch==="anthropic"?"anthropic":"openai";
+ PROV.mode=m;
+ const c=PROV[m];
+ const bEl=$("#ob-base"),mEl=$("#ob-model"),kEl=$("#ob-key");
+ if(bEl&&!bEl.disabled&&bEl.value.trim())c.base=bEl.value.trim();
+ else if(ch==="openai-bridge")c.base=OB.bridgeUrl.replace(/\/$/,"")+"/v1";
+ else if(ch==="anthropic"&&!c.base)c.base="https://api.anthropic.com";
+ if(mEl&&mEl.value.trim())c.model=mEl.value.trim();
+ if(kEl&&kEl.value.trim()){
+  c.key=kEl.value.trim();kEl.value="";
+  kEl.placeholder=T.keySaved;
+  const ks=$("#ob-key-saved");if(ks)ks.textContent=T.keySaved;
+ }
+ saveProv();paintHints();
+}
+function selectObChoice(ch,userInitiated){
+ OB.choice=ch;OB.tested=false;OB.testStatus="";OB.testTone="";
+ if(ch==="demo"){PROV.mode="demo";}
+ else if(ch==="anthropic"){PROV.mode="anthropic";if(!PROV.anthropic.base)PROV.anthropic.base="https://api.anthropic.com";if(!PROV.anthropic.model)PROV.anthropic.model="claude-sonnet-4-5";}
+ else if(ch==="openai-bridge"){
+  PROV.mode="openai";
+  PROV.openai.base=OB.bridgeUrl.replace(/\/$/,"")+"/v1";
+  if(!PROV.openai.model||PROV.openai.model==="openai/gpt-4o-mini")PROV.openai.model="gpt-4o-mini";
+ }else if(ch==="openai-custom"){
+  PROV.mode="openai";
+  if(!PROV.openai.base||/127\.0\.0\.1|localhost/.test(PROV.openai.base))PROV.openai.base="https://openrouter.ai/api/v1";
+  if(!PROV.openai.model)PROV.openai.model="openai/gpt-4o-mini";
+ }else if(ch==="chatgpt"&&isSiwcEnabled()){
+  PROV.mode="chatgpt";
+ }
+ saveProv();paintHints();paintOnboard();
+ if(ch==="openai-bridge"&&userInitiated){void probeLocalBridge();startBridgePoll();}
+ else stopBridgePoll();
+}
+function copyObCmd(){
+ const inp=$("#ob-cmd");
+ if(inp){try{inp.focus();inp.select();inp.setSelectionRange(0,inp.value.length);document.execCommand("copy");}catch(e){}}
+ OB.copied=true;SFX.play("blip");
+ const btn=$("#ob-copy");if(btn)btn.textContent=T.obCopied;
+}
+async function runObTest(){
+ syncObToProv();
+ const ch=OB.choice;
+ if(ch==="chatgpt"&&!isSiwcEnabled()){
+  OB.testing=false;OB.tested=false;OB.testTone="err";OB.testStatus=T.obPSiwcSoon;
+  ringSVG($("#obring"),"crit");paintOnboard();return false;
+ }
+ if(ch==="demo"){
+  OB.testing=false;OB.tested=true;OB.testTone="ok";OB.testStatus=T.obTestDemoOk;
+  SFX.play("ping");ringSVG($("#obring"),"calm");paintOnboard();return true;
+ }
+ OB.testing=true;OB.tested=false;OB.testTone="wait";OB.testStatus=T.obTesting;
+ ringSVG($("#obring"),"proc");paintOnboard();
+ try{
+  const reply=await streamChat("Reply with the single word OK.","ping",()=>{},16);
+  OB.testing=false;OB.tested=true;OB.testTone="ok";
+  OB.testStatus=T.obTestOk+" "+(reply||"OK").trim().slice(0,32);
+  SFX.play("win");ringSVG($("#obring"),"calm");paintOnboard();return true;
+ }catch(e){
+  OB.testing=false;OB.tested=false;OB.testTone="err";
+  OB.testStatus=T.pFail+redactMsg(e&&e.message||e);
+  SFX.play("lose");ringSVG($("#obring"),"crit");paintOnboard();return false;
+ }
+}
+function paintOnboard(){
+ if(!$("#onboard"))return;
+ $("#ob-eye").textContent=T.obEye;
+ $("#ob-title").textContent=T.obTitle;
+ $("#ob-sub").textContent=T.obSub;
+ const ch=OB.choice,siwcOn=isSiwcEnabled();
+ const hasCred=ch==="demo"||(ch==="chatgpt"?(siwcOn&&SIWC.connected&&SIWC.ready):ch==="anthropic"?!!PROV.anthropic.key:(!!PROV.openai.key||!!PROV.openai.bridgeConfigured||OB.bridgeConnected));
+ const stepIdx=OB.tested?4:hasCred?3:2;
+ $("#ob-steps").innerHTML=[T.obS1,T.obS2,T.obS3,T.obS4].map((s,i)=>{
+  const n=i+1,cls=n<stepIdx?"done":n===stepIdx?"cur":"";
+  return `<span class="ob-step ${cls}" data-step="${n}">${esc(s)}</span>`;
+ }).join("");
+ if(!OB.testing&&OB.testTone!=="err")ringSVG($("#obring"),"calm");
+ const cards=[
+  ["anthropic",T.obPAnth,T.obPAnthSub,T.obPAnthTag,"calm",false],
+  ["openai-bridge",T.obPBridge,T.obPBridgeSub,OB.bridgeConnected?"127.0.0.1 ✓":T.obPBridgeTag,OB.bridgeConnected?"ok":"proc",false],
+  ["openai-custom",T.obPCustom,T.obPCustomSub,T.obPCustomTag,"calm",false],
+  ["chatgpt",T.obPSiwc,siwcOn?T.obPSiwcSub:T.obPSiwcSoon,siwcOn?T.obPSiwcTagLive:T.obPSiwcTagSoon,siwcOn?"ok":"",!siwcOn],
+  ["demo",T.obPDemo,T.obPDemoSub,T.obPDemoTag,"",false]
+ ];
+ $("#ob-cards").innerHTML=cards.map(([id,t,sub,tag,bcls,soon])=>`<button type="button" class="ob-card${ch===id?" on":""}${soon?" soon":""}" data-choice="${id}" role="radio" aria-checked="${ch===id}">
+  <span class="ob-ct"><b>${esc(t)}</b><small>${esc(sub)}</small></span>
+  <span class="ob-badge ${bcls}">${esc(tag)}</span>
+ </button>`).join("");
+ $$("#ob-cards .ob-card").forEach(b=>b.onclick=()=>selectObChoice(b.dataset.choice,true));
+
+ const bBox=$("#ob-bridge-box"),sBox=$("#ob-siwc-box"),fBox=$("#ob-fields");
+ bBox.style.display=ch==="openai-bridge"?"":"none";
+ if(ch==="openai-bridge"){
+  $("#ob-l-cmd").textContent=T.obCmdLabel;
+  $("#ob-copy").textContent=OB.copied?T.obCopied:T.obCopy;
+  const bst=$("#ob-bridge-st");
+  bst.className="ob-bridge-st "+(OB.bridgeConnected?"ok":"wait");
+  $("#ob-bridge-txt").textContent=OB.bridgeConnected?T.obPollOk:T.obPollWait;
+  $("#ob-poll-btn").textContent=T.obPollBtn;
+ }
+ sBox.style.display=ch==="chatgpt"?"":"none";
+ if(ch==="chatgpt"){
+  sBox.innerHTML=`<div class="ob-priv" id="ob-siwc-status" data-siwc-enabled="${siwcOn}" style="border-left-color:${siwcOn?"var(--ok)":"var(--proc)"}"><b>◎ ${esc(T.obPSiwc)}</b> — ${esc(siwcOn?T.obPSiwcSub:T.obPSiwcSoon)}</div>`;
+ }else sBox.innerHTML="";
+ const showFields=ch==="anthropic"||ch==="openai-bridge"||ch==="openai-custom";
+ fBox.style.display=showFields?"":"none";
+ if(showFields){
+  const m=ch==="anthropic"?"anthropic":"openai",c=PROV[m];
+  $("#ob-l-base").textContent=T.obBaseLabel;
+  $("#ob-l-model").textContent=T.obModelLabel;
+  $("#ob-l-key-txt").textContent=T.obKeyLabel;
+  $("#ob-baserow").style.display=ch==="anthropic"&&!P.has("base")?"none":"";
+  const bIn=$("#ob-base"),mIn=$("#ob-model"),kIn=$("#ob-key");
+  if(document.activeElement!==bIn)bIn.value=ch==="openai-bridge"?(OB.bridgeUrl.replace(/\/$/,"")+"/v1"):c.base;
+  if(document.activeElement!==mIn)mIn.value=c.model;
+  kIn.value="";
+  const hasK=!!c.key||!!c.bridgeConfigured;
+  kIn.placeholder=hasK?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):(ch==="anthropic"?"sk-ant-…":"sk-…");
+  const ks=$("#ob-key-saved");if(ks)ks.textContent=hasK?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):"";
+ }
+ $("#ob-priv").textContent=ch==="anthropic"?T.obPrivAnth:ch==="openai-bridge"?T.obPrivBridge:ch==="openai-custom"?T.obPrivCustom:ch==="chatgpt"?(siwcOn?T.siwcNote:T.obPrivSiwcSoon):T.obPrivDemo;
+ $("#ob-test").textContent=OB.testing?T.obTesting:T.obTestBtn;
+ $("#ob-test").disabled=OB.testing||(ch==="chatgpt"&&!siwcOn);
+ const ts=$("#ob-test-status");
+ ts.className="ob-tstat "+(OB.testTone||"");
+ ts.textContent=OB.testStatus;
+ $("#ob-skip").textContent=T.obSkip;
+ $("#ob-continue").textContent=T.obCont;
+}
+function openOnboard(fromDrawer,direct){
+ OB.fromDrawer=!!fromDrawer;
+ if($("#drawer")&&$("#drawer").classList.contains("on"))closeDrawer();
+ paintOnboard();
+ if(direct){$$(".scene").forEach(s=>s.classList.toggle("on",s.id==="onboard"));curScene="onboard";enterScene("onboard");}
+ else show("onboard",LANG==="zh"?"链路校准":"CALIBRATE");
+}
+function finishOnboard(skipped){
+ stopBridgePoll();
+ if(skipped){
+  if(!canLive())PROV.mode="demo";
+  saveProv();paintHints();
+ }else{
+  syncObToProv();
+  if(OB.choice==="chatgpt"&&!isSiwcEnabled())PROV.mode="demo";
+  saveProv();paintHints();
+ }
+ markOnboarded();
+ startInsp();
+}
+["#ob-base","#ob-model","#ob-key"].forEach(s=>{
+ const el=$(s);if(!el)return;
+ el.addEventListener("change",()=>{syncObToProv();paintOnboard();});
+ el.addEventListener("input",()=>{if(s==="#ob-key"&&el.value.trim().length>=8){syncObToProv();paintOnboard();}});
+});
+if($("#ob-copy"))$("#ob-copy").onclick=copyObCmd;
+if($("#ob-poll-btn"))$("#ob-poll-btn").onclick=()=>{void probeLocalBridge();startBridgePoll();};
+if($("#ob-test"))$("#ob-test").onclick=()=>void runObTest();
+if($("#ob-skip"))$("#ob-skip").onclick=()=>finishOnboard(true);
+if($("#ob-continue"))$("#ob-continue").onclick=()=>finishOnboard(false);
+if($("#d-onboard"))$("#d-onboard").onclick=()=>openOnboard(true,false);
+
+function canLive(){const m=PROV.mode;if(m==="demo"||!PROV[m])return false;if(m==="chatgpt")return SIWC.connected&&SIWC.ready;return m==="ollama"||!!PROV[m].key||!!PROV[m].bridgeConfigured;}
 function startPreset(k){readFields();
  if(usesRecorded()){if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}return playRun(PRESETS[k][LANG],k);}
  $("#idea-in").value=PRESETS[k][LANG];startIdea();}
@@ -2542,7 +2888,7 @@ function paintStatic(){
 }
 $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl)}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
-$("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}startInsp();};
+$("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}if(!isOnboarded())openOnboard(false,false);else startInsp();};
 function paintHold(){const b=$("#hold-btn");if(b){b.textContent=HOLD?T.timerOff:T.timerOn;b.classList.toggle("on",HOLD);b.setAttribute("aria-pressed",String(HOLD));}}
 $("#hold-btn").onclick=()=>toggleHold();paintHold();
 function paintRm(){const b=$("#rm-btn");if(b){b.textContent=RM?T.motionOff:T.motionOn;b.classList.toggle("on",RM);b.setAttribute("aria-pressed",String(RM));}}
@@ -2564,7 +2910,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
@@ -2581,8 +2927,9 @@ function paintGallery(){
 }
 $("#gal-back").onclick=()=>{paintMenu();show("menu");};
 $("#gal-toast-btn").onclick=()=>toast("<span class='up'>▲ </span>"+T.tTrustUp+" +6",1400);
-paintStatic();paintMenu();paintHints();ringSVG($("#runring"),"calm");paintGallery();
+paintStatic();paintMenu();paintHints();ringSVG($("#runring"),"calm");paintGallery();paintOnboard();
 if(P.has("gallery")||P.get("scene")==="gallery"){paintGallery();show("gallery");}
+else if(P.has("onboard")||P.get("scene")==="onboard"){openOnboard(false,true);}
 else if(P.get("idea")){const k=P.get("idea");if(PRESETS[k]&&usesRecorded())playRun(PRESETS[k][LANG],k);else{paintIdea();$("#idea-in").value=PRESETS[k]?PRESETS[k][LANG]:k;startIdea();}}
 else if(P.get("scene")==="idea"){paintIdea();show("missions");}
 else if(P.get("scene")==="insp")startInsp(true);

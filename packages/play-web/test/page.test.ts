@@ -7,7 +7,7 @@ const html = readFileSync(fileURLToPath(new URL("../index.html", import.meta.url
 
 describe("play page", () => {
   it("keeps the prototype screens, labels demo, and does not fake a ChatGPT connection", () => {
-    for (const id of ["menu", "insp", "missions", "run", "end"]) expect(html).toContain(`id="${id}"`);
+    for (const id of ["menu", "onboard", "insp", "missions", "run", "end"]) expect(html).toContain(`id="${id}"`);
     expect(html).toContain("DEMO · synthetic cassette, not a live model recording");
     expect(html).toContain("合成卡带，不是实时模型录制");
     expect(html).toContain("prefers-reduced-motion");
@@ -38,5 +38,31 @@ describe("play page", () => {
     for (const cue of ["click", "tick", "alert", "thud", "stamp", "ring", "blip", "scan", "ping", "win", "lose", "like"]) {
       expect(html).toContain(`${cue}:()=>`);
     }
+  });
+
+  it("includes the first-run onboarding flow with all 5 providers, local bridge command, SIWC gate, and literary zh copy", () => {
+    for (const id of [
+      "onboard",
+      "ob-cards",
+      "ob-bridge-box",
+      "ob-cmd",
+      "ob-copy",
+      "ob-key",
+      "ob-priv",
+      "ob-test",
+      "ob-test-status",
+      "ob-skip",
+      "ob-continue",
+      "d-onboard",
+    ]) {
+      expect(html).toContain(`id="${id}"`);
+    }
+    expect(html).toContain('value="npx ledring play"');
+    expect(html).toContain("ledring-onboarded");
+    expect(html).toContain("LEDRING_SIWC");
+    expect(html).toContain("COMING SOON");
+    expect(html).toContain("敬请期待");
+    expect(html).toContain("临阵校准 · 心智接引");
+    expect(html).toContain("为 CX-417 择定心智之源。");
   });
 });
