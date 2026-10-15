@@ -14,6 +14,11 @@ export const JUDGE_VIEWPORTS = [
 
 export interface JudgeInput {
   html: string;
+  /**
+   * Loopback bridge preview, `http://127.0.0.1:<port>/api/preview/<id>/index.html`.
+   * When set, the page is loaded from that URL and only that preview directory is allowed through the network wall.
+   */
+  previewUrl?: string;
   wantTests?: boolean;
   wantPolish?: boolean;
   leakedDespiteBlock?: boolean;
@@ -67,6 +72,28 @@ interface Probe {
 
 function allowedOffline(url: string): boolean {
   return url.startsWith("about:") || url.startsWith("data:") || url.startsWith("blob:");
+}
+
+/** Directory prefix for a loopback `/api/preview/` URL. Anything else is not a preview. */
+function previewPrefix(previewUrl: string | undefined): string | null {
+  if (!previewUrl) return null;
+  let url: URL;
+  try {
+    url = new URL(previewUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:") return null;
+  if (url.hostname !== "127.0.0.1" && url.hostname !== "localhost") return null;
+  if (!url.pathname.startsWith("/api/preview/")) return null;
+  const directory = url.pathname.endsWith("/") ? url.pathname : url.pathname.replace(/[^/]*$/, "");
+  return `${url.origin}${directory}`;
+}
+
+function allowedPreview(url: string, prefix: string | null): boolean {
+  if (!prefix) return false;
+  const withoutHash = url.split("#")[0] ?? url;
+  return withoutHash === prefix.slice(0, -1) || withoutHash.startsWith(prefix);
 }
 
 async function probe(page: Page): Promise<Probe> {
@@ -207,9 +234,13 @@ async function axeViolations(page: Page): Promise<number> {
   }
 }
 
-async function load(page: Page, html: string, viewport: { width: number; height: number }): Promise<void> {
+async function load(page: Page, input: JudgeInput, viewport: { width: number; height: number }): Promise<void> {
   await page.setViewportSize({ width: viewport.width, height: viewport.height });
-  await page.setContent(withHarness(html, createNonce()), { waitUntil: "domcontentloaded", timeout: 2500 });
+  if (input.previewUrl && previewPrefix(input.previewUrl)) {
+    await page.goto(input.previewUrl, { waitUntil: "domcontentloaded", timeout: 2500 });
+  } else {
+    await page.setContent(withHarness(input.html, createNonce()), { waitUntil: "domcontentloaded", timeout: 2500 });
+  }
   await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => resolve(0))));
 }
 
@@ -259,9 +290,10 @@ export async function judgeArtifact(input: JudgeInput, opts: { runtime: JudgeRun
 
 async function judgeInContext(context: BrowserContext, input: JudgeInput): Promise<JudgeVerdict> {
   const networkAttempts: NetworkAttempt[] = [];
+  const prefix = previewPrefix(input.previewUrl);
   await context.route("**/*", async (route) => {
     const url = route.request().url();
-    if (allowedOffline(url)) {
+    if (allowedOffline(url) || allowedPreview(url, prefix)) {
       await route.continue();
       return;
     }
@@ -293,7 +325,7 @@ async function judgeInContext(context: BrowserContext, input: JudgeInput): Promi
     page.on("console", (message) => {
       if (message.type() === "error") pushError(message.text());
     });
-    await load(page, input.html, viewport);
+    await load(page, input, viewport);
     const reading = await probe(page);
     if (reading.text > 0 || reading.painted) seenContent = true;
     screenshots.push({ name: viewport.name, png: await page.screenshot({ type: "png" }) });

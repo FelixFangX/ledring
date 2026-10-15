@@ -16,6 +16,7 @@
     "@ledring/play-core": "workspace:*",
     "@ledring/play-judge": "workspace:*",
     "@ledring/play-providers": "workspace:*",
+    "@ledring/play-sandbox": "workspace:*",
     "zod": "^3.23.8"
   },
   "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-bridge" }
