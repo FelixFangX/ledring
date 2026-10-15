@@ -4,6 +4,7 @@ import { extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { AxeBuilder } from "@axe-core/playwright";
+import { loadCassette, playCassette } from "@ledring/play-core";
 import { chromium, type Browser, type Page } from "playwright";
 import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
 
@@ -665,6 +666,85 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           hasTrace: true,
           hasReadme: true,
         });
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("renders the menu Session Library in EN and zh, supports keyboard navigation, and deterministically replays a cassette run with identical ending and event IDs", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      const cassette = loadCassette(readFileSync(join(root, "fixtures/play/snake-polished.json"), "utf8"));
+      const played = playCassette(cassette);
+      const events = JSON.parse(JSON.stringify(played.events)) as unknown[];
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+        const page = await ctx.newPage();
+        await page.goto(`${site.url}?lang=${lang}&rm&fast`, { waitUntil: "domcontentloaded" });
+
+        await page.evaluate(
+          ({ sess }) => {
+            const w = window as unknown as {
+              __ledring: {
+                setLibrarySessions: (rows: unknown[]) => void;
+              };
+            };
+            w.__ledring.setLibrarySessions([sess]);
+          },
+          {
+            sess: {
+              id: "sess-snake-1",
+              idea: played.idea,
+              ending: played.ending,
+              date: "2026-10-15T05:00:00.000Z",
+              events,
+            },
+          },
+        );
+
+        await page.locator("#m-lib").waitFor({ state: "visible" });
+        expect(await page.locator("#lib-cap").textContent()).toContain(lang === "zh" ? "会话记录" : "SESSION LIBRARY");
+        expect(await page.locator('.lib-row[data-session-id="sess-snake-1"] .lib-idea').textContent()).toBe(played.idea);
+
+        // Keyboard reachability: focus .lib-replay and press Enter
+        const replayBtn = page.locator('.lib-replay[data-id="sess-snake-1"]');
+        await replayBtn.focus();
+        expect(await replayBtn.evaluate((el) => document.activeElement === el)).toBe(true);
+
+        const replayed = await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: {
+              openLibrarySession: (
+                id: string,
+                mode: string,
+              ) => Promise<{
+                id: string;
+                ending: string;
+                eventIds: number[];
+                events: unknown[];
+              }>;
+              exportLibrarySession: (id: string) => Promise<string>;
+            };
+          };
+          const res = await w.__ledring.openLibrarySession("sess-snake-1", "replay");
+          const exported = await w.__ledring.exportLibrarySession("sess-snake-1");
+          return { res, trace: JSON.parse(exported) as { schema: string; instruction: string } };
+        });
+
+        expect(replayed.res.ending).toBe("POLISHED");
+        expect(replayed.res.eventIds).toEqual(events.map((_, i) => i + 1));
+        expect(replayed.res.events).toEqual(events);
+        expect(replayed.trace.schema).toBe("ledring.trace.v1");
+        expect(replayed.trace.instruction).toBe(played.idea);
+        expect(await page.locator("#end").evaluate((el) => el.classList.contains("on"))).toBe(true);
 
         await ctx.close();
       }

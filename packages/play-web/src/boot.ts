@@ -1,3 +1,11 @@
+import {
+  OFFLINE_QUESTIONS,
+  fuseDirections,
+  generateDirections,
+  loadCassette,
+  playCassette,
+  replayEvents,
+} from "@ledring/play-core";
 import { scanHtml, scanPlan } from "@ledring/play-risk";
 import { DEGRADED_JUDGE_NOTICE, DEGRADED_JUDGE_NOTICE_ZH, withHarness } from "@ledring/play-sandbox";
 import { PLAY_TOKENS } from "./tokens.js";
@@ -14,6 +22,12 @@ declare global {
     __ledringMotionTokens?: typeof MOTION_TOKENS;
     __ledringCreateMotion?: typeof createMotionEngine;
     __ledringMotion?: MotionEngine;
+    __ledringReplayEvents?: typeof replayEvents;
+    __ledringPlayCassette?: typeof playCassette;
+    __ledringLoadCassette?: typeof loadCassette;
+    __ledringOfflineQuestions?: typeof OFFLINE_QUESTIONS;
+    __ledringGenerateDirections?: typeof generateDirections;
+    __ledringFuseDirections?: typeof fuseDirections;
   }
 }
 
@@ -24,3 +38,9 @@ window.__ledringJudgeNotice = { en: DEGRADED_JUDGE_NOTICE, zh: DEGRADED_JUDGE_NO
 window.__ledringTokens = PLAY_TOKENS;
 window.__ledringMotionTokens = MOTION_TOKENS;
 window.__ledringCreateMotion = createMotionEngine;
+window.__ledringReplayEvents = replayEvents;
+window.__ledringPlayCassette = playCassette;
+window.__ledringLoadCassette = loadCassette;
+window.__ledringOfflineQuestions = OFFLINE_QUESTIONS;
+window.__ledringGenerateDirections = generateDirections;
+window.__ledringFuseDirections = fuseDirections;

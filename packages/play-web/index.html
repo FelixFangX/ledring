@@ -59,6 +59,14 @@ html:lang(zh-CN) .huge{font-weight:900}
 .chip{display:inline-flex;gap:7px;align-items:center;font:600 11px var(--mono);color:var(--ink2);border:1px solid var(--line2);border-radius:20px;padding:5px 11px;background:#fff}
 .chip i{width:7px;height:7px;border-radius:50%;background:var(--ink3)}
 .stat-row{display:flex;gap:10px;justify-content:center;margin-top:22px;flex-wrap:wrap}
+.mlib{margin:14px auto 0;max-width:620px;text-align:left;background:rgba(255,255,255,.92);border:1.5px solid var(--line2);border-radius:8px;padding:8px 12px}
+.lib-list{display:flex;flex-direction:column;gap:6px;max-height:132px;overflow-y:auto;margin-top:6px}
+.lib-row{display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--line);border-radius:6px;background:#fff;font-size:12.5px}
+.lib-idea{font:700 13px var(--sans);color:var(--ink);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lib-end{font:700 10px var(--mono);color:#fff;padding:2px 6px;border-radius:3px;white-space:nowrap}
+.lib-date{font:500 10px var(--mono);color:var(--ink3);white-space:nowrap}
+.lib-acts{display:flex;gap:4px;flex:none}
+.lib-acts .btn{padding:4px 8px;font-size:11px;min-height:28px}
 /* ---------- MISSION SELECT ---------- */
 #missions .mlist{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:28px}
 .mcard{text-align:left;border:1.5px solid var(--line2);background:#fff;border-radius:6px;padding:20px;cursor:pointer;transition:transform .15s var(--t),border-color .15s,box-shadow .15s;position:relative}
@@ -525,6 +533,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   <button class="btn ghost" id="m-how"></button>
  </div>
  <div class="stat-row" id="m-stats"></div>
+ <div class="mlib" id="m-lib" hidden><div class="cap" id="lib-cap"></div><div class="lib-list" id="lib-list" role="list"></div></div>
 </div></section>
 
 <!-- CHAPTER 0: INSPIRATION -->
@@ -866,6 +875,7 @@ const DICT={en:{
  siwcRetry:"Retry sign-in",siwcReconnect:"Reconnect with ChatGPT",keySaved:"•••• saved",keySavedBridge:"•••• saved on bridge",
  motionOff:"motion: reduced",motionOn:"motion: full",
  timerOn:"⏱ timer: on",timerOff:"⏱ timer: paused",timerPause:"pause timer",timerResume:"resume timer",timerPaused:"PAUSED",
+ libCap:"SESSION LIBRARY",libOpen:"Open",libReplay:"Replay",libExport:"Export",
 },zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐 · Using ChatGPT plan",siwcManage:"管理用量 · Manage usage",siwcOut:"断开",
  siwcStep1:"正在浏览器中打开 chatgpt.com……",siwcConsentT:"LEDRING Play 请求：",siwcPerm1:"知道你是谁（姓名、邮箱）",siwcPerm2:"用你的 ChatGPT 套餐发起 AI 请求",siwcApprove:"允许",siwcCancel:"取消",
  siwcNote:"官方「使用 ChatGPT 登录」。在本地桥接中运行，令牌不会进入本页面。用量计入你的 ChatGPT 套餐；可在 ChatGPT 设置 → 用量 中为每个应用设上限。",
@@ -874,6 +884,7 @@ const DICT={en:{
  siwcRetry:"重新登录",siwcReconnect:"重新连接 ChatGPT",keySaved:"•••• 已保存",keySavedBridge:"•••• 已保存在桥接",
  motionOff:"动效：已减弱",motionOn:"动效：完整",
  timerOn:"⏱ 计时：开",timerOff:"⏱ 计时：暂停",timerPause:"暂停计时",timerResume:"恢复计时",timerPaused:"已暂停",
+ libCap:"会话记录",libOpen:"打开",libReplay:"回放",libExport:"导出",
 
  msEye:"选择构建",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 模型",
  icTag:"你的想法",icPh:"随便写：游戏、工具、页面……",icHint:"中英文均可。代理会写成一个 HTML 文件。",
@@ -1507,6 +1518,45 @@ function judge(forced){
   else if(errs||(tests&&tpass<tests.length))end="BUGGY"; else if(RUN&&RUN.wantPolish&&RUN.wantTests&&tests&&tests.length)end="POLISHED"; else end="SHIPPED";}
  return {end,valid,left,outside,tests,fake,tpass,errs,bytes:html.length,engine:"iframe"};
 }
+function buildPlayEvents(run,J){
+ if(run&&Array.isArray(run.playEvents)&&run.playEvents.length){
+  try{if(window.__ledringReplayEvents&&window.__ledringReplayEvents(run.playEvents).idea)return run.playEvents;}catch(e){}
+ }
+ const id=(run&&run.id)||("play-"+Date.parse((run&&run.startedAt)||new Date().toISOString()).toString(36));
+ const idea=(run&&run.idea)||"LEDRING build";
+ const end=(J&&J.end)||(run&&run.end)||"SHIPPED";
+ const qtes=((run&&run.decs)||[]).filter(d=>d.k==="qte");
+ const q1=qtes[0]||{pick:end==="POLISHED"||end==="FAKE"?"tests":"short",auto:false,asked:false};
+ const q2=qtes[1]||{pick:end==="POLISHED"?"polish":"cut",auto:false,asked:false};
+ const snaps=(run&&run.snaps)||[];
+ const h1=(snaps[0]&&snaps[0].html)||(run&&run.html)||"<!doctype html><html><body><h1>v1</h1></body></html>";
+ const h2=(snaps[1]&&snaps[1].html)||h1;
+ const h3=(snaps[snaps.length-1]&&snaps[snaps.length-1].html)||h2;
+ const evs=[
+  {type:"start",idea,lang:LANG==="zh"?"zh":"en",id},
+  {type:"plan",text:(run&&run.plan)||"1. Build app",findings:[]},
+  {type:"artifact",html:h1,findings:[]},
+ ];
+ if(end==="ABANDONED"&&q1.pick==="plug"){evs.push({type:"choose",id:"plug",by:q1.auto?"unknown":"human",asked:!!q1.asked});return evs;}
+ if(q1.asked){evs.push({type:"interrogate"},{type:"answer",text:"explained"});}
+ evs.push({type:"choose",id:q1.pick==="plug"?"short":q1.pick,by:q1.auto?"unknown":"human",asked:!!q1.asked});
+ evs.push({type:"artifact",html:h2,findings:[]});
+ if(end==="ABANDONED"){evs.push({type:"choose",id:"plug",by:q2.auto?"unknown":"human",asked:!!q2.asked});return evs;}
+ if(q2.asked){evs.push({type:"interrogate"},{type:"answer",text:"explained"});}
+ evs.push({type:"choose",id:q2.pick==="plug"?"cut":q2.pick,by:q2.auto?"unknown":"human",asked:!!q2.asked});
+ evs.push({type:"artifact",html:h3,findings:[]});
+ evs.push({type:"judge",facts:{
+  validPage:end!=="BROKEN",
+  risksLeft:end==="COMPROMISED"?["network"]:[],
+  fakeTests:end==="FAKE",
+  selfTests:end==="POLISHED"||end==="FAKE"?{pass:1,total:1}:null,
+  runtimeErrors:end==="BUGGY"?1:0,
+  wantTests:end==="POLISHED"||end==="FAKE"||!!(run&&run.wantTests),
+  wantPolish:end==="POLISHED"||!!(run&&run.wantPolish),
+  leakedDespiteBlock:end==="COMPROMISED",
+ }});
+ return evs;
+}
 async function finish(forced){
  setPhase("phJudge");log(T.lgJudge);
  let J=judge(forced);
@@ -1531,7 +1581,19 @@ async function finish(forced){
  RUN.end=J.end;RUN.judgeVerdict=J.verdict||null;
  const s=tstep("tool","judge","judge",{output:{ending:J.end,engine:J.engine,validPage:J.valid,runtimeErrors:J.errs,risksLeft:J.left,tests:J.tests,fakeTests:J.fake,bytes:J.bytes}});endStep(s);
  RUN.endedAt=new Date().toISOString();
- SAVE.plays=(SAVE.plays||0)+1;SAVE.seen=SAVE.seen||{};SAVE.seen[J.end]=1;SAVE.last={idea:RUN.idea.slice(0,60),end:J.end,trust:Math.round(trust),preset:RUN.preset};persist();
+ const playEvs=buildPlayEvents(RUN,J);RUN.playEvents=playEvs;
+ let sid=RUN.bridgeSessionId||("play-"+Date.parse(RUN.startedAt).toString(36));
+ if(BRIDGE){
+  try{
+   if(!RUN.bridgeSessionId){const sr=await fetch("/api/sessions",{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:"{}"});if(sr.ok){const sj=await sr.json();if(sj&&sj.id){sid=sj.id;RUN.bridgeSessionId=sid;}}}
+   await fetch(`/api/sessions/${encodeURIComponent(sid)}/library`,{method:"POST",credentials:"same-origin",headers:{"content-type":"application/json"},body:JSON.stringify({events:playEvs})});
+  }catch(e){}
+ }
+ SAVE.plays=(SAVE.plays||0)+1;SAVE.seen=SAVE.seen||{};SAVE.seen[J.end]=1;SAVE.last={idea:RUN.idea.slice(0,60),end:J.end,trust:Math.round(trust),preset:RUN.preset};
+ SAVE.sessions=(SAVE.sessions||[]).filter(x=>x&&x.id!==sid);
+ SAVE.sessions.unshift({id:sid,idea:RUN.idea.slice(0,80),ending:J.end,date:RUN.endedAt,events:playEvs});
+ SAVE.sessions=SAVE.sessions.slice(0,20);
+ persist();
  setTimeout(()=>paintEnd(J),FAST?50:600);
 }
 const ENDCOL={POLISHED:COL.ok,SHIPPED:COL.calm,BUGGY:COL.proc,FAKE:COL.proc,COMPROMISED:COL.crit,BROKEN:"#5A6168",ABANDONED:"#949BA1"};
@@ -1999,6 +2061,129 @@ function paintHints(){const live=PROV.mode!=="demo";
  $("#demotag").innerHTML=live?`<b class="live">●</b> `+esc(fill(T.chipLive,{m:provLabel()}))+" ⚙":`<b>●</b> `+T.chipDemo+" ⚙";
  $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):cassetteLabel(PROV.provenance);}
 function cassetteLabel(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "recorded from "+p.model+" on "+p.recordedAt;return "DEMO · synthetic cassette, not a live model recording";}
+let LIB_SESSIONS=[];
+function paintLibrary(){
+ const wrap=$("#m-lib"),list=$("#lib-list"),cap=$("#lib-cap");
+ if(!wrap||!list||!cap)return;
+ const rows=LIB_SESSIONS||[];
+ cap.textContent=T.libCap+" · "+rows.length;
+ if(!rows.length){wrap.setAttribute("hidden","");list.innerHTML="";return;}
+ wrap.removeAttribute("hidden");
+ list.innerHTML=rows.map(r=>{
+  const end=r.ending||"SHIPPED",col=ENDCOL[end]||COL.calm,tag=(T.ends[end]||T.ends.SHIPPED)[0];
+  const dt=r.date?ago(r.date)||String(r.date).slice(0,10):"";
+  return `<div class="lib-row" role="listitem" data-session-id="${esc(r.id)}">
+   <span class="lib-end" style="background:${col}">${esc(tag)}</span>
+   <span class="lib-idea">${esc(r.idea||r.id)}</span>
+   <span class="lib-date">${esc(dt)}</span>
+   <div class="lib-acts">
+    <button type="button" class="btn ghost sm lib-open" data-id="${esc(r.id)}">${T.libOpen}</button>
+    <button type="button" class="btn ghost sm lib-replay" data-id="${esc(r.id)}">${T.libReplay}</button>
+    <button type="button" class="btn ghost sm lib-export" data-id="${esc(r.id)}">${T.libExport}</button>
+   </div>
+  </div>`;
+ }).join("");
+ list.querySelectorAll(".lib-open").forEach(b=>b.onclick=()=>openLibrarySession(b.dataset.id,"open"));
+ list.querySelectorAll(".lib-replay").forEach(b=>b.onclick=()=>openLibrarySession(b.dataset.id,"replay"));
+ list.querySelectorAll(".lib-export").forEach(b=>b.onclick=()=>exportLibrarySession(b.dataset.id));
+}
+async function refreshLibrary(){
+ const local=Array.isArray(SAVE.sessions)?SAVE.sessions.slice():[];
+ let remote=[];
+ try{
+  const r=await fetch("/api/sessions",{credentials:"same-origin"});
+  if(r.ok){const j=await r.json();if(j&&Array.isArray(j.sessions)){BRIDGE=BRIDGE||{active:true};remote=j.sessions;}}
+ }catch(e){}
+ const seen=new Set(),merged=[];
+ for(const row of [...remote,...local]){
+  if(!row||!row.id||seen.has(row.id))continue;
+  seen.add(row.id);
+  const loc=local.find(x=>x&&x.id===row.id);
+  merged.push(Object.assign({},loc||{},row));
+ }
+ LIB_SESSIONS=merged;paintLibrary();return merged;
+}
+function setLibrarySessions(rows){LIB_SESSIONS=Array.isArray(rows)?rows.slice():[];paintLibrary();}
+async function loadSessionEvents(id){
+ const row=(LIB_SESSIONS||[]).find(x=>x&&x.id===id)||(SAVE.sessions||[]).find(x=>x&&x.id===id);
+ try{
+  const r=await fetch(`/api/sessions/${encodeURIComponent(id)}/replay`,{credentials:"same-origin"});
+  if(r.ok){
+   const j=await r.json();
+   if(j&&Array.isArray(j.events)){
+    const entries=j.events.map((e,idx)=>e&&typeof e==="object"&&"event" in e?e:{id:idx+1,event:e});
+    return {entries,rawEvents:entries.map(e=>e.event),ending:j.ending};
+   }
+  }
+ }catch(e){}
+ if(row&&Array.isArray(row.events)){
+  const entries=row.events.map((e,idx)=>e&&typeof e==="object"&&"event" in e?e:{id:idx+1,event:e});
+  return {entries,rawEvents:entries.map(e=>e.event),ending:row.ending};
+ }
+ return null;
+}
+function projectStateToRun(id,state,entries){
+ const decs=[];let qv=1;
+ for(const ev of state.events||[]){
+  if(ev.type==="wall")decs.push({k:"wall",label:"wall",opts:["block","allow"],pick:ev.action,auto:ev.by!=="human"});
+  else if(ev.type==="choose"){qv++;decs.push({k:"qte",label:"v"+qv,opts:["short","tests","polish","cut","plug"],pick:ev.id,auto:ev.by!=="human",asked:!!ev.asked});}
+ }
+ trust=typeof state.trust==="number"?state.trust:50;
+ const end=state.ending||"SHIPPED";
+ RUN={
+  id:state.id||id,
+  idea:state.idea||id,
+  mode:"demo",
+  model:"replay",
+  html:state.html||"<!doctype html><html><body><h1>Replay</h1></body></html>",
+  plan:state.plan||"",
+  v:state.version||1,
+  blocked:new Set(state.blocked||[]),
+  allowed:new Set(state.allowed||[]),
+  wantTests:!!state.wantTests,
+  wantPolish:!!state.wantPolish,
+  decs,
+  snaps:(state.snaps&&state.snaps.length?state.snaps:[{label:"v1",html:state.html||""}]).map(s=>({label:s.label,html:s.html,prevLines:new Set()})),
+  steps:(state.events||[]).map((ev,i)=>({id:"s"+(i+1),kind:ev.type==="choose"||ev.type==="wall"||ev.type==="start"?"human":"tool",name:ev.type,signature:"replay:"+ev.type,startedAt:new Date().toISOString(),endedAt:new Date().toISOString()})),
+  startedAt:new Date().toISOString(),
+  endedAt:new Date().toISOString(),
+  end,
+  playEvents:state.events,
+  replayEntries:entries,
+ };
+ return {
+  end,
+  valid:end!=="BROKEN",
+  left:state.allowed||[],
+  outside:(state.allowed||[]).filter(c=>c!=="storage"),
+  tests:state.wantTests?[{name:"t1",pass:end==="POLISHED"}]:null,
+  fake:end==="FAKE",
+  tpass:end==="POLISHED"?1:0,
+  errs:(state.signals&&state.signals.runtimeErrors)||0,
+  bytes:(state.html||"").length,
+  engine:"replay",
+ };
+}
+async function openLibrarySession(id,mode){
+ const loaded=await loadSessionEvents(id);
+ if(!loaded||!window.__ledringReplayEvents)return null;
+ const state=window.__ledringReplayEvents(loaded.rawEvents);
+ const J=projectStateToRun(id,state,loaded.entries);
+ paintEnd(J);
+ if(mode==="replay"&&$("#e-play"))$("#e-play").click();
+ return {id:state.id||id,ending:state.ending,eventIds:loaded.entries.map(e=>e.id),events:state.events,state};
+}
+async function exportLibrarySession(id){
+ const loaded=await loadSessionEvents(id);
+ if(!loaded||!window.__ledringReplayEvents)return null;
+ const prevRun=RUN,prevTrust=trust;
+ const state=window.__ledringReplayEvents(loaded.rawEvents);
+ projectStateToRun(id,state,loaded.entries);
+ const json=traceJSON();
+ dl(slug(state.idea||id)+".trace.json",json,"application/json");
+ RUN=prevRun;trust=prevTrust;
+ return json;
+}
 function paintMenu(){
  try{const raw=localStorage.getItem("ledring-v1");if(raw)Object.assign(SAVE,JSON.parse(raw));}catch(e){}
  ringSVG($("#menuring"),SAVE.last&&SAVE.last.end==="COMPROMISED"?"crit":SAVE.last&&/BUGGY|FAKE/.test(SAVE.last.end)?"proc":"calm");
@@ -2006,6 +2191,9 @@ function paintMenu(){
  const L=SAVE.last;$("#host").innerHTML=L&&L.end?fill(T.hostAgain,{idea:esc(L.idea),end:T.ends[L.end][0],trust:L.trust}):T.hostNew;
  $("#m-stats").innerHTML=`<span class="chip"><i></i>${SAVE.plays||0} ${T.statPlays}</span><span class="chip"><i style="background:${COL.ok}"></i>${Object.keys(SAVE.seen||{}).length}/7 ${T.statUnlock}</span>`;
  $("#hudmid").textContent=T.hudmid;
+ LIB_SESSIONS=Array.isArray(SAVE.sessions)?SAVE.sessions.slice():LIB_SESSIONS;
+ paintLibrary();
+ refreshLibrary();
 }
 function paintIdea(){
  $("#ms-eye").textContent=T.msEye;$("#ms-title").textContent=T.msTitle;$("#ms-back").textContent=T.msBack;$("#ms-model").textContent=T.msModel;
@@ -2208,7 +2396,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();}};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
