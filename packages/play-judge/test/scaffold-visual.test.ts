@@ -1050,7 +1050,10 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         await page.waitForSelector("#in-opts .qopt");
         for (let step = 0; step < 3; step += 1) {
           await page.keyboard.press("1");
-          await page.waitForTimeout(30);
+          await page.waitForFunction(
+            (n) => document.querySelectorAll("#in-frags .frag").length === n,
+            step + 1,
+          );
         }
         await page.waitForSelector("#in-opts .dir .dstr");
         await page.evaluate(async () => {
