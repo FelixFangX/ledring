@@ -41,3 +41,19 @@ export {
   type WallRecord,
 } from "./machine.js";
 export { loadCassette, playCassette, type Cassette, type CassetteArtifact, type CassetteOptions, type CassetteProvenance, type CassetteWall } from "./cassette.js";
+export {
+  OFFLINE_QUESTIONS,
+  directionPrompt,
+  fuseDirections,
+  generateDirections,
+  hashString,
+  inspirationRun,
+  parseModelDirections,
+  synthesizeDirections,
+  type Answers,
+  type Direction,
+  type Fragment,
+  type InspirationEvent,
+  type InspirationExtension,
+  type ModelDirection,
+} from "./inspiration.js";
