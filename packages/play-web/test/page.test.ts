@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { DEGRADED_JUDGE_NOTICE, DEGRADED_JUDGE_NOTICE_ZH } from "@ledring/play-sandbox";
+import { FREE_PRESETS } from "@ledring/play-web";
 
 const html = readFileSync(fileURLToPath(new URL("../index.html", import.meta.url)), "utf8");
 
@@ -64,5 +65,25 @@ describe("play page", () => {
     expect(html).toContain("敬请期待");
     expect(html).toContain("临阵校准 · 心智接引");
     expect(html).toContain("为 CX-417 择定心智之源。");
+  });
+
+  it("embeds the free-preset catalog, the no-card badge, and bridge routing for hosts that block browsers", () => {
+    for (const id of ["ob-presets", "ob-preset-row", "ob-free-badge", "ob-limits", "ob-keylink", "ob-route", "ob-account"]) {
+      expect(html).toContain(`id="${id}"`);
+    }
+    expect(html).toContain("FREE · NO CARD");
+    expect(html).toContain("免费 · 无需绑卡");
+    expect(html).toContain("领取密钥");
+    expect(html).toContain("activeBridgePreset");
+    expect(html).toContain("obNeedBridge");
+    for (const preset of FREE_PRESETS) {
+      expect(html).toContain(preset.baseUrl);
+      expect(html).toContain(preset.model);
+      expect(html).toContain(preset.keyUrl);
+      expect(html).toContain(`browser:${preset.browser}`);
+    }
+    expect(html).toContain("此端拒绝浏览器直连");
+    expect(html).toContain("gemini-3.8-flash 不另收费");
+    expect(html).toContain("每分钟 30 次、每日 1000 次");
   });
 });

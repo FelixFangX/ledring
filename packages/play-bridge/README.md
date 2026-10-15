@@ -12,7 +12,7 @@ The page talks to `/api/*`. Provider API keys stay in this process (`~/.ledring/
 | `GET /api/sessions` | token | List the session index (idea, ending, date). Does not read each session log. |
 | `POST /api/sessions/:id/library` | token | Save play events, update the index, and return the projected ending. |
 | `GET /api/sessions/:id/replay` | token | Load that session's play log and re-project it. Event ids stay as stored. |
-| `POST /api/sessions/:id/steps` | token | SSE deltas (`id`, `event`, `data`). |
+| `POST /api/sessions/:id/steps` | token | SSE deltas (`id`, `event`, `data`). An OpenAI-compatible step may also carry a one-request `baseUrl` and `apiKey` for an allowlisted free host. That key is not written to disk and is redacted from logs and errors. |
 | `GET /api/sessions/:id/stream?from=` | token | Replay and follow from an event id. |
 | `POST /api/sessions/:id/stop` | token | Abort the upstream request. |
 | `POST /api/judge` | token | Headless judge. Body `{ html, wantTests?, wantPolish?, leakedDespiteBlock?, checks? }`. `checks` is model-proposed JSON. Hostile checks are rejected and do not run. `400` when the body is invalid, `503` when Chromium cannot launch. |

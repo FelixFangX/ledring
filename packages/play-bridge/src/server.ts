@@ -27,6 +27,7 @@ import {
 } from "@ledring/play-sandbox";
 import { z } from "zod";
 import { providerSecrets, type BridgeConfig } from "./config.js";
+import { ephemeralOpenAITarget } from "./ephemeral.js";
 import { appendSessionLog, listSessionIds, readPlayLog, readSessionIndex, readSessionLog, upsertSessionSummary, writePlayLog } from "./store.js";
 
 const judgeSchema = z
@@ -57,6 +58,10 @@ const stepSchema = z.object({
   user: z.string().max(100_000),
   model: z.string().max(200).optional(),
   maxTokens: z.number().int().positive().max(8192).optional(),
+  /** Allowlisted free-preset base. Used for this request only. */
+  baseUrl: z.string().max(300).optional(),
+  /** Browser-held key. Used for this request only; never stored or logged. */
+  apiKey: z.string().max(400).optional(),
 }).strict();
 
 type StepEvent = "delta" | "error" | "done" | "stopped";
@@ -485,9 +490,27 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
           finishLog(400);
           return;
         }
+        let provider = providers[parsed.data.provider];
+        let stepSecrets = secrets;
+        if (parsed.data.baseUrl !== undefined || parsed.data.apiKey !== undefined) {
+          const target = parsed.data.provider === "openai-compat" ? ephemeralOpenAITarget(parsed.data.baseUrl, parsed.data.apiKey) : null;
+          if (!target) {
+            send(res, 400, { error: "invalid request" });
+            finishLog(400);
+            return;
+          }
+          provider = openAICompatProvider({
+            apiKey: target.apiKey,
+            baseUrl: target.baseUrl,
+            model: parsed.data.model ?? "gpt-4o-mini",
+            ...(opts.fetchImpl ? { fetchImpl: opts.fetchImpl } : {}),
+            ...(opts.sleep ? { sleep: opts.sleep } : {}),
+          });
+          stepSecrets = [...secrets, target.apiKey];
+        }
         const start = session.events.length;
         session.done = false;
-        const task = runStep(session, providers[parsed.data.provider], parsed.data, secrets);
+        const task = runStep(session, provider, parsed.data, stepSecrets);
         res.writeHead(200, {
           "content-type": "text/event-stream; charset=utf-8",
           "cache-control": "no-store",

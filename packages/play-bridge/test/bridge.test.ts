@@ -1,5 +1,5 @@
 import { createServer, request as httpRequest } from "node:http";
-import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -126,6 +126,82 @@ describe("bridge security", () => {
       await bridge.close();
       upstream.closeAllConnections();
       await new Promise<void>((resolve, reject) => upstream.close((error) => (error ? reject(error) : resolve())));
+    }
+  });
+
+  it("forwards an allowlisted free-preset key for one request and never stores or logs it", async () => {
+    const key = "cf-ephemeral-key-998877";
+    const home = mkdtempSync(join(tmpdir(), "ledring-eph-"));
+    const calls: { url: string; auth: string; body: string }[] = [];
+    const bridge = await startBridge({
+      token: TOKEN,
+      home,
+      fetchImpl: async (input, init) => {
+        const headers = new Headers(init?.headers);
+        const body = String(init?.body ?? "");
+        calls.push({ url: String(input), auth: headers.get("authorization") ?? "", body });
+        if (body.includes('"echo"')) return new Response(`nope ${key}`, { status: 400 });
+        return new Response('data: {"choices":[{"delta":{"content":"OK"}}]}\n\ndata: [DONE]\n\n', {
+          status: 200,
+          headers: { "content-type": "text/event-stream" },
+        });
+      },
+    });
+    const post = (id: string, body: unknown) =>
+      fetch(new URL(`/api/sessions/${id}/steps`, bridge.url), {
+        method: "POST",
+        headers: { "x-ledring-token": TOKEN, "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+    try {
+      const created = await fetch(new URL("/api/sessions", bridge.url), {
+        method: "POST",
+        headers: { "x-ledring-token": TOKEN },
+      });
+      const { id } = (await created.json()) as { id: string };
+      const account = "0123456789abcdef0123456789abcdef";
+      const base = `https://api.cloudflare.com/client/v4/accounts/${account}/ai/v1`;
+      const step = await sseText(
+        await post(id, {
+          provider: "openai-compat",
+          system: "s",
+          user: "u",
+          model: "@cf/openai/gpt-oss-120b",
+          baseUrl: base,
+          apiKey: key,
+        }),
+      );
+      expect(step).toContain("OK");
+      expect(calls[0]).toMatchObject({ url: `${base}/chat/completions`, auth: `Bearer ${key}` });
+      expect(calls[0]?.body).toContain("@cf/openai/gpt-oss-120b");
+      expect(step).not.toContain(key);
+      expect(bridge.logs.join("\n")).not.toContain(key);
+
+      const echoed = await sseText(
+        await post(id, { provider: "openai-compat", system: "s", user: "u", model: "echo", baseUrl: base, apiKey: key }),
+      );
+      expect(echoed).toContain("error");
+      expect(echoed).not.toContain(key);
+
+      for (const baseUrl of [
+        "http://127.0.0.1:9/v1",
+        "https://example.com/v1",
+        "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+        "https://api.cloudflare.com/client/v4/accounts/0123456789abcdef0123456789abcdef/ai/v1?x=1",
+      ]) {
+        const rejected = await post(id, { provider: "openai-compat", system: "s", user: "u", baseUrl, apiKey: key });
+        expect(rejected.status).toBe(400);
+        expect(await rejected.text()).not.toContain(key);
+      }
+      expect(bridge.logs.join("\n")).not.toContain(key);
+      const names = readdirSync(home, { recursive: true }).map(String);
+      for (const name of names) {
+        const path = join(home, name);
+        if (!statSync(path).isFile()) continue;
+        expect(readFileSync(path, "utf8")).not.toContain(key);
+      }
+    } finally {
+      await bridge.close();
     }
   });
 });

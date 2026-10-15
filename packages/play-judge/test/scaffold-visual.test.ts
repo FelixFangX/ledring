@@ -1706,4 +1706,118 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 45_000);
+
+  it("fills free presets from the custom card, keeps keys in localStorage, and does not call a blocked host from the browser", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      const external: string[] = [];
+      page.on("request", (req) => {
+        const url = new URL(req.url());
+        if (url.protocol.startsWith("http") && url.hostname !== "127.0.0.1" && url.hostname !== "localhost") {
+          external.push(url.hostname);
+        }
+      });
+      await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=en`);
+      await page.waitForSelector("#onboard.on");
+      await page.waitForTimeout(150);
+      expect(external).toEqual([]);
+
+      await page.locator('.ob-card[data-choice="openai-custom"]').click();
+      const presetIds = await page.locator("#ob-preset-row .ob-preset").evaluateAll((els) =>
+        els.map((el) => (el as HTMLElement).dataset.preset),
+      );
+      expect(presetIds).toEqual(["gemini", "groq", "openrouter", "cloudflare", "nvidia"]);
+      expect(await page.locator('.ob-preset[data-preset="groq"] .ob-badge').textContent()).toContain("FREE · NO CARD");
+
+      await page.locator('.ob-preset[data-preset="gemini"]').click();
+      expect(await page.locator("#ob-base").inputValue()).toBe("https://generativelanguage.googleapis.com/v1beta/openai/");
+      expect(await page.locator("#ob-model").inputValue()).toBe("gemini-3.8-flash");
+      expect(await page.locator("#ob-free-badge").textContent()).toContain("FREE · NO CARD");
+      expect(await page.locator("#ob-limits").textContent()).toContain("AI Studio");
+      expect(await page.locator("#ob-keylink").getAttribute("href")).toBe("https://aistudio.google.com/apikey");
+      expect(await page.locator("#ob-keylink").getAttribute("rel")).toContain("noopener");
+      expect(await page.locator("#ob-account-row").isHidden()).toBe(true);
+      expect(await page.locator("#ob-bridge-box").isHidden()).toBe(true);
+
+      await page.locator('.ob-preset[data-preset="groq"]').click();
+      expect(await page.locator("#ob-base").inputValue()).toBe("https://api.groq.com/openai/v1");
+      expect(await page.locator("#ob-model").inputValue()).toBe("openai/gpt-oss-120b");
+      expect(await page.locator("#ob-keylink").getAttribute("href")).toBe("https://console.groq.com/keys");
+
+      await page.locator('.ob-preset[data-preset="openrouter"]').click();
+      expect(await page.locator("#ob-model").inputValue()).toBe("openrouter/free");
+      expect(await page.locator("#ob-keylink").getAttribute("href")).toBe("https://openrouter.ai/settings/keys");
+      expect(external).toEqual([]);
+
+      await page.locator('.ob-preset[data-preset="nvidia"]').click();
+      expect(await page.locator("#ob-model").inputValue()).toBe("nvidia/nemotron-3-ultra-550b-a55b");
+      expect(await page.locator("#ob-bridge-box").isVisible()).toBe(true);
+      expect(await page.locator("#ob-cmd").inputValue()).toBe("npx ledring play");
+      expect(await page.locator("#ob-route").textContent()).toContain("blocks browsers");
+      expect(external).toEqual([]);
+
+      await page.locator('.ob-preset[data-preset="cloudflare"]').click();
+      expect(await page.locator("#ob-account-row").isVisible()).toBe(true);
+      const account = "0123456789abcdef0123456789abcdef";
+      await page.locator("#ob-account").fill(account);
+      expect(await page.locator("#ob-base").inputValue()).toBe(
+        `https://api.cloudflare.com/client/v4/accounts/${account}/ai/v1`,
+      );
+      expect(await page.locator("#ob-model").inputValue()).toBe("@cf/openai/gpt-oss-120b");
+      expect(external).toEqual([]);
+
+      await page.locator("#ob-key").fill("cf-token-onboard-11223344");
+      await page.locator("#ob-key").dispatchEvent("change");
+      await page.locator("#ob-test").click();
+      await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
+      expect(await page.locator("#ob-test-status").textContent()).toContain("npx ledring play");
+      expect(external).toEqual([]);
+      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("ledring-provider") || "{}"));
+      expect(stored.openai.key).toBe("cf-token-onboard-11223344");
+      expect(stored.openai.accountId).toBe(account);
+      expect(stored.openai.preset).toBe("cloudflare");
+      expect(await page.locator("#ob-key").inputValue()).toBe("");
+
+      await page.route("https://generativelanguage.googleapis.com/**", async (route) => {
+        const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: "OK" } }] })}\n\ndata: [DONE]\n\n`;
+        await route.fulfill({ status: 200, contentType: "text/event-stream", body: sse });
+      });
+      await page.locator('.ob-preset[data-preset="gemini"]').click();
+      await page.locator("#ob-key").fill("sk-gemini-onboard-11223344");
+      await page.locator("#ob-key").dispatchEvent("change");
+      expect(external).toEqual([]);
+      await page.locator("#ob-test").click();
+      await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("ok"));
+      expect(await page.locator("#ob-test-status").textContent()).toContain("OK");
+      expect(external.some((host) => host === "generativelanguage.googleapis.com")).toBe(true);
+      const gemini = await page.evaluate(() => JSON.parse(localStorage.getItem("ledring-provider") || "{}"));
+      expect(gemini.openai.key).toBe("sk-gemini-onboard-11223344");
+      expect(gemini.openai.preset).toBe("gemini");
+      expect(JSON.stringify(gemini)).not.toMatch(/cf-token-onboard-11223344/);
+
+      await page.setViewportSize({ width: 390, height: 800 });
+      const chip = await page.locator('.ob-preset[data-preset="gemini"]').boundingBox();
+      expect(chip?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+      await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=zh`);
+      await page.waitForSelector("#onboard.on");
+      await page.locator('.ob-card[data-choice="openai-custom"]').click();
+      expect(await page.locator('.ob-preset[data-preset="nvidia"] .ob-badge').textContent()).toContain("免费 · 无需绑卡");
+      await page.locator('.ob-preset[data-preset="nvidia"]').click();
+      expect(await page.locator('.ob-preset[data-preset="nvidia"] small').textContent()).toBe("免费端点");
+      expect(await page.locator("#ob-limits").textContent()).toContain("不必绑卡");
+      expect(await page.locator("#ob-keylink").textContent()).toBe("领取密钥");
+      expect(await page.locator("#ob-route").textContent()).toContain("拒绝浏览器直连");
+
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
 });
