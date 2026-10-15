@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { AxeBuilder } from "@axe-core/playwright";
 import { loadCassette, playCassette } from "@ledring/play-core";
 import { chromium, type Browser, type Page } from "playwright";
+import { handleStrands, memoryStore } from "../../play-strands/src/index.js";
 import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
 
 const root = fileURLToPath(new URL("../../..", import.meta.url));
@@ -906,4 +907,176 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 30_000);
+
+  it("enforces simulated vs server-backed Strands label rules across Menu, Chapter 0, and Ending in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const simWord = lang === "zh" ? "模拟" : "simulated";
+        const store = memoryStore();
+        let backendOffline = false;
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+
+        await page.route("https://strands.ledring.test/**", async (route) => {
+          if (backendOffline) {
+            await route.fulfill({ status: 503, body: "offline" });
+            return;
+          }
+          const req = route.request();
+          const webReq = new Request(req.url(), {
+            method: req.method(),
+            headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.42" },
+            ...(req.method() === "POST" ? { body: req.postData() ?? "{}" } : {}),
+          });
+          const res = await handleStrands(webReq, store);
+          const body = await res.text();
+          await route.fulfill({
+            status: res.status,
+            contentType: "application/json",
+            body,
+          });
+        });
+
+        // 1. Default offline / simulated state: menu, Chapter 0, and ending all show simulated label
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.locator("#menu").waitFor({ state: "visible" });
+        const menuSimTag = (await page.locator("#strandtag").textContent()) || "";
+        expect(menuSimTag).toContain(simWord);
+        expect(await page.locator("#strandtag").getAttribute("data-simulated")).toBe("true");
+
+        // Ending simulated strand fallback when no server is configured
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              setRun: (r: unknown) => void;
+              paintEnd: (j: unknown) => void;
+            };
+          };
+          w.__ledring.setRun({
+            idea: "A quiet focus timer",
+            mode: "demo",
+            model: "demo",
+            html: "<!doctype html><html><body><h1>Timer</h1></body></html>",
+            plan: "1. timer",
+            v: 1,
+            blocked: new Set(),
+            allowed: new Set(),
+            decs: [],
+            snaps: [{ label: "v1", html: "<h1>Timer</h1>" }],
+            steps: [{ id: "s1", kind: "llm", name: "plan", signature: "plan" }],
+            startedAt: new Date().toISOString(),
+            endedAt: new Date().toISOString(),
+            end: "POLISHED",
+          });
+          w.__ledring.paintEnd({
+            end: "POLISHED",
+            valid: true,
+            left: [],
+            outside: [],
+            tests: [{ name: "t1", pass: true }],
+            fake: false,
+            tpass: 1,
+            errs: 0,
+            bytes: 120,
+          });
+        });
+        await page.locator("#e-strand").click();
+        await page.waitForTimeout(40);
+        expect(await page.locator("#e-strand").getAttribute("data-simulated")).toBe("true");
+        expect(await page.locator("#e-strand").textContent()).toContain(simWord);
+
+        // 2. Wire real @ledring/play-strands backend and publish a real strand
+        await page.evaluate(() => {
+          const b = document.querySelector("#e-strand") as HTMLButtonElement;
+          b.disabled = false;
+        });
+        await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: {
+              setStrandsUrl: (url: string, brief?: string) => Promise<unknown>;
+              leaveStrand: () => Promise<{ ok: boolean; simulated: boolean; id?: string }>;
+            };
+          };
+          await w.__ledring.setStrandsUrl("https://strands.ledring.test", "A quiet focus timer");
+        });
+        const posted = await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: {
+              leaveStrand: () => Promise<{ ok: boolean; simulated: boolean; id?: string; likes?: number }>;
+            };
+          };
+          return await w.__ledring.leaveStrand();
+        });
+        expect(posted.ok).toBe(true);
+        expect(posted.simulated).toBe(false);
+        expect(posted.likes).toBe(0);
+        expect(await page.locator("#e-strand").getAttribute("data-simulated")).toBe("false");
+        expect(await page.locator("#e-strand").textContent()).not.toContain(simWord);
+
+        // Like the server-backed strand and verify likes count updates from server
+        const liked = await page.evaluate(async (id) => {
+          const w = window as unknown as {
+            __ledring: {
+              likeStrand: (id: string) => Promise<{ ok: boolean; likes?: number }>;
+            };
+          };
+          return await w.__ledring.likeStrand(id!);
+        }, posted.id);
+        expect(liked).toEqual({ ok: true, likes: 1 });
+        expect(await page.locator("#e-strand .num").textContent()).toBe("1");
+
+        // Menu tag drops "(simulated)" when server-backed strands are loaded
+        await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { show: (id: string) => void } };
+          w.__ledring.show("menu");
+        });
+        const menuLiveTag = (await page.locator("#strandtag").textContent()) || "";
+        expect(menuLiveTag).not.toContain(simWord);
+        expect(await page.locator("#strandtag").getAttribute("data-simulated")).toBe("false");
+        await page.screenshot({ path: join(diffDir, `strands-live-menu-1280-${lang}.png`) });
+
+        // Chapter 0 direction cards omit "(simulated)" when backed by server strands
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&strandsUrl=${encodeURIComponent("https://strands.ledring.test")}`);
+        await page.waitForSelector("#in-opts .qopt");
+        for (let step = 0; step < 3; step += 1) {
+          await page.keyboard.press("1");
+          await page.waitForTimeout(30);
+        }
+        await page.waitForSelector("#in-opts .dir .dstr");
+        await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: { syncStrands: (brief?: string) => Promise<unknown> };
+          };
+          await w.__ledring.syncStrands("A quiet focus timer");
+        });
+        const dirSimAttr = await page.locator("#in-opts .dir .dstr").first().getAttribute("data-simulated");
+        const dirText = (await page.locator("#in-opts .dir .dstr").first().textContent()) || "";
+        expect(dirSimAttr).toBe("false");
+        expect(dirText).not.toContain(simWord);
+
+        // 3. When backend goes offline, fallback restores "(simulated)" label on both Menu and Chapter 0
+        backendOffline = true;
+        await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: { syncStrands: (brief?: string) => Promise<unknown> };
+          };
+          await w.__ledring.syncStrands("A quiet focus timer");
+        });
+        expect(await page.locator("#strandtag").getAttribute("data-simulated")).toBe("true");
+        expect(await page.locator("#strandtag").textContent()).toContain(simWord);
+        expect(await page.locator("#in-opts .dir .dstr").first().getAttribute("data-simulated")).toBe("true");
+        expect(await page.locator("#in-opts .dir .dstr").first().textContent()).toContain(simWord);
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
 });
