@@ -1,0 +1,10 @@
+name = "ledring-play-strands"
+main = "dist/worker.js"
+compatibility_date = "2026-10-15"
+
+# Replace database_id after `npx wrangler d1 create ledring-play-strands`.
+# The placeholder is not a real database. Do not deploy until it is replaced.
+[[d1_databases]]
+binding = "DB"
+database_name = "ledring-play-strands"
+database_id = "00000000-0000-0000-0000-000000000000"
