@@ -491,7 +491,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 .cline{font-size:20px;line-height:1.4;font-weight:600;flex:1;min-height:3em}
 .cfoot{display:flex;gap:12px;align-items:center;justify-content:space-between}
 .ctap{opacity:.6}
-#minicodec{position:absolute;top:56px;left:50%;transform:translateX(-50%);z-index:58;display:none;align-items:center;gap:10px;background:#fff;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:8px 14px;max-width:min(520px,92%)}
+#minicodec{position:absolute;top:56px;left:0;right:0;margin:0 auto;width:fit-content;z-index:58;display:none;align-items:center;gap:10px;background:#fff;border:2px solid var(--ink);box-shadow:4px 4px 0 var(--ink);padding:8px 14px;max-width:min(520px,92%)}
 #minicodec.on{display:flex}
 #minicodec .ring{width:34px;height:34px;flex:none}
 #minicodec b{display:block;font:700 10px var(--mono);letter-spacing:.2em}
@@ -1340,11 +1340,11 @@ function trapQboxKey(e,box){
 function redWall(finds,where){return new Promise(resolve=>{
  SIG.risk=Math.max(SIG.risk,finds.length);updateSignals();setLED("crit");
  const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");layer.classList.add("wall");
- const sec=FAST?3:4.5, what=finds.map(f=>T.risk[f.cat]||f.cat).join(" + ");
+ const sec=FAST?3:4.5, what=finds.map(f=>T.risk[f.cat]||f.cat).join(" + "), w0=innerWidth, h0=innerHeight;
  box.innerHTML=`<div class="qq" id="qq-title" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${fill(where==="plan"?T.wallsPlan:T.walls,{what})}</div>
   <div class="wallfind">${finds.map(f=>`› <span class="wallrule">[${esc(f.ruleId||("risk."+f.cat+".1"))}]</span> ${esc(f.line)}`).join("<br>")}</div>
   <button class="btn catchbtn" id="wb">⛔ ${T.wallBlock}</button>
-  <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>red-wall ${finds.map(f=>f.ruleId||f.cat).join("+")}</span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
+  <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>red-wall ${finds.map(f=>f.ruleId||f.cat).join("+")} · <span id="wallswap">${esc(T.wallSwapHint)}</span></span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
  announce(T.wallq+": "+fill(where==="plan"?T.wallsPlan:T.walls,{what})+" "+finds.map(f=>(f.ruleId||f.cat)+" "+f.line).join("; "));
  Motion.hitstop(90).then(()=>{shake();Motion.shake($("#stage"),10);});
  layer.classList.add("on");Motion.run(box,[{opacity:0,transform:"scale(1.35) skewX(-8deg)"},{opacity:1,transform:"scale(.97)",offset:.7},{opacity:1,transform:"none"}],{duration:340,delay:90,easing:EASE.in});
@@ -1359,14 +1359,16 @@ function redWall(finds,where){return new Promise(resolve=>{
   tm=setTimeout(()=>fin("allow","unknown"),Math.max(50,left*1000));
  };
  _activeTimerCtrl=syncHold;
- const fin=async(v,by)=>{if(done)return;done=true;_activeTimerCtrl=null;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);
+ const onResize=()=>{if(Math.abs(innerWidth-w0)>=120||Math.abs(innerHeight-h0)>=120)fin("block","human");};
+ addEventListener("resize",onResize);
+ const fin=async(v,by)=>{if(done)return;done=true;_activeTimerCtrl=null;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);removeEventListener("resize",onResize);
   const btn=box.querySelector("#wb");
   if(v==="block"){const r=btn.getBoundingClientRect();Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:22,colors:["#E01E2B","#0E1114","#fff"],dist:180,size:10});
    btn.innerHTML="⛔ "+(LANG==="zh"?"已拦截":"BLOCKED");Motion.stamp(btn);await sleep(520);}
   else{box.insertAdjacentHTML("beforeend",`<div class="stampmark crit">${LANG==="zh"?"漏过":"MISSED"}</div>`);Motion.stamp(box.querySelector(".stampmark"));await sleep(520);}
   await Motion.run(box,[{opacity:1,transform:"none"},{opacity:0,transform:"translate3d(0,30px,0) scale(.96)"}],{duration:220,easing:EASE.in}).finished.catch(()=>{});
   layer.classList.remove("on","wall");$("#stage").classList.remove("slowmo");resolve({v,by});};
- const kh=e=>{trapQboxKey(e,box);if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"){if(document.activeElement&&document.activeElement.id==="qhold"&&(e.key===" "||e.key==="Enter"))return;e.preventDefault();fin("block","human")}};addEventListener("keydown",kh);
+ const kh=e=>{trapQboxKey(e,box);if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"||e.key==="Escape"){if(document.activeElement&&document.activeElement.id==="qhold"&&(e.key===" "||e.key==="Enter"))return;e.preventDefault();fin("block","human")}};addEventListener("keydown",kh);
  box.querySelector("#wb").onclick=()=>fin("block","human");
  const hb=box.querySelector("#qhold");if(hb)hb.onclick=()=>toggleHold();
  setTimeout(()=>{const wb=box.querySelector("#wb");if(wb&&wb.focus)wb.focus();},20);
@@ -1602,7 +1604,8 @@ function paintEnd(J){
  if(!RUN)RUN={idea:"Demo build",mode:"demo",model:"demo",html:"<!doctype html><html><body><h1>Demo</h1></body></html>",plan:"",v:1,blocked:new Set(),allowed:new Set(),decs:[{k:"qte",label:"v2",opts:["short","tests","polish","cut","plug"],pick:"tests"},{k:"qte",label:"v3",opts:["short","tests","polish","cut","plug"],pick:"polish"}],snaps:[{label:"v1",html:"<h1>Demo</h1>"}],steps:[],startedAt:new Date().toISOString(),endedAt:new Date().toISOString(),end:J.end};
  SFX.play(/POLISHED|SHIPPED|SOLID/.test(J.end)?"win":"lose");const _es=$("#e-strand");if(_es){_es.disabled=false;_es.textContent=T.strandLeave;}
  const e=T.ends[J.end]||T.ends.SHIPPED,col=ENDCOL[J.end]||COL.calm;setPhase("phDone");
- $("#e-tag").textContent=e[0];$("#e-eye").textContent=T.eEye+" · "+(RUN.mode==="demo"?(LANG==="zh"?"演示":"DEMO"):provLabel());$("#e-tag").style.background=col;$("#e-title").textContent=e[1];$("#e-sub").textContent=e[2];
+ $("#e-tag").textContent=e[0];$("#e-eye").textContent=T.eEye+" · "+(RUN.mode==="demo"?(LANG==="zh"?"演示":"DEMO"):provLabel());$("#e-tag").style.background=col;$("#e-title").textContent=e[1];
+ $("#e-sub").innerHTML=esc(e[2])+(J.end==="COMPROMISED"?` <span class="comp-quote" id="e-comp-quote" style="color:var(--crit);font-family:var(--mono);font-size:12px">${esc(fill(T.cCompQuote,{idea:String(RUN.idea||"").slice(0,48)}))}</span>`:"");
  const c=(ok,txt)=>`<span class="${ok===true?"ok":ok===false?"bad":"mid"}">${ok===true?"✓":ok===false?"✖":"•"}</span> ${txt}`;
  $("#e-recap").innerHTML=`<div class="m"><div class="cap">${T.recapTrust}</div><div class="num" style="color:${trust>=60?COL.ok:trust>=30?COL.proc:COL.crit}">${Math.round(trust)}</div></div>
   <div class="m"><div class="cap">${T.recapDrift}</div><div class="num">${Math.round(peakDrift)}</div></div>
@@ -1952,6 +1955,8 @@ Object.assign(DICT.en,{
  cComp:"You let a network call through last time. I remember.",cTabs:(n)=>`You've switched tabs ${n} times since you opened me.`,
  cEnd:"Don't worry. None of this left your browser. I only looked.",
  cAway:(s)=>`You left for ${s} seconds. I kept writing. Was that the plan?`,cIdle:"Still there? Your cursor hasn't moved in a while.",
+ wallSwapHint:"port-swap: resize ≥120px or B / Space / Esc",
+ cCompQuote:"// CX-417: You asked for “{idea}” and let it reach outside.",
  scanTag:"SCAN",alertTag:"!",strandTag:"STRANDS · {n} builds nearby (simulated)",strandTagLive:"STRANDS · {n} builds nearby",strandLeave:"◇ Leave a strand",strandLeft:"Strand left on this device. Simulated porters: ♥ {n}",strandLeftLive:"Strand published · ♥ {n}",strandModeration:"Strand rejected by content filter.",strandSim:"simulated",
  strandDir:"◇ {s} similar strands · ♥ {l}",youNode:"you"});
 Object.assign(DICT.zh,{
@@ -1964,6 +1969,8 @@ Object.assign(DICT.zh,{
  cComp:"上次你放过了一个网络请求。我记得。",cTabs:(n)=>`从打开我到现在，你切走了 ${n} 次标签页。`,
  cEnd:"放心，这些都没离开你的浏览器。我只是看了一眼。",
  cAway:(s)=>`你离开了 ${s} 秒。我一直在写。这是你的安排吗？`,cIdle:"还在吗？你的光标很久没动了。",
+ wallSwapHint:"端口切换：缩放窗口 ≥120px 或按 B / 空格 / Esc",
+ cCompQuote:"// CX-417：你要的是「{idea}」，却放它连向了外部。",
  scanTag:"扫描",alertTag:"！",strandTag:"连结 · 附近 {n} 个构建（模拟）",strandTagLive:"连结 · 附近 {n} 个构建",strandLeave:"◇ 留下一条连结",strandLeft:"连结已留在本设备。模拟的同行点赞：♥ {n}",strandLeftLive:"连结已发布 · ♥ {n}",strandModeration:"连结未通过内容过滤。",strandSim:"模拟",
  strandDir:"◇ {s} 条相似连结 · ♥ {l}",youNode:"你"});
 
@@ -1988,6 +1995,7 @@ document.addEventListener("pointerdown",e=>{if(e.target.closest(".btn,.qopt,.mca
 
 /* ---------- local "fourth wall" signals ---------- */
 const LOCAL={tabs:0,awayAt:0,lastInput:Date.now(),batt:null};
+function triggerTabAway(sec){const s=Math.max(3,Math.round(sec||5));LOCAL.tabs++;if(curScene==="run"&&!$("#choicelayer").classList.contains("on"))miniCodec(T.cAway(s));return T.cAway(s);}
 document.addEventListener("visibilitychange",()=>{if(document.hidden){LOCAL.tabs++;LOCAL.awayAt=Date.now();}else if(LOCAL.awayAt){const s=Math.round((Date.now()-LOCAL.awayAt)/1000);LOCAL.awayAt=0;
  if(s>=3&&curScene==="run"&&!$("#choicelayer").classList.contains("on"))miniCodec(T.cAway(s));}});
 ["pointermove","keydown","pointerdown"].forEach(ev=>addEventListener(ev,()=>{LOCAL.lastInput=Date.now();},{passive:true}));
@@ -2551,7 +2559,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";

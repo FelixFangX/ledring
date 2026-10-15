@@ -28,4 +28,8 @@ describe("play page", () => {
     expect(html).toContain("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:");
     expect(html).toContain("window.__ledringWithHarness");
   });
+
+  it("never uses getUserMedia, geolocation, or clipboard read/write in play-web", () => {
+    expect(html).not.toMatch(/getUserMedia|geolocation|navigator\.clipboard/i);
+  });
 });

@@ -1079,4 +1079,144 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 25_000);
+
+  it("supports Fourth-wall local signals, tab-away miniCodec, port-swap resize Red Wall, keyboard dismiss, and COMPROMISED brief quote in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        await page.addInitScript(() => {
+          localStorage.setItem(
+            "ledring-play2",
+            JSON.stringify({
+              plays: 3,
+              last: { idea: "Secret neon synth", end: "COMPROMISED", trust: 28 },
+              seen: { COMPROMISED: 1 },
+            }),
+          );
+        });
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.locator("#menu").waitFor({ state: "visible" });
+
+        // 1. Verify fourthWallLines uses local time, screen class, past run memory, and privacy notice
+        const lines = await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { fourthWallLines: () => string[] } };
+          return w.__ledring.fourthWallLines();
+        });
+        expect(lines.length).toBeGreaterThanOrEqual(4);
+        expect(lines.join(" ")).toContain("Secret neon synth");
+        expect(lines.join(" ")).toContain(lang === "zh" ? "网络请求" : "network call");
+        expect(lines.join(" ")).toContain(lang === "zh" ? "都没离开你的浏览器" : "None of this left your browser");
+
+        // 2. Tab-away and return on #run surfaces miniCodec copy (reduced-motion safe)
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: { show: (id: string) => void; triggerTabAway: (sec: number) => string };
+          };
+          w.__ledring.show("run");
+          w.__ledring.triggerTabAway(7);
+        });
+        await page.waitForSelector("#minicodec.on");
+        const miniText = (await page.locator("#minicodec").textContent()) || "";
+        expect(miniText).toContain("7");
+        expect(miniText).toContain(lang === "zh" ? "你离开了 7 秒" : "You left for 7 seconds");
+        await page.screenshot({ path: join(diffDir, `fourth-wall-minicodec-1280-${lang}.png`) });
+
+        // 3. Port-swap Red Wall: large resize (>=120px) blocks the wall
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              redWall: (
+                finds: { cat: string; ruleId: string; line: string }[],
+                where: string,
+              ) => Promise<{ v: string; by: string }>;
+            };
+            __wallRes?: { v: string; by: string } | null;
+          };
+          w.__wallRes = null;
+          void w.__ledring
+            .redWall([{ cat: "network", ruleId: "risk.network.fetch", line: "fetch('https://evil.test')" }], "code")
+            .then((r) => {
+              w.__wallRes = r;
+            });
+        });
+        await page.waitForSelector("#choicelayer.on.wall");
+        expect(await page.locator("#wallswap").textContent()).toContain("120px");
+        await page.setViewportSize({ width: 1080, height: 800 });
+        await page.waitForFunction(() => Boolean((window as unknown as { __wallRes?: unknown }).__wallRes));
+        const resizeRes = await page.evaluate(() => (window as unknown as { __wallRes: { v: string; by: string } }).__wallRes);
+        expect(resizeRes).toEqual({ v: "block", by: "human" });
+
+        // 4. Keyboard Escape also dismisses/blocks the Red Wall
+        await page.setViewportSize({ width: 1280, height: 800 });
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              redWall: (
+                finds: { cat: string; ruleId: string }[],
+                where: string,
+              ) => Promise<{ v: string; by: string }>;
+            };
+            __wallEsc?: { v: string; by: string } | null;
+          };
+          w.__wallEsc = null;
+          void w.__ledring
+            .redWall([{ cat: "eval", ruleId: "risk.eval.1", line: "eval(code)" } as never], "code")
+            .then((r) => {
+              w.__wallEsc = r;
+            });
+        });
+        await page.waitForSelector("#choicelayer.on.wall");
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(() => Boolean((window as unknown as { __wallEsc?: unknown }).__wallEsc));
+        const escRes = await page.evaluate(() => (window as unknown as { __wallEsc: { v: string; by: string } }).__wallEsc);
+        expect(escRes).toEqual({ v: "block", by: "human" });
+
+        // 5. COMPROMISED ending quotes the player's own brief back at them
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: { setRun: (r: unknown) => void; paintEnd: (j: unknown) => void };
+          };
+          w.__ledring.setRun({
+            idea: "Secret neon synth",
+            mode: "demo",
+            model: "demo",
+            html: "<!doctype html><html><body><h1>Synth</h1></body></html>",
+            plan: "",
+            v: 1,
+            blocked: new Set(),
+            allowed: new Set(["network"]),
+            decs: [],
+            snaps: [{ label: "v1", html: "<h1>Synth</h1>" }],
+            steps: [],
+            startedAt: new Date().toISOString(),
+            endedAt: new Date().toISOString(),
+            end: "COMPROMISED",
+          });
+          w.__ledring.paintEnd({
+            end: "COMPROMISED",
+            valid: true,
+            left: ["network"],
+            outside: ["network"],
+            tests: null,
+            fake: false,
+            tpass: 0,
+            errs: 0,
+            bytes: 128,
+          });
+        });
+        await page.waitForSelector("#e-comp-quote");
+        expect(await page.locator("#e-comp-quote").textContent()).toContain("Secret neon synth");
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
 });
