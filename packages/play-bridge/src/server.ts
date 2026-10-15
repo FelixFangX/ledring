@@ -15,10 +15,10 @@ import {
   type Provider,
 } from "@ledring/play-providers";
 import { JudgeRuntime, JudgeUnavailableError, judgeArtifact, judgeBody } from "@ledring/play-judge";
-import { streamTrace } from "@ledring/play-core";
+import { replayEvents, streamTrace, type PlayEvent } from "@ledring/play-core";
 import { z } from "zod";
 import { providerSecrets, type BridgeConfig } from "./config.js";
-import { appendSessionLog, listSessionIds, readSessionLog } from "./store.js";
+import { appendSessionLog, listSessionIds, readPlayLog, readSessionIndex, readSessionLog, upsertSessionSummary, writePlayLog } from "./store.js";
 
 const judgeSchema = z
   .object({
@@ -27,6 +27,12 @@ const judgeSchema = z
     wantPolish: z.boolean().optional(),
     leakedDespiteBlock: z.boolean().optional(),
     checks: z.unknown().optional(),
+  })
+  .strict();
+
+const librarySchema = z
+  .object({
+    events: z.array(z.object({ type: z.string() }).passthrough()).min(1).max(400),
   })
   .strict();
 
@@ -270,6 +276,9 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
       session.events = readSessionLog(sessionDir, id) as StoredEvent[];
       sessions.set(id, session);
     }
+    for (const row of readSessionIndex(sessionDir)) {
+      if (!sessions.has(row.id)) sessions.set(row.id, attach(createSession(row.id)));
+    }
   }
   const logs: string[] = [];
   const log = (line: string) => {
@@ -371,6 +380,12 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
         return;
       }
 
+      if (method === "GET" && pathname === "/api/sessions") {
+        send(res, 200, { sessions: sessionDir ? readSessionIndex(sessionDir) : [] });
+        finishLog(200);
+        return;
+      }
+
       if (method === "POST" && pathname === "/api/sessions") {
         const session = attach(createSession(randomUUID()));
         sessions.set(session.id, session);
@@ -434,6 +449,63 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
 
       if (session && method === "GET" && parts[3] === "trace" && parts.length === 4) {
         send(res, 200, streamTrace(session.id, session.events));
+        finishLog(200);
+        return;
+      }
+
+      if (session && method === "POST" && parts[3] === "library" && parts.length === 4) {
+        if (!sessionDir) {
+          send(res, 409, { error: "session library needs a home directory" });
+          finishLog(409);
+          return;
+        }
+        const parsed = librarySchema.safeParse(JSON.parse((await readBody(req)) || "{}"));
+        if (!parsed.success) {
+          send(res, 400, { error: "invalid request" });
+          finishLog(400);
+          return;
+        }
+        let played: ReturnType<typeof replayEvents>;
+        try {
+          played = replayEvents(parsed.data.events as PlayEvent[]);
+        } catch {
+          send(res, 400, { error: "invalid request" });
+          finishLog(400);
+          return;
+        }
+        if (!played.idea) {
+          send(res, 400, { error: "invalid request" });
+          finishLog(400);
+          return;
+        }
+        const entries = parsed.data.events.map((event, index) => ({ id: index + 1, event }));
+        writePlayLog(sessionDir, session.id, entries);
+        const summary = {
+          id: session.id,
+          idea: played.idea,
+          ending: played.ending ?? null,
+          date: new Date().toISOString(),
+        };
+        upsertSessionSummary(sessionDir, summary);
+        send(res, 200, summary);
+        finishLog(200);
+        return;
+      }
+
+      if (session && method === "GET" && parts[3] === "replay" && parts.length === 4) {
+        if (!sessionDir) {
+          send(res, 404, { error: "not found" });
+          finishLog(404);
+          return;
+        }
+        const entries = readPlayLog(sessionDir, session.id);
+        if (entries.length === 0) {
+          send(res, 404, { error: "not found" });
+          finishLog(404);
+          return;
+        }
+        const played = replayEvents(entries.map((entry) => entry.event as PlayEvent));
+        send(res, 200, { ending: played.ending ?? null, events: entries });
         finishLog(200);
         return;
       }

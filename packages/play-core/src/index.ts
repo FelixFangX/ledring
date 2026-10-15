@@ -29,6 +29,7 @@ export {
   classifyScan,
   createSession,
   factsFor,
+  replayEvents,
   freshFindings,
   scanDisposition,
   transition,

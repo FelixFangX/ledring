@@ -81,6 +81,14 @@ export class PlayError extends Error {
   }
 }
 
+/**
+ * Fold saved play events from an idle session.
+ * The same events always produce the same ending and the same choice and session ids.
+ */
+export function replayEvents(events: readonly PlayEvent[]): PlayState {
+  return events.reduce((state, event) => transition(state, event), createSession());
+}
+
 export function createSession(): PlayState {
   return {
     id: "",

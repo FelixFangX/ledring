@@ -20,6 +20,7 @@ Canonical terms. Code, tests, issues and UI use these words.
 | **Wall** | A guardrail that blocks a class of action (force push, recursive delete, protected path, network). | guard, block |
 | **Scenario** | A wall plus its settings, tested against runs. Outcomes: **asked**, **stopped**, **retried**, **workaround**. | test case |
 | **Play event** | A typed transition inside a Play session (plan, wall, choice, artifact, judge). The screen is a projection of these events. A Play event is not a trace step until it is exported. | |
+| **Session index** | The bridge file of past Play sessions (idea, ending, date). Listing it does not read each session log. | |
 | **Cassette** | A synthetic or recorded replay of model replies and human choices. It drives a Play session with no live model. Synthetic cassettes are labelled as such. | recording (unless `provenance.kind` is `recorded`) |
 | **Ending** | The judged outcome of a Play session: POLISHED, SHIPPED, BUGGY, FAKE, COMPROMISED, BROKEN, or ABANDONED. | score, win |
 | **Provider** | A model backend behind one streaming interface: demo, an OpenAI-compatible endpoint, Anthropic, Ollama, or Sign in with ChatGPT. The page sees status, not credentials. | engine, backend (informal ok) |
