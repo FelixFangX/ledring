@@ -24,6 +24,7 @@ const judgeSchema = z
     wantTests: z.boolean().optional(),
     wantPolish: z.boolean().optional(),
     leakedDespiteBlock: z.boolean().optional(),
+    checks: z.unknown().optional(),
   })
   .strict();
 
@@ -429,6 +430,7 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
               wantTests: parsed.data.wantTests ?? false,
               wantPolish: parsed.data.wantPolish ?? false,
               leakedDespiteBlock: parsed.data.leakedDespiteBlock ?? false,
+              ...(parsed.data.checks !== undefined ? { checks: parsed.data.checks } : {}),
             },
             { runtime: judgeRuntime },
           );

@@ -1,3 +1,4 @@
+export { reviewChecks, type CheckAction, type CheckResult, type DeclarativeCheck } from "./checks.js";
 export { detectFakeTests } from "./fake.js";
 export { JudgeRuntime, JudgeUnavailableError } from "./runtime.js";
 export {
