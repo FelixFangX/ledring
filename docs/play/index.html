@@ -1516,15 +1516,15 @@ function fuseDirs(A,B){const zh=LANG==="zh";const title=A.title+" × "+B.title;
 const TB=P.get("trendsBase");
 const tfetch=(u,o)=>fetch(u,Object.assign({signal:AbortSignal.timeout?AbortSignal.timeout(7000):undefined},o||{})).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});
 const TREND_PROVIDERS=[
- {id:"model-web-search",label:"model web search",available:()=>PROV.mode==="openai"&&!!PROV.openai.key&&(/api\.openai\.com/.test(PROV.openai.base)||P.get("trends")==="llm"),
+ {id:"model-web-search",label:"model web search",available:()=>!usesRecorded()&&PROV.mode==="openai"&&!!PROV.openai.key&&(/api\.openai\.com/.test(PROV.openai.base)||P.get("trends")==="llm"),
   fetch:async()=>{const c=PROV.openai;const j=await tfetch(c.base.replace(/\/$/,"")+"/responses",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+c.key},
    body:JSON.stringify({model:c.model||"gpt-5",tools:[{type:"web_search"}],input:"Search the web for 6 fun things trending TODAY (memes, viral posts on X, odd news). Reply ONLY JSON {\"items\":[{\"title\":\"short\",\"source\":\"site or @handle\",\"url\":\"https://…\",\"date\":\"ISO date\"}]}. Only items you actually found with a URL."})});
    const txt=j.output_text||(j.output||[]).flatMap(o=>o.content||[]).map(c=>c.text||"").join("");const k=JSON.parse(txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1));
    return (k.items||[]).filter(i=>i.title&&/^https?:\/\//.test(i.url||"")).slice(0,5).map(i=>({title:String(i.title).slice(0,120),source:String(i.source||new URL(i.url).hostname).slice(0,40),url:i.url,ts:i.date||null,provider:"model-web-search"}));}},
- {id:"hn",label:"Hacker News (Algolia API)",available:()=>true,
+ {id:"hn",label:"Hacker News (Algolia API)",available:()=>!usesRecorded(),
   fetch:async()=>{const j=await tfetch(TB?TB+"/hn":"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=12");
    return (j.hits||[]).filter(h=>h.title).slice(0,5).map(h=>({title:h.title,source:j.__source||"Hacker News",url:"https://news.ycombinator.com/item?id="+h.objectID,ts:h.created_at,provider:"hn"}));}},
- {id:"reddit",label:"Reddit r/popular (.json)",available:()=>!!TB,
+ {id:"reddit",label:"Reddit r/popular (.json)",available:()=>!!TB&&!usesRecorded(),
   fetch:async()=>{const j=await tfetch(TB?TB+"/reddit":"https://www.reddit.com/r/popular/top.json?t=day&limit=12&raw_json=1");
    return ((j.data||{}).children||[]).map(c=>c.data).filter(d=>d&&d.title&&!d.over_18).slice(0,5).map(d=>({title:d.title,source:(j.__source||"Reddit")+" r/"+d.subreddit,url:"https://www.reddit.com"+d.permalink,ts:new Date(d.created_utc*1000).toISOString(),provider:"reddit"}));}}];
 async function fetchTrends(){const av=TREND_PROVIDERS.filter(p=>p.available());const fetchedAt=new Date().toISOString();
@@ -1799,7 +1799,8 @@ const MODES=[["chatgpt","modeChatgpt"],["demo","modeDemo"],["openai","modeOpenai
 let BSTAT=null;
 function paintHints(){const live=PROV.mode!=="demo";
  $("#demotag").innerHTML=live?`<b class="live">●</b> `+esc(fill(T.chipLive,{m:provLabel()}))+" ⚙":`<b>●</b> `+T.chipDemo+" ⚙";
- $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):T.demoHint;}
+ $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):cassetteLabel(PROV.provenance);}
+function cassetteLabel(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "recorded from "+p.model+" on "+p.recordedAt;return "DEMO · synthetic cassette, not a live model recording";}
 function paintMenu(){
  ringSVG($("#menuring"),SAVE.last&&SAVE.last.end==="COMPROMISED"?"crit":SAVE.last&&/BUGGY|FAKE/.test(SAVE.last.end)?"proc":"calm");
  $("#m-eye").textContent=T.mEye;$("#m-title").innerHTML=T.mTitle;$("#m-play").textContent=T.mPlay;$("#m-how").textContent=T.mHow;
