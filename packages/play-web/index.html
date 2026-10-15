@@ -80,7 +80,7 @@ html:lang(zh-CN) .huge{font-weight:900}
 .meter .mtop{display:flex;justify-content:space-between;align-items:baseline}
 .meter .num{font:900 30px var(--sans);line-height:1}
 .bar{height:9px;background:var(--bg2);border-radius:6px;margin-top:9px;overflow:hidden;position:relative;border:1px solid var(--line)}
-.bar>i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--calm);border-radius:6px;transition:width .6s var(--t),background .4s}
+.bar>i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--calm);border-radius:6px;transition:background .4s}
 .bar .thr{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--crit);opacity:.5}
 .pop{position:absolute;font:900 15px var(--sans);pointer-events:none;animation:pop 1s var(--t) forwards}
 @keyframes pop{0%{opacity:0;transform:translateY(6px) scale(.7)}25%{opacity:1;transform:translateY(-2px) scale(1.1)}100%{opacity:0;transform:translateY(-26px)}}
@@ -111,7 +111,7 @@ pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .statusbar{grid-column:1/3;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:14px}
 .rel{display:flex;align-items:center;gap:10px;font:600 13px var(--sans)}
 .rel .hb{width:120px;height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.rel .hb>i{display:block;height:100%;width:50%;background:var(--ok);transition:width .6s var(--t),background .4s}
+.rel .hb>i{display:block;height:100%;width:50%;background:var(--ok);transition:background .4s}
 .steplabel{font:600 11px var(--mono);color:var(--ink2);letter-spacing:.08em}
 /* ---------- CHOICE / QTE ---------- */
 #choicelayer{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
