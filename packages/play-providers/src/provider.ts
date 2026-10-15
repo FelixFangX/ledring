@@ -14,9 +14,12 @@ export interface ModelInfo {
 export interface ProviderStatus {
   ready: boolean;
   account?: string;
+  emailMasked?: string;
   plan?: string;
+  sharing?: boolean;
   models: ModelInfo[];
   warning?: string;
+  manageUsageUrl?: string;
 }
 
 export interface StreamRequest {
@@ -105,6 +108,7 @@ async function defaultSleep(ms: number, signal?: AbortSignal): Promise<void> {
 }
 
 function retryable(error: ProviderError): boolean {
+  if (error.code === "usage_limit" || error.code === "plan_off" || error.code === "auth" || error.code === "abort") return false;
   return error.status === 429 || (error.status !== undefined && error.status >= 500);
 }
 

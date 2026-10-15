@@ -53,8 +53,15 @@ describe("bridge security", () => {
       const body = await providers.text();
       expect(providers.status).toBe(200);
       expect(body).toContain("synthetic cassette");
+      expect(body).toContain("chatgpt-plan");
       expect(body).not.toContain(TOKEN);
       expect(body).not.toMatch(/Using ChatGPT plan|Connected/);
+      const begin = await fetch(new URL("/api/providers/chatgpt-plan/begin", bridge.url), {
+        method: "POST",
+        headers: { "x-ledring-token": TOKEN },
+      });
+      expect(begin.status).toBe(409);
+      expect(await begin.text()).not.toMatch(/Using ChatGPT plan|Connected/);
 
       const quiet = await startBridge({ token: TOKEN });
       expect(quiet.logs.join("\n")).not.toContain(TOKEN);

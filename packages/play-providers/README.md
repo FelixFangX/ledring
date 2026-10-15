@@ -2,7 +2,9 @@
 
 Trend sources for Chapter 0, plus streaming model providers (`demo`, `openai-compat`, `anthropic`, `ollama`).
 
-`stream()` yields text deltas. `429` and `5xx` retry with `retry-after` before the first delta. Aborting the signal cancels the upstream request and is not retried. Error text is redacted. The demo provider replays a synthetic cassette and is labelled `DEMO · synthetic cassette, not a live model recording`. It does not call a model. Sign in with ChatGPT is not implemented here and is never reported as connected.
+`stream()` yields text deltas. `429` and `5xx` retry with `retry-after` before the first delta. Aborting the signal cancels the upstream request and is not retried. Error text is redacted. The demo provider replays a synthetic cassette and is labelled `DEMO · synthetic cassette, not a live model recording`. It does not call a model.
+
+Sign in with ChatGPT is behind `LEDRING_SIWC=1` plus operator-supplied `LEDRING_SIWC_AUTH_BASE` and `LEDRING_SIWC_API_BASE`. With the flag off, `ready` stays false. See `docs/play-siwc.md`. The official `@siwc/local` package was not on npm when this shipped.
 
 `fetchTrends` never invents items. A failed provider is an error on the report and contributes nothing. If every provider fails, the item list is empty and the UI asks the offline questions.
 

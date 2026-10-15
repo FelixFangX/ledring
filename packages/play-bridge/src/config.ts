@@ -29,15 +29,25 @@ export function providerSecrets(config: BridgeConfig): string[] {
 }
 
 /** Human-readable config. API keys are never included. */
-export function formatProviderConfig(config: BridgeConfig, warning?: string): string {
+export function formatProviderConfig(
+  config: BridgeConfig,
+  warning?: string,
+  siwc?: { enabled: boolean; configured: boolean },
+): string {
   const configured = (name: string, key: string | undefined, where?: string) =>
     `${name}: ${key ? "configured" : "not configured"}${where ? ` @ ${where}` : ""}`;
+  const chatgpt = !siwc?.enabled
+    ? "chatgpt-plan: disabled"
+    : siwc.configured
+      ? "chatgpt-plan: enabled, auth base set"
+      : "chatgpt-plan: enabled, auth base missing";
   const lines = [
     "bind: 127.0.0.1",
     "demo: synthetic cassette",
     configured("openai-compat", config.openai?.apiKey, config.openai?.baseUrl),
     configured("anthropic", config.anthropic?.apiKey, config.anthropic?.baseUrl),
     `ollama: ${config.ollama?.baseUrl ?? "http://127.0.0.1:11434/v1"}`,
+    chatgpt,
   ];
   if (warning) lines.push(`warning: ${warning}`);
   return `${lines.join("\n")}\n`;

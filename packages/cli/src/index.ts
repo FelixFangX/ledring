@@ -32,7 +32,9 @@ Usage:
   ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
                                                      What the agent did after a guardrail blocked it
   ledring play [--port n] [--no-open] [--print-config] [--home dir]
-                                                     Local Play bridge on 127.0.0.1. --print-config never prints secrets
+                                                     Local Play bridge on 127.0.0.1. --print-config never prints secrets.
+                                                     Sign in with ChatGPT stays off unless LEDRING_SIWC=1 and both
+                                                     LEDRING_SIWC_AUTH_BASE and LEDRING_SIWC_API_BASE are set.
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -198,8 +200,17 @@ const commands: Record<string, Command> = {
     });
     const home = values.home ?? join(homedir(), ".ledring", "play");
     const loaded = readProviderHome(home);
+    const authBase = process.env.LEDRING_SIWC_AUTH_BASE;
+    const apiBase = process.env.LEDRING_SIWC_API_BASE;
+    const siwc = {
+      enabled: process.env.LEDRING_SIWC === "1",
+      configured: Boolean(authBase && apiBase),
+      ...(authBase ? { authBase } : {}),
+      ...(apiBase ? { apiBase } : {}),
+      home,
+    };
     if (values["print-config"]) {
-      io.out(formatProviderConfig(loaded.config, loaded.warning));
+      io.out(formatProviderConfig(loaded.config, loaded.warning, siwc));
       return 0;
     }
     const port = values.port === undefined ? 0 : Number(values.port);
@@ -207,6 +218,7 @@ const commands: Record<string, Command> = {
     const bridge = await startBridge({
       port,
       config: loaded.config,
+      siwc,
       ...(values["no-open"] ? {} : { open: openBrowser }),
     });
     io.out(`ledring play ${bridge.url}\n`);
