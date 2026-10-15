@@ -12,5 +12,6 @@
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run --root ../.. packages/play-core/test"
   },
+  "dependencies": { "@ledring/trace": "workspace:*" },
   "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-core" }
 }

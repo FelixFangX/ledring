@@ -69,7 +69,11 @@ importers:
         specifier: workspace:*
         version: link:../trace
 
-  packages/play-core: {}
+  packages/play-core:
+    dependencies:
+      '@ledring/trace':
+        specifier: workspace:*
+        version: link:../trace
 
   packages/play-risk:
     dependencies:
