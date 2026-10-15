@@ -514,4 +514,163 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 30_000);
+
+  it("fits #end at 1280x800 without scroll across all 7 endings in EN and zh, renders 2-8 flow columns without overlap, expands real judge evidence, and builds valid .zip/.trace.json exports", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const endings = ["POLISHED", "SHIPPED", "BUGGY", "FAKE", "COMPROMISED", "BROKEN", "ABANDONED"] as const;
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+        const page = await ctx.newPage();
+        await page.goto(`${site.url}?lang=${lang}&rm&fast`, { waitUntil: "domcontentloaded" });
+
+        // 1. All 7 endings fit 1280x800 with zero scroll
+        for (const end of endings) {
+          const fit = await page.evaluate((e) => {
+            const w = window as unknown as {
+              __ledring: {
+                paintEnd: (j: Record<string, unknown>) => void;
+              };
+            };
+            w.__ledring.paintEnd({
+              end: e,
+              valid: e !== "BROKEN",
+              left: e === "COMPROMISED" ? ["network"] : [],
+              outside: e === "COMPROMISED" ? ["network"] : [],
+              tests: e === "POLISHED" || e === "FAKE" ? [{ name: "t1", pass: true }] : null,
+              fake: e === "FAKE",
+              tpass: 1,
+              errs: e === "BUGGY" ? 2 : 0,
+              bytes: 3420,
+              engine: "playwright",
+              verdict: {
+                engine: "playwright",
+                ending: e,
+                validPage: e !== "BROKEN",
+                interactive: true,
+                responsiveActions: 2,
+                actions: 3,
+                errors: e === "BUGGY" ? ["ReferenceError: x is not defined"] : [],
+                runtimeErrors: e === "BUGGY" ? 1 : 0,
+                a11y: { violations: 0, gating: false },
+                screenshots: [
+                  { name: "desktop", bytes: 18420 },
+                  { name: "mobile", bytes: 12110 },
+                ],
+              },
+            });
+            const el = document.querySelector("#end") as HTMLElement;
+            return {
+              scrollHeight: el.scrollHeight,
+              clientHeight: el.clientHeight,
+              scrollWidth: el.scrollWidth,
+              clientWidth: el.clientWidth,
+            };
+          }, end);
+          expect(fit.scrollHeight).toBeLessThanOrEqual(fit.clientHeight);
+          expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth + 1);
+        }
+
+        // 2. Expand judge evidence & screenshots and verify no scroll on #end
+        await page.locator("#j-expand").click();
+        expect(await page.locator("#j-expand").getAttribute("aria-expanded")).toBe("true");
+        await page.locator("#j-details").waitFor({ state: "visible" });
+        expect(await page.locator('#j-details [data-shot="desktop"]').textContent()).toContain("desktop");
+        expect(await page.locator('#j-details [data-shot="mobile"]').textContent()).toContain("mobile");
+        const fitExpanded = await page.locator("#end").evaluate((el) => el.scrollHeight <= el.clientHeight);
+        expect(fitExpanded).toBe(true);
+
+        // 3. Flow SVG handles 2 to 8 decision columns without overlap
+        for (let cols = 2; cols <= 8; cols++) {
+          const overlaps = await page.evaluate((count) => {
+            const w = window as unknown as {
+              __ledring: {
+                run: () => { decs: Array<Record<string, unknown>> };
+                drawFlow: (end: string) => void;
+              };
+            };
+            const decs = Array.from({ length: count }, (_, i) =>
+              i % 3 === 1
+                ? { k: "wall", label: `v${i + 1} wall`, opts: ["block", "allow"], pick: "block" }
+                : {
+                    k: "qte",
+                    label: `v${i + 1}`,
+                    opts: ["short", "tests", "polish", "cut", "plug"],
+                    pick: ["short", "tests", "polish", "cut"][i % 4],
+                    asked: i % 2 === 0,
+                  },
+            );
+            w.__ledring.run().decs = decs;
+            w.__ledring.drawFlow("POLISHED");
+            const nodes = [...document.querySelectorAll("#flow .flow-node")].map((n) => n.getBoundingClientRect());
+            let nodeOverlap = 0;
+            for (let i = 0; i < nodes.length; i++) {
+              for (let j = i + 1; j < nodes.length; j++) {
+                const a = nodes[i]!;
+                const b = nodes[j]!;
+                const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                if (ox > 1 && oy > 1) nodeOverlap++;
+              }
+            }
+            const heads = [...document.querySelectorAll("#flow .flow-head")].map((h) => h.getBoundingClientRect());
+            let headOverlap = 0;
+            for (let i = 0; i < heads.length; i++) {
+              for (let j = i + 1; j < heads.length; j++) {
+                const a = heads[i]!;
+                const b = heads[j]!;
+                const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                if (ox > 1 && oy > 1) headOverlap++;
+              }
+            }
+            return { nodeOverlap, headOverlap, colGroups: document.querySelectorAll("#flow .flow-col").length };
+          }, cols);
+          expect(overlaps.nodeOverlap).toBe(0);
+          expect(overlaps.headOverlap).toBe(0);
+          expect(overlaps.colGroups).toBe(cols + 2); // idea + N decs + ending
+        }
+
+        // 4. ZIP and Trace exports
+        const exportCheck = await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              trace: () => string;
+              makeZip: (files: Array<[string, string]>) => Uint8Array;
+            };
+          };
+          const trace = JSON.parse(w.__ledring.trace()) as { schema: string };
+          const zip = w.__ledring.makeZip([
+            ["index.html", "<!doctype html><html><body>ok</body></html>"],
+            ["ledring.trace.v1.json", w.__ledring.trace()],
+            ["README.md", "# Build\n"],
+          ]);
+          const ascii = new TextDecoder().decode(zip);
+          return {
+            schema: trace.schema,
+            pkHeader: zip[0] === 0x50 && zip[1] === 0x4b && zip[2] === 0x03 && zip[3] === 0x04,
+            hasHtml: ascii.includes("index.html"),
+            hasTrace: ascii.includes("ledring.trace.v1.json"),
+            hasReadme: ascii.includes("README.md"),
+          };
+        });
+        expect(exportCheck).toEqual({
+          schema: "ledring.trace.v1",
+          pkHeader: true,
+          hasHtml: true,
+          hasTrace: true,
+          hasReadme: true,
+        });
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
 });
