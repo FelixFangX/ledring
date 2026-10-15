@@ -8,7 +8,8 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "packages/play-core/dist/index.js");
 
 if (!existsSync(dist)) {
-  const built = spawnSync("pnpm", ["exec", "tsc", "-p", "packages/play-core/tsconfig.build.json"], {
+  // Package builds resolve workspace deps from dist/, which `pnpm test` has not produced yet.
+  const built = spawnSync("pnpm", ["--filter", "@ledring/play-core...", "run", "build"], {
     cwd: root,
     stdio: "inherit",
   });
