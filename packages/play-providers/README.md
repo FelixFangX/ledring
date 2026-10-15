@@ -1,6 +1,6 @@
 # @ledring/play-providers
 
-Trend sources for Chapter 0, plus streaming model providers (`demo`, `openai-compat`, `anthropic`, `ollama`).
+Trend sources for Chapter 0, plus streaming model providers (`demo`, `chatgpt-plan`, `openai-compat`, `anthropic`, `ollama`).
 
 `stream()` yields text deltas. `429` and `5xx` retry with `retry-after` before the first delta. Aborting the signal cancels the upstream request and is not retried. Error text is redacted. The demo provider replays a synthetic cassette and is labelled `DEMO · synthetic cassette, not a live model recording`. It does not call a model.
 

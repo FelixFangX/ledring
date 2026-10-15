@@ -7,3 +7,4 @@ coverage/
 report.html
 *.report.html
 .DS_Store
+play-visual-diff/

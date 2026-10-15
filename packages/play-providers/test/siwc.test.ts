@@ -46,6 +46,7 @@ describe("Sign in with ChatGPT flag", () => {
         throw new Error("network");
       },
     });
+    expect(client.provider.id).toBe("chatgpt-plan");
     const status = await client.provider.status();
     expect(status.ready).toBe(false);
     expect(JSON.stringify(status)).not.toMatch(/Using ChatGPT plan|Connected/);
