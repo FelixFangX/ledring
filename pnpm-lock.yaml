@@ -133,6 +133,12 @@ importers:
 
   packages/play-sandbox: {}
 
+  packages/play-strands:
+    dependencies:
+      '@ledring/play-risk':
+        specifier: workspace:*
+        version: link:../play-risk
+
   packages/play-web:
     dependencies:
       '@ledring/play-risk':
