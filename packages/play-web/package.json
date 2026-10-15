@@ -1,0 +1,19 @@
+{
+  "name": "@ledring/play-web",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LEDRING Play in the browser. Demo is a labelled synthetic cassette. Live runs use a bring-your-own key.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "vitest run --root ../.. packages/play-web/test"
+  },
+  "dependencies": {
+    "@ledring/play-risk": "workspace:*"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}
