@@ -7,9 +7,11 @@ import {
   buildPrompt,
   createSession,
   diffPct,
+  directionPrompt,
   extractHTML,
   fixPrompt,
   instability,
+  languageDirective,
   instabilityLevel,
   loadCassette,
   nextPrompt,
@@ -230,6 +232,14 @@ describe("prompts", () => {
       fix: fixPrompt("a snake game", "<p>x</p>", ["network"], ["network"]),
       why: whyPrompt("a snake game", "<p>x</p>", "wrote v1", "zh"),
     }).toMatchSnapshot();
+  });
+
+  it("tells every model prompt to answer in the selected language", () => {
+    expect(systemPrompt("zh")).toContain(languageDirective("zh"));
+    expect(systemPrompt("en")).toContain(languageDirective("en"));
+    expect(whyPrompt("a snake game", "<p>x</p>", "wrote v1", "en")).toContain(languageDirective("en"));
+    expect(directionPrompt([], "zh")).toContain(languageDirective("zh"));
+    expect(directionPrompt([], "en")).toContain(languageDirective("en"));
   });
 
   it("extracts fenced HTML and measures a diff", () => {

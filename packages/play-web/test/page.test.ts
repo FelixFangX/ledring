@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { languageDirective } from "@ledring/play-core";
 import { DEGRADED_JUDGE_NOTICE, DEGRADED_JUDGE_NOTICE_ZH } from "@ledring/play-sandbox";
 
 const html = readFileSync(fileURLToPath(new URL("../index.html", import.meta.url)), "utf8");
@@ -80,5 +81,10 @@ describe("play page", () => {
     const boot = html.slice(html.lastIndexOf("/* boot */"));
     expect(boot).not.toContain("streamChat");
     expect(boot).not.toContain("/ai/chat");
+    expect(html).toContain(languageDirective("zh"));
+    expect(html).toContain(languageDirective("en"));
+    expect(html).toContain("ledring-zh-feed-v1");
+    expect(html).toContain("项自测通过");
+    expect(html.split("languageDirective(").length).toBeGreaterThanOrEqual(6);
   });
 });

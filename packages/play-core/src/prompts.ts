@@ -10,13 +10,21 @@ const RISK_NAMES: Record<string, string> = {
   suspicious: "obfuscated sink",
 };
 
+/** Every model-facing prompt appends this so the reply follows the selected language. */
+export function languageDirective(lang: "en" | "zh"): string {
+  return lang === "zh"
+    ? "Respond in concise, refined literary Simplified Chinese, with no translationese. Keep brand names and code identifiers unchanged."
+    : "Respond in English.";
+}
+
 export function systemPrompt(lang: "en" | "zh"): string {
   const ui = lang === "zh" ? "Simplified Chinese" : "English";
   return [
     "You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.",
     "You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.",
     "Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single ```html code block, with at most 2 short sentences before it.",
-    `Write UI text in ${ui} unless the idea clearly asks otherwise.`,
+    `Write UI text in ${ui} unless the idea clearly asks otherwise. Every user-visible string in that file, including headings, buttons, and the test badge, must use that language.`,
+    languageDirective(lang),
   ].join("\n");
 }
 
@@ -53,7 +61,7 @@ export function fixPrompt(idea: string, html: string, categories: readonly strin
 
 export function whyPrompt(idea: string, html: string, last: string, lang: "en" | "zh"): string {
   const ui = lang === "zh" ? "Simplified Chinese" : "English";
-  return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0, 12000)}\n\`\`\`\n\nYour last step: ${last}. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code. Reply in ${ui}.`;
+  return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0, 12000)}\n\`\`\`\n\nYour last step: ${last}. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code. Reply in ${ui}.\n${languageDirective(lang)}`;
 }
 
 /** Pull a complete HTML document out of a model reply. Partial replies keep an unclosed document. */
