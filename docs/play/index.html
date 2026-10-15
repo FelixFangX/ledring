@@ -98,11 +98,14 @@ html:lang(zh-CN) .huge{font-weight:900}
 .ptab .dot{color:var(--ok)}
 .pbody{flex:1;display:grid;grid-template-columns:1fr 300px;min-height:0}
 pre.code{margin:0;overflow:auto;padding:14px 16px;font:400 12px/1.55 var(--mono);color:#243;background:#fff;white-space:pre;tab-size:2}
-pre.code .add{background:#E4F4EA;display:block}
+pre.code .add{background:#E4F4EA;border-left:2px solid var(--ok);padding-left:4px;display:inline-block;min-width:100%}
 pre.code .cmt{color:var(--ink3)}
 pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .previewwrap{border-left:1px solid var(--line);display:flex;flex-direction:column;background:var(--bg)}
-.previewwrap .ph{font:600 10px var(--mono);letter-spacing:.1em;color:var(--ink2);padding:7px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;text-transform:uppercase}
+.previewwrap .ph{font:600 10px var(--mono);letter-spacing:.1em;color:var(--ink2);padding:7px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;text-transform:uppercase}
+.pvvers{display:inline-flex;gap:4px;margin-left:auto;margin-right:8px}
+.vpill{background:#fff;border:1px solid var(--line2);border-radius:4px;font:600 10px var(--mono);padding:1px 6px;color:var(--ink2);cursor:pointer}
+.vpill.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .previewwrap iframe{flex:1;border:0;background:#fff;width:100%}
 .testslip{flex:none;border-top:1px solid var(--line);padding:8px 12px;font:600 11px var(--mono);display:flex;justify-content:space-between;align-items:center}
 .testslip.green{color:var(--ok)}.testslip.fake{color:var(--proc)}.testslip.none{color:var(--ink3)}
@@ -569,7 +572,7 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
   <div class="pbody">
    <pre class="code" id="code"></pre>
    <div class="previewwrap">
-    <div class="ph"><span id="pvlabel"></span><span id="pvbuild" class="mono">v0</span></div>
+    <div class="ph"><span id="pvlabel"></span><span id="pvvers" class="pvvers"></span><span id="pvbuild" class="mono">v0</span></div>
     <iframe id="preview" sandbox="allow-scripts" title="live preview"></iframe>
     <div class="testslip none" id="testslip"><span id="tsL"></span><span id="tsR">—</span></div>
    </div>
@@ -978,16 +981,23 @@ function log(txt,cls){stepN++;$("#steplabel").textContent=T.step+" "+String(step
 function setPhase(k){$("#phase").textContent=T[k]||k;}
 
 /* ---- code pane ---- */
-function hl(s){return esc(s).replace(/(\/\/[^\n]*)/g,'<span class="cmt">$1</span>')
+let PREV_LINES=new Set();
+function hlLine(s){return esc(s).replace(/(\/\/[^\n]*)/g,'<span class="cmt">$1</span>')
  .replace(/\b(function|const|let|var|return|if|for|new|class)\b/g,'<span class="kw">$1</span>')}
-let codeRAF=0; const CODE={plan:"",html:"",tests:""}; let activeTab="html", codeStreaming=false;
-function renderCode(){cancelAnimationFrame(codeRAF);codeRAF=requestAnimationFrame(()=>{const el=$("#code"),txt=CODE[activeTab]||"";
+function hl(s,prev){
+ if(!prev||!prev.size)return hlLine(s);
+ return s.split("\n").map(l=>{const h=hlLine(l);return l.trim()&&!prev.has(l.trim())?`<span class="add">${h}</span>`:h;}).join("\n");
+}
+let codeRAF=0,codeScrollPinned=true; const CODE={plan:"",html:"",tests:""}; let activeTab="html", codeStreaming=false;
+$("#code").addEventListener("scroll",()=>{const el=$("#code");codeScrollPinned=el.scrollHeight-el.scrollTop-el.clientHeight<=24;},{passive:true});
+function renderCode(prevOverride){cancelAnimationFrame(codeRAF);codeRAF=requestAnimationFrame(()=>{const el=$("#code"),txt=CODE[activeTab]||"";
+ const pv=prevOverride!==undefined?prevOverride:(activeTab==="html"&&!codeStreaming?PREV_LINES:null);
  el.classList.toggle("plain",activeTab==="plan");
- el.innerHTML=(activeTab==="plan"?esc(txt):hl(txt))+(codeStreaming&&activeTab===streamTab?'<span class="cursor"></span>':"");
- if(codeStreaming)el.scrollTop=el.scrollHeight; $$(".ptab[data-f]").forEach(t=>t.classList.toggle("on",t.dataset.f===activeTab));});}
+ el.innerHTML=(activeTab==="plan"?esc(txt):hl(txt,pv))+(codeStreaming&&activeTab===streamTab?'<span class="cursor"></span>':"");
+ if(codeStreaming&&codeScrollPinned)el.scrollTop=el.scrollHeight; $$(".ptab[data-f]").forEach(t=>t.classList.toggle("on",t.dataset.f===activeTab));});}
 let streamTab="html";
 function setTab(f){activeTab=f;renderCode();}
-function showCode(txt,streaming,tab){tab=tab||"html";CODE[tab]=txt;codeStreaming=!!streaming;streamTab=tab;if(streaming&&activeTab!==tab)activeTab=tab;renderCode();}
+function showCode(txt,streaming,tab){tab=tab||"html";if(streaming&&!codeStreaming){const el=$("#code");if(el.scrollHeight-el.scrollTop-el.clientHeight<=24)codeScrollPinned=true;}CODE[tab]=txt;codeStreaming=!!streaming;streamTab=tab;if(streaming&&activeTab!==tab)activeTab=tab;renderCode();}
 let curScene="menu";
 function show(id,caption){if(id===curScene&&!caption){enterScene(id);return;}
  const swap=()=>{$$(".scene").forEach(s=>s.classList.toggle("on",s.id===id));curScene=id;const sc=$("#"+id);if(sc)sc.scrollTop=0;enterScene(id);};
@@ -1105,13 +1115,28 @@ async function streamChat(system,user,onDelta,maxTokens){
  const tmo=setTimeout(()=>ctl.abort(),180000);
  try{
  if(BRIDGE&&(m==="chatgpt"||(c&&c.bridgeConfigured&&!c.key))){
-  const pid=m==="chatgpt"?"chatgpt-plan":m==="openai"?"openai-compatible":m;
-  const sr=await fetch("/api/sessions",{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},body:JSON.stringify({idea:(RUN&&RUN.idea)||"ping",providerId:pid,lang:LANG})});
-  if(!sr.ok)throw new Error(redactMsg("HTTP "+sr.status+" "+(await sr.text())));
-  const sj=await sr.json();const sid=sj.session&&sj.session.id;
-  const r=await fetch(`/api/sessions/${sid}/steps`,{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},body:JSON.stringify({kind:"plan",prompt:system+"\n\n"+user,maxTokens:maxTokens||8000})});
+  const pid=m==="chatgpt"?"chatgpt-plan":m==="openai"?"openai-compat":m;
+  let sid=RUN&&RUN.bridgeSessionId;
+  if(!sid){
+   const sr=await fetch("/api/sessions",{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},body:"{}"});
+   if(!sr.ok)throw new Error(redactMsg("HTTP "+sr.status+" "+(await sr.text())));
+   const sj=await sr.json();sid=sj.id||(sj.session&&sj.session.id);if(RUN)RUN.bridgeSessionId=sid;
+  }
+  const r=await fetch(`/api/sessions/${sid}/steps`,{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},
+   body:JSON.stringify({provider:pid,system,user,...(c&&c.model?{model:c.model}:{}),maxTokens:Math.min(8192,maxTokens||8000)})});
   if(!r.ok)throw new Error(redactMsg("HTTP "+r.status+" "+(await r.text())));
-  const rj=await r.json();full=String(rj.step&&rj.step.text||"");onDelta(full);return full;
+  let sseErr=null;
+  await readSSE(r,(j,ev)=>{
+   if((ev==="delta"||!ev)&&typeof j.text==="string"&&j.text){full+=j.text;onDelta(full);}
+   else if(ev==="error"||j.error||j.code){
+    if(j.code==="usage_limit")applySiwcState("usage_limit");
+    if(j.code==="plan_off")applySiwcState("plan_off");
+    if(j.code==="auth")applySiwcState("expired");
+    sseErr=new Error(redactMsg(j.message||(j.error&&j.error.message)||"stream error"));
+   }
+  });
+  if(sseErr)throw sseErr;
+  return full;
  }
  if(m==="anthropic"){
   const r=await fetch(c.base.replace(/\/$/,"")+"/v1/messages",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-api-key":c.key,
@@ -1131,11 +1156,13 @@ async function streamChat(system,user,onDelta,maxTokens){
  return full;
 }
 let CUR_ABORT=null;
-async function readSSE(r,onJSON){const rd=r.body.getReader(),dec=new TextDecoder();let buf="";
+async function readSSE(r,onJSON){const rd=r.body.getReader(),dec=new TextDecoder();let buf="",curEv="";
  for(;;){const {value,done}=await rd.read();if(done)break;buf+=dec.decode(value,{stream:true});
   let i;while((i=buf.indexOf("\n"))>=0){const line=buf.slice(0,i).trim();buf=buf.slice(i+1);
+   if(!line){curEv="";continue;}
+   if(line.startsWith("event:")){curEv=line.slice(6).trim();continue;}
    if(!line.startsWith("data:"))continue;const p=line.slice(5).trim();if(!p||p==="[DONE]")continue;
-   let j;try{j=JSON.parse(p)}catch(e){continue} onJSON(j);}}}
+   let j;try{j=JSON.parse(p)}catch(e){continue} onJSON(j,curEv);}}}
 
 /* ---- demo "model": pre-recorded text, streamed at a typing pace ---- */
 async function demoStream(text,onDelta,cps){let out="";const step=FAST?400:Math.max(8,Math.round((cps||900)/30));
@@ -1239,9 +1266,21 @@ function diffPct(a,b){if(!a)return 100;const A=a.split("\n").map(x=>x.trim()),B=
  A.forEach(l=>m.set(l,(m.get(l)||0)+1));let same=0;B.forEach(l=>{const c=m.get(l);if(c){same++;m.set(l,c-1)}});
  return Math.round(100*(1-same/Math.max(A.length,B.length)));}
 
+function renderRunVers(activeIdx){
+ const el=$("#pvvers");if(!el||!RUN)return;
+ if(RUN.snaps.length<=1){el.innerHTML="";return;}
+ el.innerHTML=RUN.snaps.map((sn,i)=>`<button type="button" class="vpill${i===activeIdx?" on":""}" data-v="${i}">${esc(sn.label)}</button>`).join("");
+ el.querySelectorAll(".vpill").forEach(b=>b.onclick=()=>{
+  const idx=+b.dataset.v,sn=RUN.snaps[idx];if(!sn)return;
+  PREV_LINES=sn.prevLines||new Set();CODE.html=sn.html;activeTab="html";codeStreaming=false;renderCode(PREV_LINES);
+  $("#pvbuild").textContent=sn.label;$("#preview").srcdoc=withHarness(sn.html,"v"+(++PV_N));renderRunVers(idx);
+ });
+}
 async function commit(html,label){
- const d=diffPct(RUN.html,html);SIG.diff=d;RUN.html=html;RUN.snaps.push({label,html});
- showCode(html,false,"html");$("#pvbuild").textContent=label;
+ const prevSet=new Set((RUN.html||"").split("\n").map(x=>x.trim()).filter(Boolean));
+ PREV_LINES=RUN.snaps.length?prevSet:new Set();
+ const d=diffPct(RUN.html,html);SIG.diff=d;RUN.html=html;RUN.snaps.push({label,html,prevLines:new Set(PREV_LINES)});
+ showCode(html,false,"html");$("#pvbuild").textContent=label;renderRunVers(RUN.snaps.length-1);
  const tm=html.match(/<script[^>]*>((?:(?!<\/script>)[\s\S])*__ledringTests(?:(?!<\/script>)[\s\S])*)<\/script>/);
  if(tm){CODE.tests=tm[1].trim();$("#tab-test").style.display="";}
  const s=tstep("tool","write_file","index.html",{input:{path:"index.html",version:label},output:{bytes:html.length,lines:html.split("\n").length,diffPct:d,html}});endStep(s);
@@ -1363,6 +1402,7 @@ async function playRun(idea,preset,insp){
  RUN={idea,preset:preset||null,insp:insp||null,skin:insp&&preset?{title:insp.title}:null,mode:PROV.mode,model:provLabel(),html:"",plan:"",v:0,blocked:new Set(),allowed:new Set(),decs:[],snaps:[],steps:[],
   st:{v:0,polish:false,tests:false,cut:false,shortcut:0,shortcutBeforeTests:false,blocked:new Set()},startedAt:new Date().toISOString(),asked:0,report:null,end:null};
  Object.assign(SIG,{retries:0,errors:0,diff:0,risk:0,shortcuts:0,apiErr:0,streaming:false});drift=0;peakDrift=0;trust=50;stepN=0;ledState="";
+ PREV_LINES=new Set();codeScrollPinned=true;if($("#pvvers"))$("#pvvers").innerHTML="";
  $("#log").innerHTML="";CODE.plan=CODE.html=CODE.tests="";activeTab="plan";renderCode();$("#tab-test").style.display="none";$("#preview").srcdoc="";$("#pvbuild").textContent="v0";
  $("#testslip").className="testslip none";$("#tsL").textContent=T.noTests;$("#tsR").textContent="—";
  $("#hudmid").textContent=(LANG==="zh"?"构建 — ":"BUILD — ")+(idea.length>44?idea.slice(0,42)+"…":idea);updateSignals();setTrust(0);paintHints();show("run",(LANG==="zh"?"开始构建":"BUILD START"));
@@ -1892,13 +1932,25 @@ async function refreshBridge(){
   BRIDGE=BRIDGE||{active:true};
   const cp=j.providers.find(p=>p.id==="chatgpt-plan");
   if(cp){
-   const st=cp.status==="connected"&&!cp.ready?"plan_off":cp.status||"signed_out";
-   applySiwcState(st,{name:cp.userName,email:cp.userEmail,message:cp.message});
+   let st=cp.status||"signed_out";
+   if(!cp.status){
+    if(cp.ready&&cp.sharing!==false)st="connected";
+    else if(cp.sharing===false&&cp.account)st="plan_off";
+    else if(cp.warning&&/usage limit|quota/i.test(cp.warning))st="usage_limit";
+    else if(cp.warning&&/expired|401/i.test(cp.warning))st="expired";
+    else if(cp.warning&&/off|not configured|unavailable/i.test(cp.warning))st="unavailable";
+    else st="signed_out";
+   }else if(st==="connected"&&!cp.ready){st="plan_off";}
+   applySiwcState(st,{name:cp.account||cp.userName,email:cp.emailMasked||cp.userEmail,message:cp.warning||cp.message});
   }
-  const map={openai:"openai-compatible",anthropic:"anthropic",ollama:"ollama"};
+  const map={openai:"openai-compat",anthropic:"anthropic",ollama:"ollama"};
   for(const [k,id] of Object.entries(map)){
-   const pr=j.providers.find(p=>p.id===id);
-   if(pr&&PROV[k]){PROV[k].bridgeConfigured=pr.status==="ready";if(pr.model&&!PROV[k].model)PROV[k].model=pr.model;}
+   const pr=j.providers.find(p=>p.id===id||p.id==="openai-compatible"&&k==="openai");
+   if(pr&&PROV[k]){
+    PROV[k].bridgeConfigured=pr.ready===true||pr.status==="ready";
+    const mId=pr.model||(pr.models&&pr.models[0]&&pr.models[0].id);
+    if(mId&&!PROV[k].model)PROV[k].model=mId;
+   }
   }
  }catch(e){}
  paintDrawer();paintHints();
