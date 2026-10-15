@@ -1,3 +1,5 @@
+import { redact } from "./redact.js";
+
 export interface TrendItem {
   title: string;
   source: string;
@@ -45,10 +47,6 @@ const X_URL = "https://api.x.com/2/tweets/search/recent";
 
 function asRecord(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
-}
-
-export function redact(value: string): string {
-  return value.replace(/bearer\s+\S+/gi, "bearer [redacted]").replace(/sk-[a-zA-Z0-9_-]+/g, "sk-[redacted]").slice(0, 160);
 }
 
 async function readJson(ctx: TrendContext, url: string, init?: RequestInit): Promise<unknown> {

@@ -1,3 +1,4 @@
+import { homedir } from "node:os";
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
 import { scoreInstability, type InstabilityReport } from "@ledring/instability";
@@ -7,6 +8,8 @@ import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, typ
 import { dirname, join, resolve } from "node:path";
 import { cardFromConfig, renderCardSvg } from "@ledring/cards";
 import { defaultScenarios, OUTCOMES, parseScenarios, runScenarios, type Outcome, type RedWallReport } from "@ledring/redwall";
+import { formatProviderConfig, readProviderHome, startBridge } from "@ledring/play-bridge";
+import { spawn } from "node:child_process";
 import { nodeIO, type IO } from "./io.js";
 
 export type { IO } from "./io.js";
@@ -28,6 +31,8 @@ Usage:
                                                      A2A Agent Card + SVG spec card from agent config
   ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
                                                      What the agent did after a guardrail blocked it
+  ledring play [--port n] [--no-open] [--print-config] [--home dir]
+                                                     Local Play bridge on 127.0.0.1. --print-config never prints secrets
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -39,7 +44,15 @@ export function loadRuns(io: IO, paths: string[], adapter?: string): Run[] {
   return io.expand(paths).flatMap((p) => parseTrace(io.readFile(p), { filename: basename(p), ...(adapter ? { adapter } : {}) }));
 }
 
-type Command = (args: string[], io: IO) => number;
+type Command = (args: string[], io: IO) => number | Promise<number>;
+
+function openBrowser(url: string): void {
+  const command = process.platform === "darwin" ? "open" : process.platform === "win32" ? "cmd" : "xdg-open";
+  const args = process.platform === "win32" ? ["/c", "start", "", url] : [url];
+  const child = spawn(command, args, { stdio: "ignore", detached: true });
+  child.on("error", () => undefined);
+  child.unref();
+}
 
 const commands: Record<string, Command> = {
   inspect(args, io) {
@@ -173,6 +186,38 @@ const commands: Record<string, Command> = {
     }
     return 0;
   },
+  async play(args, io) {
+    const { values } = parseArgs({
+      args,
+      options: {
+        port: { type: "string" },
+        "no-open": { type: "boolean" },
+        "print-config": { type: "boolean" },
+        home: { type: "string" },
+      },
+    });
+    const home = values.home ?? join(homedir(), ".ledring", "play");
+    const loaded = readProviderHome(home);
+    if (values["print-config"]) {
+      io.out(formatProviderConfig(loaded.config, loaded.warning));
+      return 0;
+    }
+    const port = values.port === undefined ? 0 : Number(values.port);
+    if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error("--port expects a TCP port");
+    const bridge = await startBridge({
+      port,
+      config: loaded.config,
+      ...(values["no-open"] ? {} : { open: openBrowser }),
+    });
+    io.out(`ledring play ${bridge.url}\n`);
+    return await new Promise<number>((resolve) => {
+      const stop = () => {
+        void bridge.close().then(() => resolve(0));
+      };
+      process.once("SIGINT", stop);
+      process.once("SIGTERM", stop);
+    });
+  },
 };
 
 function formatRedWall(report: RedWallReport): string {
@@ -245,7 +290,7 @@ export async function run(argv: string[], io: IO = nodeIO): Promise<number> {
     return 2;
   }
   try {
-    return command(rest, io);
+    return await command(rest, io);
   } catch (e) {
     io.err(`ledring ${cmd}: ${(e as Error).message}\n`);
     return 1;

@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -190,5 +190,31 @@ describe("ledring redwall", () => {
   it("rejects an unknown --fail-on", async () => {
     const io = nodeIOForTest();
     expect(await run([...args, "--fail-on", "maybe"], io)).toBe(1);
+  });
+});
+
+describe("ledring play", () => {
+  it("prints help for the bridge flags", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["help"], io)).toBe(0);
+    expect(io.stdout()).toMatch(/ledring play \[--port n\] \[--no-open\] \[--print-config\]/);
+  });
+
+  it("prints config without secrets", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ledring-play-"));
+    const secret = "super-secret-key";
+    writeFileSync(join(dir, "providers.json"), JSON.stringify({ openai: { apiKey: secret, baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" } }));
+    chmodSync(join(dir, "providers.json"), 0o600);
+    const io = nodeIOForTest();
+    expect(await run(["play", "--print-config", "--home", dir], io)).toBe(0);
+    expect(io.stdout()).toContain("openai-compat: configured");
+    expect(io.stdout()).toContain("bind: 127.0.0.1");
+    expect(io.stdout()).not.toContain(secret);
+  });
+
+  it("rejects a bad port without opening a socket", async () => {
+    const io = nodeIOForTest();
+    expect(await run(["play", "--port", "nope", "--no-open"], io)).toBe(1);
+    expect(io.stderr()).toMatch(/--port/);
   });
 });
