@@ -366,17 +366,6 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 .ob-tstat{font:700 12px var(--mono);min-height:18px;flex:1;min-width:160px}
 .ob-tstat.ok{color:#116B36}.ob-tstat.err{color:#B8141E}.ob-tstat.wait{color:#7A5000}
 .ob-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding-top:4px}
-.ob-presets{display:flex;flex-direction:column;gap:8px}
-.ob-preset-row{display:flex;flex-direction:column;gap:6px}
-.ob-preset{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;text-align:left;border:1.5px solid var(--line2);border-radius:8px;background:#fff;padding:8px 10px;cursor:pointer;color:var(--ink);font:600 13px var(--sans);transition:transform .16s var(--t),border-color .16s,box-shadow .16s}
-.ob-preset:hover{transform:translate3d(3px,0,0);border-color:var(--ink)}
-.ob-preset.on{border:2px solid var(--ink);background:var(--bg);box-shadow:3px 3px 0 var(--ok)}
-.ob-preset .ob-ct b{font:800 13.5px var(--sans)}
-.ob-preset .ob-ct small{font:500 11.5px var(--sans);color:var(--ink2)}
-.ob-meta{display:flex;flex-direction:column;gap:6px;align-items:flex-start;border:1.5px solid var(--line2);border-radius:8px;background:var(--bg);padding:8px 10px}
-.ob-limits{font:500 12.5px/1.45 var(--sans);color:var(--ink2);margin:0}
-.ob-keylink{font:700 12.5px var(--sans);color:var(--calm);text-decoration:none;border-bottom:1px solid currentColor}
-.ob-route{font:600 12px/1.45 var(--sans);color:#7A5000;margin:0}
 .ins-wrap{display:grid;grid-template-columns:1fr 360px;gap:26px;height:100%;min-height:0;max-width:1100px;margin:0 auto;width:100%}
 .ins-left{display:flex;flex-direction:column;min-height:0}
 .ins-top{display:flex;justify-content:space-between;align-items:center}
@@ -501,8 +490,8 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  #hold-btn,#rm-btn{display:none}
  .hud .hudr{gap:6px}
  .sfx,.lang,.modechip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;margin-right:0}
- .btn,.qopt,.mode,.ob-card,.ob-preset,.dx,.rp,.vpill,.linkbtn,.samp,.rr,.ptab[data-f]{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
- .qopt,.mode,.ob-card,.ob-preset{justify-content:space-between}
+ .btn,.qopt,.mode,.ob-card,.dx,.rp,.vpill,.linkbtn,.samp,.rr,.ptab[data-f]{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
+ .qopt,.mode,.ob-card{justify-content:space-between}
  .lib-acts .btn{min-height:44px;min-width:44px;padding:6px 10px}
  input#idea-in,input#in-free,textarea#in-brief,#drawer input,#onboard input,input#scrubrange{min-height:44px}
  .ob-cmdrow,.ob-testrow,.ob-foot{flex-wrap:wrap}
@@ -607,17 +596,6 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
  <div class="ob-main">
   <div class="ob-cards" id="ob-cards" role="radiogroup" aria-labelledby="ob-title"></div>
   <div class="ob-panel" id="ob-panel">
-   <div class="ob-presets" id="ob-presets" style="display:none">
-    <label id="ob-preset-label"></label>
-    <div class="ob-preset-row" id="ob-preset-row" role="list"></div>
-    <div class="ob-meta" id="ob-preset-meta" style="display:none">
-     <span class="ob-badge ok" id="ob-free-badge"></span>
-     <p class="ob-limits" id="ob-limits"></p>
-     <a class="ob-keylink" id="ob-keylink" target="_blank" rel="noopener noreferrer"></a>
-     <p class="ob-route" id="ob-route" style="display:none"></p>
-    </div>
-    <div id="ob-account-row" style="display:none"><label id="ob-l-account" for="ob-account"></label><input id="ob-account" spellcheck="false" autocomplete="off" maxlength="32"></div>
-   </div>
    <div id="ob-bridge-box" style="display:none">
     <label id="ob-l-cmd" for="ob-cmd"></label>
     <div class="ob-cmdrow"><input id="ob-cmd" value="npx ledring play" readonly aria-label="npx ledring play"><button type="button" class="btn sm" id="ob-copy"></button></div>
@@ -925,6 +903,7 @@ const DICT={en:{
  iGo:"Build it →",
  iNeedKey:"Live mode needs a key (or switch to DEMO and pick a preset).",iDemoOnly:"DEMO mode only plays the 4 presets. Add a key for free text.",
  pNoteDemo:"DEMO · synthetic cassette, not a live model recording. Four presets only. No network calls.",
+ pNoteFree:"LEDRING Free AI. No key. This page calls it only when you test the link or start a build.",
  pNoteLive:"Your key stays in this browser's localStorage. It is sent only to the endpoint above. Nothing else.",
  pNoteAnth:"Calls api.anthropic.com directly with the anthropic-dangerous-direct-browser-access header.",
  pNoteOllama:"Local Ollama. Start it with OLLAMA_ORIGINS=* so the page can reach it.",
@@ -963,7 +942,7 @@ const DICT={en:{
  tagDemo:"demo · pre-recorded",tagLive:"live",
  pdesc:{snake:"Canvas grid, arrow keys. It wants an online leaderboard.",pomo:"25/5 timer with a ring. It wants to remember sessions.",paint:"Click and drag pixels. It wants a formula brush.",tip:"Bill, tip, people. It wants live exchange rates."},
  pname:{snake:"Snake",pomo:"Pomodoro",paint:"Pixel Paint",tip:"Split the Bill"},
- dTitle:"Model",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
+ dTitle:"Model",modeLedring:"LEDRING Free AI",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"demo · pre-recorded",chipLive:"live · {m}",
  cqs:["It wants to keep going its own way.","It has a faster idea.","It thinks it's done enough."],
  wallsPlan:"The plan wants {what}. Block it — now.",tFakeS:"fake",
@@ -991,7 +970,7 @@ const DICT={en:{
  tagDemo:"演示 · 预录",tagLive:"实时",
  pdesc:{snake:"Canvas 网格，方向键。它想加在线排行榜。",pomo:"25/5 计时加进度环。它想记住历史。",paint:"点击拖动画像素。它想加公式笔刷。",tip:"总额、小费、人数。它想接实时汇率。"},
  pname:{snake:"贪吃蛇",pomo:"番茄钟",paint:"像素画板",tip:"分账"},
- dTitle:"模型",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
+ dTitle:"模型",modeLedring:"LEDRING 无偿心智",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"演示 · 预录",chipLive:"实时 · {m}",
  cqs:["它想按自己的路子走。","它有个更快的办法。","它觉得已经够了。"],
  wallsPlan:"计划里要用{what}。拦下它——现在。",tFakeS:"假",
@@ -1006,6 +985,7 @@ const DICT={en:{
  iGo:"开始构建 →",
  iNeedKey:"实时模式需要密钥（或切到 DEMO 选一个预设）。",iDemoOnly:"DEMO 模式只能玩 4 个预设。填入密钥后可自由输入。",
  pNoteDemo:"DEMO：合成卡带，不是实时模型录制。只有 4 个预设。不联网。",
+ pNoteFree:"LEDRING 无偿心智。无须密钥。唯有叩验链路或开始构建时，此页才向外发信。",
  pNoteLive:"密钥只存在本浏览器的 localStorage，只发送到上面的地址。不会去别处。",
  pNoteAnth:"直接请求 api.anthropic.com，带 anthropic-dangerous-direct-browser-access 请求头。",
  pNoteOllama:"本地 Ollama。用 OLLAMA_ORIGINS=* 启动，页面才能访问。",
@@ -1194,7 +1174,8 @@ const Motion={
    a.onfinish=()=>{callMid();tm=setTimeout(()=>{const b=Motion.run(w,[{transform:"translate3d(0,0,0) skewX(-14deg)"},{transform:"translate3d(115%,0,0) skewX(-14deg)"}],{duration:360,easing:EASE.out,essential:true});b.onfinish=finishWipe;},140);};});}
 };
 /* ================= LLM ================= */
-const PROV_DEFAULT={mode:"demo",
+const PROV_DEFAULT={mode:"ledring",
+ ledring:{base:"",model:"@cf/openai/gpt-oss-120b",key:""},
  openai:{base:"https://openrouter.ai/api/v1",model:"openai/gpt-4o-mini",key:""},
  anthropic:{base:"https://api.anthropic.com",model:"claude-sonnet-4-5",key:""},
  ollama:{base:"http://localhost:11434/v1",model:"qwen2.5-coder:7b",key:""},
@@ -1224,11 +1205,11 @@ else if(BRIDGE)applySiwcState("signed_out");
 function saveSiwc(){}
 function usesRecorded(){return PROV.mode==="demo";}
 const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provider")||"{}")}catch(e){}
- const o=JSON.parse(JSON.stringify(PROV_DEFAULT));for(const k of ["openai","anthropic","ollama","chatgpt"])Object.assign(o[k],s[k]||{});if(s.mode&&s.mode!=="codex")o.mode=s.mode; else if(BRIDGE)o.mode="chatgpt";
+ const o=JSON.parse(JSON.stringify(PROV_DEFAULT));for(const k of ["ledring","openai","anthropic","ollama","chatgpt"])Object.assign(o[k],s[k]||{});if(s.mode&&s.mode!=="codex")o.mode=s.mode;
  if(P.get("mode"))o.mode=P.get("mode"); if(P.get("base"))o[o.mode].base=P.get("base"); if(P.get("model"))o[o.mode].model=P.get("model");
  return o;})();
 function saveProv(){try{localStorage.setItem("ledring-provider",JSON.stringify(PROV))}catch(e){}}
-function provLabel(){return PROV.mode==="demo"?"demo":PROV.mode==="chatgpt"?(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)"):PROV[PROV.mode].model}
+function provLabel(){return PROV.mode==="demo"?"demo":PROV.mode==="ledring"?(LANG==="zh"?"LEDRING 无偿心智":"LEDRING Free AI"):PROV.mode==="chatgpt"?(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)"):PROV[PROV.mode].model}
 
 function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ollama"]){const key=PROV[k]&&PROV[k].key;if(key&&key.length>=6)out=out.split(key).join("[redacted]");}
  return out.replace(/bearer\s+\S+/gi,"bearer [redacted]").replace(/sk-[A-Za-z0-9_-]+/g,"sk-[redacted]").slice(0,180);}
@@ -1238,13 +1219,19 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
  const ctl=new AbortController(); CUR_ABORT=ctl;
  const tmo=setTimeout(()=>ctl.abort(),180000);
  try{
- const routed=m==="openai"?activeBridgePreset():null;
- if(routed){
-  if(routed.id==="cloudflare"&&!cfBase(c.accountId||""))throw new Error(T.obNeedAccount);
-  if(!(BRIDGE&&/^(127\.0\.0\.1|localhost)$/.test(location.hostname)))throw new Error(T.obNeedBridge);
-  if(!c.key)throw new Error(T.iNeedKey||"API key required");
+ if(m==="ledring"){
+  const root=String(STRANDS_URL||DEFAULT_STRANDS_URL).replace(/\/$/,"");
+  const r=await fetch(root+"/ai/chat",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json"},
+   body:JSON.stringify({stream:true,max_tokens:Math.min(2048,maxTokens||2048),temperature:0.6,messages:[{role:"system",content:system},{role:"user",content:user}]})});
+  if(!r.ok){
+   let msg="HTTP "+r.status;
+   try{const j=await r.json();const e=j&&j.error;if(e&&(e.code==="quota_exhausted"||e.code==="rate_limited"))msg=T.obQuota;else if(e&&e.code==="input_too_large")msg=T.obTooBig;else if(e&&e.message)msg=e.message;else if(typeof e==="string"&&e)msg=e;}catch(parseErr){}
+   throw new Error(redactMsg(msg));
+  }
+  await readSSE(r,j=>{const d=j.choices&&j.choices[0]&&(j.choices[0].delta||j.choices[0].message);if(d&&d.content){full+=d.content;onDelta(full)} if(j.error)throw new Error((j.error&&j.error.message)||j.error||"stream error")});
+  return full;
  }
- async function viaBridge(extra){
+ if(BRIDGE&&(m==="chatgpt"||(c&&c.bridgeConfigured&&!c.key))){
   const pid=m==="chatgpt"?"chatgpt-plan":m==="openai"?"openai-compat":m;
   let sid=RUN&&RUN.bridgeSessionId;
   if(!sid){
@@ -1253,7 +1240,7 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
    const sj=await sr.json();sid=sj.id||(sj.session&&sj.session.id);if(RUN)RUN.bridgeSessionId=sid;
   }
   const r=await fetch(`/api/sessions/${sid}/steps`,{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},
-   body:JSON.stringify({provider:pid,system,user,...(c&&c.model?{model:c.model}:{}),maxTokens:Math.min(8192,maxTokens||8000),...extra})});
+   body:JSON.stringify({provider:pid,system,user,...(c&&c.model?{model:c.model}:{}),maxTokens:Math.min(8192,maxTokens||8000)})});
   if(!r.ok)throw new Error(redactMsg("HTTP "+r.status+" "+(await r.text())));
   let sseErr=null;
   await readSSE(r,(j,ev)=>{
@@ -1268,11 +1255,6 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
   if(sseErr)throw sseErr;
   return full;
  }
- if(routed){
-  const base=routed.id==="cloudflare"?cfBase(c.accountId):String(c.base||"").replace(/\/$/,"");
-  return viaBridge({baseUrl:base,apiKey:c.key});
- }
- if(BRIDGE&&(m==="chatgpt"||(c&&c.bridgeConfigured&&!c.key)))return viaBridge({});
  if(m==="anthropic"){
   const r=await fetch(c.base.replace(/\/$/,"")+"/v1/messages",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-api-key":c.key,
     "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
@@ -2330,7 +2312,7 @@ async function leaveStrand(){
  return {ok:true,simulated:true,likes};
 }
 /* ================= UI ================= */
-const MODES=[["chatgpt","modeChatgpt"],["demo","modeDemo"],["openai","modeOpenai"],["anthropic","modeAnth"],["ollama","modeOllama"]];
+const MODES=[["ledring","modeLedring"],["chatgpt","modeChatgpt"],["demo","modeDemo"],["openai","modeOpenai"],["anthropic","modeAnth"],["ollama","modeOllama"]];
 let BSTAT=null;
 function paintHints(){const live=PROV.mode!=="demo";
  $("#demotag").innerHTML=live?`<b class="live">●</b> `+esc(fill(T.chipLive,{m:provLabel()}))+" ⚙":`<b>●</b> `+T.chipDemo+" ⚙";
@@ -2572,9 +2554,9 @@ function paintDrawer(){
  const go=$("#siwc-go");if(go)go.onclick=siwcBeginFlow;
  const cancel=$("#siwc-cancel");if(cancel)cancel.onclick=()=>applySiwcState("declined");
  const out=$("#siwc-out");if(out)out.onclick=siwcSignOut;
- const m=PROV.mode,live=m!=="demo"&&m!=="chatgpt";
+ const m=PROV.mode,keyless=m==="demo"||m==="chatgpt"||m==="ledring",live=!keyless;
  $("#p-fields").style.display=live?"":"none";$("#keyrow").style.display=live&&m!=="ollama"?"":"none";
- $("#p-acts").style.display=live?"flex":"none";$("#p-forget").style.display=live&&m!=="ollama"?"":"none";
+ $("#p-acts").style.display=(m==="demo"||m==="chatgpt")?"none":"flex";$("#p-forget").style.display=live&&m!=="ollama"?"":"none";
  if(live){
   const c=PROV[m];$("#p-base").value=c.base;$("#p-model").value=c.model;$("#p-key").value="";
   const hasKey=!!c.key||!!c.bridgeConfigured;
@@ -2582,11 +2564,10 @@ function paintDrawer(){
   const ks=$("#p-key-saved");if(ks)ks.textContent=hasKey?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):"";
   $("#p-base").disabled=m==="anthropic"&&!P.has("base");
  }
- const bridgeNote=m==="openai"&&activeBridgePreset();
- $("#p-note").innerHTML=m==="demo"?T.pNoteDemo:m==="chatgpt"?T.siwcNote:m==="anthropic"?T.pNoteLive+" "+T.pNoteAnth:m==="ollama"?T.pNoteOllama:bridgeNote?T.obPrivPresetBridge:T.pNoteLive;
+ $("#p-note").innerHTML=m==="demo"?T.pNoteDemo:m==="ledring"?T.pNoteFree:m==="chatgpt"?T.siwcNote:m==="anthropic"?T.pNoteLive+" "+T.pNoteAnth:m==="ollama"?T.pNoteOllama:T.pNoteLive;
 }
 function readFields(){
- if(PROV.mode==="demo"||PROV.mode==="chatgpt"||!$("#drawer").classList.contains("on"))return;
+ if(PROV.mode==="demo"||PROV.mode==="chatgpt"||PROV.mode==="ledring"||!$("#drawer").classList.contains("on"))return;
  const c=PROV[PROV.mode];c.base=$("#p-base").value.trim();c.model=$("#p-model").value.trim();
  const kv=$("#p-key").value.trim();
  if(kv){c.key=kv;$("#p-key").value="";$("#p-key").placeholder=T.keySaved;const ks=$("#p-key-saved");if(ks)ks.textContent=T.keySaved;}
@@ -2617,7 +2598,8 @@ Object.assign(DICT.en,{
  obS1:"01 · Provider",obS2:"02 · Credential",obS3:"03 · Ping Test",obS4:"04 · Launch",
  obPAnth:"Anthropic BYOK",obPAnthSub:"Direct browser call to api.anthropic.com — no server needed.",obPAnthTag:"BROWSER DIRECT",
  obPBridge:"OpenAI BYOK · Local Bridge",obPBridgeSub:"Route via 127.0.0.1 daemon (npx ledring play).",obPBridgeTag:"127.0.0.1 BRIDGE",
- obPCustom:"Custom OpenAI-Compatible",obPCustomSub:"One-click free hosts, or any /v1/chat/completions.",obPCustomTag:"CUSTOM /V1",
+ obPFree:"LEDRING Free AI",obPFreeSub:"No key and no setup. A shared daily quota.",obPFreeTag:"BUILT IN",
+ obPCustom:"Custom OpenAI-Compatible",obPCustomSub:"OpenRouter, vLLM, local proxy, or any /v1/chat/completions.",obPCustomTag:"CUSTOM /V1",
  obPSiwc:"Sign in with ChatGPT",obPSiwcSub:"Official ChatGPT plan bridge session.",obPSiwcSoon:"Coming soon — set LEDRING_SIWC=1 on local bridge.",obPSiwcTagSoon:"COMING SOON",obPSiwcTagLive:"SIWC READY",
  obPDemo:"No-Key Demo Mode",obPDemoSub:"Pre-recorded synthetic cassettes. Zero network calls.",obPDemoTag:"OFFLINE DEMO",
  obCmdLabel:"Run in terminal · Local Bridge on 127.0.0.1",obCopy:"Copy command",obCopied:"Copied ✓",
@@ -2627,20 +2609,13 @@ Object.assign(DICT.en,{
  obPrivBridge:"Your OpenAI key is stored locally (browser or ~/.ledring/play) and routed via 127.0.0.1.",
  obPrivCustom:"Stored only in this browser's localStorage. Sent exclusively to the endpoint URL above.",
  obPrivSiwcSoon:"Sign in with ChatGPT is gated by LEDRING_SIWC. It is never faked on static pages.",
+ obPrivFree:"No key is stored. This page calls LEDRING only when you test the link or start a build. The choice stays in this browser's localStorage.",
+ obLimFree:"Shared Workers Free quota: 10,000 neurons a day. Replies are capped. When it is gone, use your own key.",
+ obQuota:"Today's free quota is used up. Try again tomorrow, or use your own key.",
+ obTooBig:"That request is too large for the free model. Shorten it, or use your own key.",
  obPrivDemo:"Demo mode runs 100% offline from hand-crafted synthetic cassettes. No key or network required.",
  obTestBtn:"⚡ Run live connection test",obTesting:"Pinging provider…",obTestOk:"Link verified ✓",obTestDemoOk:"Synthetic cassette verified · offline ready ✓",
- obSkip:"Skip to Inspiration →",obCont:"Continue to Inspiration ▶",obReopen:"⇄ Connection onboarding",
- obPresetLabel:"Free hosts · no card",obFreeBadge:"FREE · NO CARD",obGetKey:"Get a key",
- obLimGemini:"Free tier, no billing account. gemini-3.8-flash tokens are free; the daily quota is small and shown in AI Studio.",
- obLimGroq:"Free plan, no card. This model is listed at 30 requests/min and 1,000/day.",
- obLimOpenrouter:"No card. Free models: 20 requests/min and 50/day until you buy credits.",
- obLimCloudflare:"Workers Free includes 10,000 neurons/day. No paid plan. This model spends that budget quickly.",
- obLimNvidia:"Free endpoint, no card. Trial calls are rate-limited; NVIDIA publishes no fixed quota.",
- obRoute:"This host blocks browsers. Run npx ledring play and open the page from 127.0.0.1. The key stays in localStorage and is sent only to that bridge, which does not keep it.",
- obNeedBridge:"This host blocks the browser. Run npx ledring play and open the page it serves.",
- obNeedAccount:"Cloudflare needs a 32-character account id. It stays in this browser.",
- obAccountLabel:"Account ID",
- obPrivPresetBridge:"The key stays in this browser's localStorage. This host blocks browsers, so a test or a run hands it only to 127.0.0.1. The bridge forwards it and does not store it."
+ obSkip:"Skip to Inspiration →",obCont:"Continue to Inspiration ▶",obReopen:"⇄ Connection onboarding"
 });
 Object.assign(DICT.zh,{
  obEye:"临阵校准 · 心智接引",
@@ -2649,7 +2624,8 @@ Object.assign(DICT.zh,{
  obS1:"壹 · 择源",obS2:"贰 · 授钥",obS3:"叁 · 叩验",obS4:"肆 · 启行",
  obPAnth:"Anthropic 自携密钥",obPAnthSub:"浏览器直通官方端点，毋须中转。",obPAnthTag:"直连信令",
  obPBridge:"OpenAI 自携密钥 · 本机桥接",obPBridgeSub:"经由 127.0.0.1 守护进程（npx ledring play）渡引。",obPBridgeTag:"本机桥接",
- obPCustom:"自定兼容端点",obPCustomSub:"一键接入免费端，或任意兼容 /v1 的地址。",obPCustomTag:"自定端点",
+ obPFree:"LEDRING 无偿心智",obPFreeSub:"无须密钥，亦无须配置。额度按日共用。",obPFreeTag:"内置",
+ obPCustom:"自定兼容端点",obPCustomSub:"OpenRouter、本地推理或任意兼容 /v1 接口。",obPCustomTag:"自定端点",
  obPSiwc:"ChatGPT 席位登录",obPSiwcSub:"借本机桥接核验官方套餐席位。",obPSiwcSoon:"敬请期待——需于本机桥接开启 LEDRING_SIWC=1。",obPSiwcTagSoon:"敬请期待",obPSiwcTagLive:"席位已启",
  obPDemo:"无钥预演模式",obPDemoSub:"内载合成卡带，断网亦可畅行。",obPDemoTag:"离线预演",
  obCmdLabel:"终端指令 · 唤醒 127.0.0.1 桥接进程",obCopy:"复制指令",obCopied:"已录剪贴板 ✓",
@@ -2659,20 +2635,13 @@ Object.assign(DICT.zh,{
  obPrivBridge:"密钥唯留本机（浏览器或 ~/.ledring/play），经 127.0.0.1 本地守护进程转发。",
  obPrivCustom:"密钥唯留本机 localStorage，仅向您所填之端点发信，绝不旁落。",
  obPrivSiwcSoon:"ChatGPT 席位须由 LEDRING_SIWC 显式开启；本页绝不伪造连接。",
+ obPrivFree:"无须密钥。唯有叩验或启行时，此页才向外叩问。此择定留在本机 localStorage。",
+ obLimFree:"Workers 免费档每日一万神经元，众人共用。答复有长度上限。额度用尽后，请改用自携密钥。",
+ obQuota:"今日无偿额度已尽。请明日再来，或改用自携密钥。",
+ obTooBig:"此稿过长，无偿心智无法接纳。请删减，或改用自携密钥。",
  obPrivDemo:"预演模式全凭内置合成卡带运转，不涉外网，亦无须密钥。",
  obTestBtn:"⚡ 叩问链路（实连验证）",obTesting:"正在叩问远端信令……",obTestOk:"信令畅通 ✓",obTestDemoOk:"合成卡带核验完毕 · 随时启行 ✓",
- obSkip:"略过向导 →",obCont:"步入灵感回廊 ▶",obReopen:"⇄ 链路校准向导",
- obPresetLabel:"免费之源 · 不必绑卡",obFreeBadge:"免费 · 无需绑卡",obGetKey:"领取密钥",
- obLimGemini:"免费档，不必开账单。gemini-3.8-flash 不另收费，日额很小，以 AI Studio 所示为准。",
- obLimGroq:"免费档，不必绑卡。此模型公开限额约为每分钟 30 次、每日 1000 次。",
- obLimOpenrouter:"不必绑卡。免费模型每分钟 20 次、每日 50 次；购入额度后，每日上限才放宽。",
- obLimCloudflare:"Workers 免费档每日一万神经元，无需付费套餐。此模型耗额很快。",
- obLimNvidia:"免费端点，不必绑卡。试用有速率限制，官方未公布固定配额。",
- obRoute:"此端拒绝浏览器直连。请运行 npx ledring play，并从 127.0.0.1 打开本页。密钥只留在本机，仅交给桥接，桥接并不留存。",
- obNeedBridge:"此端拒绝浏览器直连。请运行 npx ledring play，并从 127.0.0.1 打开本页。",
- obNeedAccount:"Cloudflare 需要 32 位账户标识，只留在本机浏览器。",
- obAccountLabel:"账户标识",
- obPrivPresetBridge:"密钥只留在本机 localStorage。此端拒绝浏览器直连，叩验或启行时只把它交给 127.0.0.1。桥接转发后并不留存。"
+ obSkip:"略过向导 →",obCont:"步入灵感回廊 ▶",obReopen:"⇄ 链路校准向导"
 });
 function isSiwcEnabled(){
  return Boolean(window.__LEDRING_SIWC===true||P.get("siwc")==="1"||(BRIDGE&&BRIDGE.siwcEnabled)||SIWC.state!=="unavailable");
@@ -2684,42 +2653,15 @@ function markOnboarded(){
  SAVE.onboarded=1;persist();
  try{localStorage.setItem("ledring-onboarded","1");}catch(e){}
 }
-const FREE_PRESETS=[
- {id:"gemini",name:"Gemini",sub:"AI Studio",base:"https://generativelanguage.googleapis.com/v1beta/openai/",model:"gemini-3.8-flash",key:"https://aistudio.google.com/apikey",browser:true,account:false,lim:"obLimGemini"},
- {id:"groq",name:"Groq",sub:"gpt-oss-120b",base:"https://api.groq.com/openai/v1",model:"openai/gpt-oss-120b",key:"https://console.groq.com/keys",browser:true,account:false,lim:"obLimGroq"},
- {id:"openrouter",name:"OpenRouter",sub:"free router",subZh:"免费路由",base:"https://openrouter.ai/api/v1",model:"openrouter/free",key:"https://openrouter.ai/settings/keys",browser:true,account:false,lim:"obLimOpenrouter"},
- {id:"cloudflare",name:"Cloudflare",sub:"Workers AI",base:"https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",model:"@cf/openai/gpt-oss-120b",key:"https://dash.cloudflare.com/profile/api-tokens",browser:false,account:true,lim:"obLimCloudflare"},
- {id:"nvidia",name:"NVIDIA NIM",sub:"free endpoint",subZh:"免费端点",base:"https://integrate.api.nvidia.com/v1",model:"nvidia/nemotron-3-ultra-550b-a55b",key:"https://build.nvidia.com/settings",browser:false,account:false,lim:"obLimNvidia"}
-];
-function cfBase(accountId){
- const id=String(accountId||"").trim().toLowerCase();
- return /^[a-f0-9]{32}$/.test(id)?"https://api.cloudflare.com/client/v4/accounts/"+id+"/ai/v1":"";
-}
-function freePreset(id){return FREE_PRESETS.find(p=>p.id===id)||null;}
-function presetBaseMatches(p,base){
- if(!p)return false;
- const b=String(base||"").replace(/\/$/,"");
- if(p.id==="cloudflare")return /^https:\/\/api\.cloudflare\.com\/client\/v4\/accounts\/[a-f0-9]{32}\/ai\/v1$/i.test(b);
- return b===p.base.replace(/\/$/,"");
-}
-function activeBridgePreset(){
- const p=freePreset(PROV.openai&&PROV.openai.preset);
- if(!p||p.browser)return null;
- const base=String(PROV.openai.base||"").replace(/\/$/,"");
- if(p.id==="cloudflare"){
-  const built=cfBase(PROV.openai.accountId||"");
-  if(!built||base===built||base===p.base)return p;
-  return null;
- }
- return presetBaseMatches(p,base)?p:null;
-}
 const OB={
  choice:(()=>{
   if(P.get("obChoice"))return P.get("obChoice");
+  if(PROV.mode==="ledring")return "ledring";
   if(PROV.mode==="anthropic")return "anthropic";
   if(PROV.mode==="chatgpt")return "chatgpt";
+  if(PROV.mode==="demo")return "demo";
   if(PROV.mode==="openai")return /127\.0\.0\.1|localhost/.test(PROV.openai.base||"")?"openai-bridge":"openai-custom";
-  return "anthropic";
+  return "ledring";
  })(),
  bridgeConnected:Boolean(BRIDGE&&BRIDGE.active),
  bridgeUrl:(()=>{
@@ -2735,8 +2677,7 @@ const OB={
  testStatus:"",
  testTone:"",
  copied:false,
- fromDrawer:false,
- preset:(PROV.openai&&PROV.openai.preset)||""
+ fromDrawer:false
 };
 function stopBridgePoll(){if(OB.pollTimer){clearInterval(OB.pollTimer);OB.pollTimer=0;}}
 async function probeLocalBridge(){
@@ -2764,11 +2705,7 @@ async function probeLocalBridge(){
  }
  OB.bridgeConnected=false;paintOnboard();return false;
 }
-function wantsBridge(){
- if(OB.choice==="openai-bridge")return true;
- const p=freePreset(OB.preset);
- return OB.choice==="openai-custom"&&!!p&&!p.browser;
-}
+function wantsBridge(){return OB.choice==="openai-bridge";}
 function startBridgePoll(){
  stopBridgePoll();
  if(OB.bridgeConnected||curScene!=="onboard"||!wantsBridge())return;
@@ -2776,6 +2713,7 @@ function startBridgePoll(){
 }
 function syncObToProv(){
  const ch=OB.choice;
+ if(ch==="ledring"){PROV.mode="ledring";saveProv();paintHints();return;}
  if(ch==="demo"){PROV.mode="demo";saveProv();paintHints();return;}
  if(ch==="chatgpt"){if(isSiwcEnabled()){PROV.mode="chatgpt";saveProv();paintHints();}return;}
  const m=ch==="anthropic"?"anthropic":"openai";
@@ -2791,24 +2729,12 @@ function syncObToProv(){
   kEl.placeholder=T.keySaved;
   const ks=$("#ob-key-saved");if(ks)ks.textContent=T.keySaved;
  }
- if(ch==="openai-custom"){
-  const p=freePreset(OB.preset);
-  const acct=$("#ob-account");
-  if(p&&p.account&&acct){
-   c.accountId=acct.value.trim().toLowerCase();
-   const built=cfBase(c.accountId);
-   if(built)c.base=built;
-  }
-  const base=String(c.base||"").replace(/\/$/,"");
-  const still=!!p&&(p.account?(base===p.base||presetBaseMatches(p,base)):presetBaseMatches(p,base));
-  if(still){c.preset=p.id;if(!p.account)delete c.accountId;}
-  else{OB.preset="";c.preset="";delete c.accountId;}
- }
  saveProv();paintHints();
 }
 function selectObChoice(ch,userInitiated){
  OB.choice=ch;OB.tested=false;OB.testStatus="";OB.testTone="";
- if(ch==="demo"){PROV.mode="demo";}
+ if(ch==="ledring"){PROV.mode="ledring";}
+ else if(ch==="demo"){PROV.mode="demo";}
  else if(ch==="anthropic"){PROV.mode="anthropic";if(!PROV.anthropic.base)PROV.anthropic.base="https://api.anthropic.com";if(!PROV.anthropic.model)PROV.anthropic.model="claude-sonnet-4-5";}
  else if(ch==="openai-bridge"){
   PROV.mode="openai";
@@ -2816,30 +2742,13 @@ function selectObChoice(ch,userInitiated){
   if(!PROV.openai.model||PROV.openai.model==="openai/gpt-4o-mini")PROV.openai.model="gpt-4o-mini";
  }else if(ch==="openai-custom"){
   PROV.mode="openai";
-  const kept=freePreset(OB.preset);
-  if(kept&&presetBaseMatches(kept,PROV.openai.base))PROV.openai.preset=kept.id;
-  else if(!PROV.openai.base||/127\.0\.0\.1|localhost/.test(PROV.openai.base)){PROV.openai.base="https://openrouter.ai/api/v1";OB.preset="";PROV.openai.preset="";}
+  if(!PROV.openai.base||/127\.0\.0\.1|localhost/.test(PROV.openai.base))PROV.openai.base="https://openrouter.ai/api/v1";
   if(!PROV.openai.model)PROV.openai.model="openai/gpt-4o-mini";
  }else if(ch==="chatgpt"&&isSiwcEnabled()){
   PROV.mode="chatgpt";
  }
  saveProv();paintHints();paintOnboard();
- const bridgePreset=ch==="openai-custom"&&freePreset(OB.preset)&&!freePreset(OB.preset).browser;
- if((ch==="openai-bridge"||bridgePreset)&&userInitiated){void probeLocalBridge();startBridgePoll();}
- else stopBridgePoll();
-}
-function selectFreePreset(id){
- const p=freePreset(id);if(!p)return;
- OB.choice="openai-custom";OB.preset=id;OB.tested=false;OB.testStatus="";OB.testTone="";
- PROV.mode="openai";
- PROV.openai.preset=id;
- PROV.openai.model=p.model;
- if(p.account){
-  const built=cfBase(PROV.openai.accountId||"");
-  PROV.openai.base=built||p.base;
- }else{PROV.openai.base=p.base;delete PROV.openai.accountId;}
- saveProv();paintHints();paintOnboard();
- if(!p.browser){void probeLocalBridge();startBridgePoll();}
+ if(ch==="openai-bridge"&&userInitiated){void probeLocalBridge();startBridgePoll();}
  else stopBridgePoll();
 }
 function copyObCmd(){
@@ -2878,7 +2787,7 @@ function paintOnboard(){
  $("#ob-title").textContent=T.obTitle;
  $("#ob-sub").textContent=T.obSub;
  const ch=OB.choice,siwcOn=isSiwcEnabled();
- const hasCred=ch==="demo"||(ch==="chatgpt"?(siwcOn&&SIWC.connected&&SIWC.ready):ch==="anthropic"?!!PROV.anthropic.key:(!!PROV.openai.key||!!PROV.openai.bridgeConfigured||OB.bridgeConnected));
+ const hasCred=ch==="demo"||ch==="ledring"||(ch==="chatgpt"?(siwcOn&&SIWC.connected&&SIWC.ready):ch==="anthropic"?!!PROV.anthropic.key:(!!PROV.openai.key||!!PROV.openai.bridgeConfigured||OB.bridgeConnected));
  const stepIdx=OB.tested?4:hasCred?3:2;
  $("#ob-steps").innerHTML=[T.obS1,T.obS2,T.obS3,T.obS4].map((s,i)=>{
   const n=i+1,cls=n<stepIdx?"done":n===stepIdx?"cur":"";
@@ -2886,6 +2795,7 @@ function paintOnboard(){
  }).join("");
  if(!OB.testing&&OB.testTone!=="err")ringSVG($("#obring"),"calm");
  const cards=[
+  ["ledring",T.obPFree,T.obPFreeSub,T.obPFreeTag,"ok",false],
   ["anthropic",T.obPAnth,T.obPAnthSub,T.obPAnthTag,"calm",false],
   ["openai-bridge",T.obPBridge,T.obPBridgeSub,OB.bridgeConnected?"127.0.0.1 ✓":T.obPBridgeTag,OB.bridgeConnected?"ok":"proc",false],
   ["openai-custom",T.obPCustom,T.obPCustomSub,T.obPCustomTag,"calm",false],
@@ -2898,41 +2808,9 @@ function paintOnboard(){
  </button>`).join("");
  $$("#ob-cards .ob-card").forEach(b=>b.onclick=()=>selectObChoice(b.dataset.choice,true));
 
- const preset=ch==="openai-custom"?freePreset(OB.preset):null;
- const presetBridge=!!(preset&&!preset.browser);
  const bBox=$("#ob-bridge-box"),sBox=$("#ob-siwc-box"),fBox=$("#ob-fields");
- const pBox=$("#ob-presets");
- if(pBox){
-  pBox.style.display=ch==="openai-custom"?"":"none";
-  if(ch==="openai-custom"){
-   $("#ob-preset-label").textContent=T.obPresetLabel;
-   $("#ob-preset-row").innerHTML=FREE_PRESETS.map(p=>`<button type="button" class="ob-preset${OB.preset===p.id?" on":""}" data-preset="${p.id}" role="listitem" aria-pressed="${OB.preset===p.id}">
-    <span class="ob-ct"><b>${esc(p.name)}</b><small>${esc(LANG==="zh"&&p.subZh?p.subZh:p.sub)}</small></span>
-    <span class="ob-badge ok">${esc(T.obFreeBadge)}</span>
-   </button>`).join("");
-   $$("#ob-preset-row .ob-preset").forEach(b=>b.onclick=()=>selectFreePreset(b.dataset.preset));
-   const meta=$("#ob-preset-meta");
-   meta.style.display=preset?"":"none";
-   if(preset){
-    $("#ob-free-badge").textContent=T.obFreeBadge;
-    $("#ob-limits").textContent=T[preset.lim]||"";
-    const link=$("#ob-keylink");
-    link.href=preset.key;link.textContent=T.obGetKey;
-    const route=$("#ob-route");
-    route.style.display=preset.browser?"none":"";
-    route.textContent=preset.browser?"":T.obRoute;
-   }
-   const aRow=$("#ob-account-row");
-   aRow.style.display=preset&&preset.account?"":"none";
-   if(preset&&preset.account){
-    $("#ob-l-account").textContent=T.obAccountLabel;
-    const aIn=$("#ob-account");
-    if(document.activeElement!==aIn)aIn.value=PROV.openai.accountId||"";
-   }
-  }
- }
- bBox.style.display=(ch==="openai-bridge"||presetBridge)?"":"none";
- if(ch==="openai-bridge"||presetBridge){
+ bBox.style.display=ch==="openai-bridge"?"":"none";
+ if(ch==="openai-bridge"){
   $("#ob-l-cmd").textContent=T.obCmdLabel;
   $("#ob-copy").textContent=OB.copied?T.obCopied:T.obCopy;
   const bst=$("#ob-bridge-st");
@@ -2960,7 +2838,7 @@ function paintOnboard(){
   kIn.placeholder=hasK?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):(ch==="anthropic"?"sk-ant-…":"sk-…");
   const ks=$("#ob-key-saved");if(ks)ks.textContent=hasK?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):"";
  }
- $("#ob-priv").textContent=ch==="anthropic"?T.obPrivAnth:ch==="openai-bridge"?T.obPrivBridge:presetBridge?T.obPrivPresetBridge:ch==="openai-custom"?T.obPrivCustom:ch==="chatgpt"?(siwcOn?T.siwcNote:T.obPrivSiwcSoon):T.obPrivDemo;
+ $("#ob-priv").textContent=ch==="ledring"?T.obPrivFree+" "+T.obLimFree:ch==="anthropic"?T.obPrivAnth:ch==="openai-bridge"?T.obPrivBridge:ch==="openai-custom"?T.obPrivCustom:ch==="chatgpt"?(siwcOn?T.siwcNote:T.obPrivSiwcSoon):T.obPrivDemo;
  $("#ob-test").textContent=OB.testing?T.obTesting:T.obTestBtn;
  $("#ob-test").disabled=OB.testing||(ch==="chatgpt"&&!siwcOn);
  const ts=$("#ob-test-status");
@@ -2989,16 +2867,11 @@ function finishOnboard(skipped){
  markOnboarded();
  startInsp();
 }
-["#ob-base","#ob-model","#ob-key","#ob-account"].forEach(s=>{
+["#ob-base","#ob-model","#ob-key"].forEach(s=>{
  const el=$(s);if(!el)return;
  el.addEventListener("change",()=>{syncObToProv();paintOnboard();});
  el.addEventListener("input",()=>{
-  if(s==="#ob-account"){
-   const built=cfBase(el.value);
-   const bIn=$("#ob-base");
-   if(bIn&&document.activeElement!==bIn)bIn.value=built||(freePreset("cloudflare")||{}).base||"";
-  }
-  if((s==="#ob-key"&&el.value.trim().length>=8)||(s==="#ob-account"&&cfBase(el.value))){syncObToProv();paintOnboard();}
+  if(s==="#ob-key"&&el.value.trim().length>=8){syncObToProv();paintOnboard();}
  });
 });
 if($("#ob-copy"))$("#ob-copy").onclick=copyObCmd;
@@ -3008,7 +2881,7 @@ if($("#ob-skip"))$("#ob-skip").onclick=()=>finishOnboard(true);
 if($("#ob-continue"))$("#ob-continue").onclick=()=>finishOnboard(false);
 if($("#d-onboard"))$("#d-onboard").onclick=()=>openOnboard(true,false);
 
-function canLive(){const m=PROV.mode;if(m==="demo"||!PROV[m])return false;if(m==="chatgpt")return SIWC.connected&&SIWC.ready;return m==="ollama"||!!PROV[m].key||!!PROV[m].bridgeConfigured;}
+function canLive(){const m=PROV.mode;if(m==="demo"||!PROV[m])return false;if(m==="ledring")return true;if(m==="chatgpt")return SIWC.connected&&SIWC.ready;return m==="ollama"||!!PROV[m].key||!!PROV[m].bridgeConfigured;}
 function startPreset(k){readFields();
  if(usesRecorded()){if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}return playRun(PRESETS[k][LANG],k);}
  $("#idea-in").value=PRESETS[k][LANG];startIdea();}
@@ -3071,7 +2944,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,selectFreePreset,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
