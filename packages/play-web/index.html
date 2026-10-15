@@ -1205,7 +1205,7 @@ function redWall(finds,where){return new Promise(resolve=>{
  const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");layer.classList.add("wall");
  const sec=FAST?3:4.5, what=finds.map(f=>T.risk[f.cat]).join(" + ");
  box.innerHTML=`<div class="qq" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${fill(where==="plan"?T.wallsPlan:T.walls,{what})}</div>
-  <div class="wallfind" title="${esc(finds[0].line)}">› ${esc(finds[0].line)}</div>
+  <div class="wallfind">${finds.map(f=>`› ${esc(f.line)}`).join("<br>")}</div>
   <button class="btn catchbtn" id="wb">⛔ ${T.wallBlock}</button>
   <div class="qtimer"><i style="--qd:${sec}s"></i></div><div class="qmeta"><span>red-wall ${finds.map(f=>f.cat).join("+")}</span><span id="qcount"></span></div>`;
  Motion.hitstop(90).then(()=>{shake();Motion.shake($("#stage"),10);});
@@ -1749,20 +1749,16 @@ async function bang(){const a=$("#bang");a.textContent="!";a.classList.add("on")
  const r=$(".agentcard").getBoundingClientRect(),h=$("#stage").getBoundingClientRect();a.style.left=(r.left-h.left+22)+"px";a.style.top=(r.top-h.top-60)+"px";
  await (Motion.run(a,[{opacity:0,transform:"translate3d(0,20px,0) scale(.3)"},{opacity:1,transform:"translate3d(0,-14px,0) scale(1.25)",offset:.35},{opacity:1,transform:"scale(1)",offset:.6},{opacity:0,transform:"translate3d(0,-6px,0) scale(1)"}],{duration:FAST?60:900,easing:EASE.out})||{finished:Promise.resolve()}).finished.catch(()=>{});a.classList.remove("on");}
 async function scanPulse(finds,where){const tab=where==="plan"?"plan":"html";setTab(tab);await sleep(60);
- const pre=$("#code");if(innerWidth<900){pre.scrollIntoView({block:"center"});await sleep(120);}const txt=CODE[tab]||"",lines=txt.split("\n"),f=finds[0];let idx=Math.max(0,lines.findIndex(l=>l.trim().slice(0,140)===f.line));
+ const pre=$("#code");
+ if(innerWidth>600&&innerWidth<900){pre.scrollIntoView({block:"center"});await sleep(120);}
+ const txt=CODE[tab]||"",lines=txt.split("\n"),lh=parseFloat(getComputedStyle(pre).lineHeight)||18.6;
  const host=pre.parentElement;let ov=$("#odradek");if(!ov){ov=document.createElement("div");ov.id="odradek";host.appendChild(ov);}
- // locate the risky line in the rendered DOM (handles wrapping + highlighting)
- let rect=null;try{const want=f.line.slice(0,40),full=pre.textContent,at=full.indexOf(want);if(at>=0){const w=document.createTreeWalker(pre,NodeFilter.SHOW_TEXT);let pos=0,nd;
-  while((nd=w.nextNode())){const L=nd.nodeValue.length;if(pos+L>at){const rg=document.createRange();rg.setStart(nd,at-pos);rg.setEnd(nd,Math.min(L,at-pos+1));
-   const r0=rg.getBoundingClientRect();pre.scrollTop+=r0.top-pre.getBoundingClientRect().top-pre.clientHeight/2;rect=rg.getBoundingClientRect();break;}pos+=L;}}}catch(e){}
- const lh=parseFloat(getComputedStyle(pre).lineHeight)||18.6;let top;
- if(rect){top=rect.top-host.getBoundingClientRect().top;}else{const y=14+idx*lh;pre.scrollTop=Math.max(0,y-pre.clientHeight/2);top=y-pre.scrollTop+pre.offsetTop;}
- ov.style.left=pre.offsetLeft+"px";ov.style.width=pre.offsetWidth+"px";
- ov.innerHTML=`<div class="sweep"></div><div class="pin" style="top:${top}px"><span>${T.scanTag} · ${esc(T.risk[f.cat])} · L${idx+1}</span></div><div class="pr" style="top:${top+lh/2}px"></div><div class="pr d2" style="top:${top+lh/2}px"></div>`;
- ov.classList.add("on");SFX.play("scan");
+ const pins=finds.map(f=>{const idx=Math.max(0,lines.findIndex(l=>l.trim().slice(0,140)===f.line));return {f,idx,top:Math.max(0,14+idx*lh-pre.scrollTop)};});
+ ov.style.left=pre.offsetLeft+"px";ov.style.top=pre.offsetTop+"px";ov.style.width=pre.offsetWidth+"px";ov.style.height=pre.offsetHeight+"px";ov.style.bottom="auto";ov.style.right="auto";
+ ov.innerHTML=`<div class="sweep" data-sweep="code"></div>`+pins.map(p=>`<div class="pin" data-line="${p.idx+1}" style="top:${p.top}px"><span>${T.scanTag} · ${esc(T.risk[p.f.cat]||p.f.cat)} · L${p.idx+1}</span></div>`).join("");
+ ov.classList.add("on");ov.dataset.pins=String(pins.length);SFX.play("scan");
  if(!RM&&!FAST){await Motion.run(ov.querySelector(".sweep"),[{transform:"translate3d(0,-40px,0)",opacity:0},{transform:"translate3d(0,0,0)",opacity:1,offset:.1},{transform:`translate3d(0,${pre.clientHeight}px,0)`,opacity:0}],{duration:700,easing:"linear"}).finished.catch(()=>{});}
- SFX.play("ping");const pin=ov.querySelector(".pin");Motion.run(pin,[{opacity:0,transform:"scaleX(.1)"},{opacity:1,transform:"none"}],{duration:280,easing:EASE.snap});
- ov.querySelectorAll(".pr").forEach((p,i)=>Motion.run(p,[{opacity:.9,transform:"translate(-50%,-50%) scale(.2)"},{opacity:0,transform:"translate(-50%,-50%) scale(3)"}],{duration:900,delay:i*220,easing:EASE.out}));
+ SFX.play("ping");ov.querySelectorAll(".pin").forEach(pin=>Motion.run(pin,[{opacity:0,transform:"scaleX(.1)"},{opacity:1,transform:"none"}],{duration:280,easing:EASE.snap}));
  await sleep(FAST?30:700);}
 function clearScan(){const ov=$("#odradek");if(ov){ov.classList.remove("on");ov.innerHTML="";}}
 
@@ -1887,7 +1883,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,setCode(html){CODE.html=html;renderCode();}};
 /* boot */
 paintStatic();paintMenu();paintHints();ringSVG($("#runring"),"calm");
 if(P.get("idea")){const k=P.get("idea");if(PRESETS[k]&&usesRecorded())playRun(PRESETS[k][LANG],k);else{paintIdea();$("#idea-in").value=PRESETS[k]?PRESETS[k][LANG]:k;startIdea();}}
