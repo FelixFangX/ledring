@@ -69,6 +69,8 @@ importers:
         specifier: workspace:*
         version: link:../trace
 
+  packages/play-core: {}
+
   packages/redwall:
     dependencies:
       '@ledring/trace':
