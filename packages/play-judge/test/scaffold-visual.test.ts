@@ -404,4 +404,114 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 30_000);
+
+  it("supports QTE keyboard 1-5/I, interrogate answer streaming, timer-pause mode, Red Wall ruleId + Space/Enter/B, ARIA live region, reduced-motion static wall, and 390x844 bottom sheet (>=44px targets)", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Timer-pause mode (?hold), interrogate (I), keyboard choice (2), and Red Wall (B) + ruleId + ARIA live region
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const page = await ctx.newPage();
+      await page.goto(`${site.url}?hold&fast`, { waitUntil: "domcontentloaded" });
+      await page.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            show: (id: string) => void;
+            qte: (v: number) => Promise<{ id: string; by: string; asked: boolean }>;
+          };
+          __qteOut?: { id: string; by: string; asked: boolean };
+        };
+        w.__ledring.show("run");
+        void w.__ledring.qte(2).then((res) => {
+          w.__qteOut = res;
+        });
+      });
+      await page.locator("#choicelayer.on").waitFor({ state: "visible" });
+      expect(await page.locator("#qcount").textContent()).toBe("PAUSED");
+      expect(await page.locator("#a11y-live").textContent()).toContain("Next step v2");
+
+      // Press 'I' to interrogate -> Ask why button disappears, .answer appears
+      await page.keyboard.press("i");
+      await page.locator("#qbox .answer").waitFor({ state: "visible" });
+      await page.waitForFunction(() => {
+        const ans = document.querySelector("#qbox .answer")?.textContent ?? "";
+        return ans.length > 5 && !document.querySelector('#qbox .qopt[data-id="ask"]');
+      });
+
+      // Press '2' to pick Demand tests
+      await page.keyboard.press("2");
+      await page.waitForFunction(() => Boolean((window as unknown as { __qteOut?: unknown }).__qteOut));
+      const qteRes = await page.evaluate(() => (window as unknown as { __qteOut: { id: string; by: string; asked: boolean } }).__qteOut);
+      expect(qteRes).toMatchObject({ id: "tests", by: "human", asked: true });
+
+      // Open Red Wall on 390x844 and check ruleId, bottom-sheet tap target >= 44px, and Space/B block
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            redWall: (
+              finds: Array<{ cat: string; ruleId: string; line: string }>,
+              where: string,
+            ) => Promise<{ v: string; by: string }>;
+          };
+          __wallOut?: { v: string; by: string };
+        };
+        void w.__ledring
+          .redWall([{ cat: "network", ruleId: "risk.network.fetch", line: "fetch('https://evil.test')" }], "code")
+          .then((res) => {
+            w.__wallOut = res;
+          });
+      });
+      await page.locator("#choicelayer.on.wall").waitFor({ state: "visible" });
+      expect(await page.locator(".wallfind").textContent()).toContain("[risk.network.fetch]");
+      expect(await page.locator("#a11y-live").textContent()).toContain("risk.network.fetch");
+      const wbBox = await page.locator("#wb").boundingBox();
+      expect(wbBox).toBeTruthy();
+      expect(wbBox!.height).toBeGreaterThanOrEqual(44);
+      const qboxOverflow = await page.locator("#qbox").evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(qboxOverflow).toBe(false);
+
+      await page.keyboard.press("b");
+      await page.waitForFunction(() => Boolean((window as unknown as { __wallOut?: unknown }).__wallOut));
+      const wallRes = await page.evaluate(() => (window as unknown as { __wallOut: { v: string; by: string } }).__wallOut);
+      expect(wallRes).toEqual({ v: "block", by: "human" });
+      await ctx.close();
+
+      // 2. Reduced motion: hazard bands are hidden and static red border is used
+      const ctxRm = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+      const pageRm = await ctxRm.newPage();
+      await pageRm.goto(`${site.url}?rm&hold&fast`, { waitUntil: "domcontentloaded" });
+      await pageRm.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            show: (id: string) => void;
+            redWall: (
+              finds: Array<{ cat: string; ruleId: string; line: string }>,
+              where: string,
+            ) => Promise<{ v: string; by: string }>;
+          };
+        };
+        w.__ledring.show("run");
+        void w.__ledring.redWall([{ cat: "eval", ruleId: "risk.eval.1", line: "eval(x)" }], "code");
+      });
+      await pageRm.locator("#choicelayer.on.wall").waitFor({ state: "visible" });
+      const rmWallStyle = await pageRm.evaluate(() => {
+        const hz = document.querySelector("#choicelayer .hz") as HTMLElement;
+        const qb = document.querySelector("#qbox") as HTMLElement;
+        return {
+          hzDisplay: getComputedStyle(hz).display,
+          borderColor: getComputedStyle(qb).borderColor,
+        };
+      });
+      expect(rmWallStyle.hzDisplay).toBe("none");
+      expect(rmWallStyle.borderColor).toBe("rgb(224, 30, 43)");
+      await ctxRm.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
 });
