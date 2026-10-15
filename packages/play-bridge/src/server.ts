@@ -1,7 +1,9 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
+import { existsSync, readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { extname, join, normalize, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   anthropicProvider,
   createSiwc,
@@ -97,6 +99,16 @@ export interface StartBridgeOptions {
   /** Session JSONL is stored at `<home>/sessions`. Omit for an in-memory bridge. */
   home?: string;
 }
+
+const playWebDir = fileURLToPath(new URL("../../../docs/play", import.meta.url));
+const STATIC_MIMES: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".woff2": "font/woff2",
+};
 
 const PAGE = `<!doctype html>
 <html lang="en">
@@ -366,6 +378,40 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
       return;
     }
 
+    if (method === "GET" && (pathname === "/" || pathname === "/index.html" || pathname === "/play" || pathname === "/play/")) {
+      let html = PAGE;
+      try {
+        const built = readFileSync(join(playWebDir, "index.html"), "utf8");
+        html = built.replace("</head>", "<script>window.__LEDRING_BRIDGE={active:true};</script></head>");
+      } catch {
+        // fall back to PAGE if docs/play is not built
+      }
+      res.writeHead(200, {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+        "content-security-policy":
+          "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https: http://127.0.0.1:* http://localhost:*; frame-src 'self' blob: data:",
+        "set-cookie": `ledring_token=${token}; HttpOnly; SameSite=Strict; Path=/`,
+      });
+      res.end(html);
+      finishLog(200);
+      return;
+    }
+
+    if (method === "GET" && (pathname.startsWith("/assets/") || pathname.startsWith("/play/assets/"))) {
+      const rel = pathname.replace(/^\/play\/assets\//, "assets/").replace(/^\/+/, "");
+      const assetFile = normalize(join(playWebDir, rel));
+      if (assetFile.startsWith(playWebDir + sep) && existsSync(assetFile)) {
+        res.writeHead(200, {
+          "content-type": STATIC_MIMES[extname(assetFile)] ?? "application/octet-stream",
+          "cache-control": "no-store",
+        });
+        res.end(readFileSync(assetFile));
+        finishLog(200);
+        return;
+      }
+    }
+
     const presented = req.headers["x-ledring-token"];
     const headerToken = Array.isArray(presented) ? presented[0] : presented;
     const authed = tokenMatches(headerToken, token) || tokenMatches(cookie(req.headers.cookie, "ledring_token"), token);
@@ -376,18 +422,6 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
     }
 
     try {
-      if (method === "GET" && pathname === "/") {
-        res.writeHead(200, {
-          "content-type": "text/html; charset=utf-8",
-          "cache-control": "no-store",
-          "content-security-policy": "default-src 'none'; style-src 'unsafe-inline'",
-          "set-cookie": `ledring_token=${token}; HttpOnly; SameSite=Strict; Path=/`,
-        });
-        res.end(PAGE);
-        finishLog(200);
-        return;
-      }
-
       if (method === "POST" && pathname === "/api/providers/chatgpt-plan/begin") {
         try {
           const started = await siwc.begin();

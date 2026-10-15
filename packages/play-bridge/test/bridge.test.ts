@@ -38,6 +38,13 @@ describe("bridge security", () => {
       expect(await status.json()).toEqual({ ok: true, service: "ledring-play" });
       expect(JSON.stringify(await (await fetch(new URL("/api/status", bridge.url))).json())).not.toContain(TOKEN);
 
+      const rootHtml = await fetch(bridge.url);
+      expect(rootHtml.status).toBe(200);
+      expect(rootHtml.headers.get("set-cookie")).toContain(`ledring_token=${TOKEN}`);
+      const rootBody = await rootHtml.text();
+      expect(rootBody).toContain("__LEDRING_BRIDGE={active:true}");
+      expect(rootBody).not.toContain(TOKEN);
+
       const badHost = await raw(bridge.port, { host: "evil.example" });
       expect(badHost.status).toBe(421);
 

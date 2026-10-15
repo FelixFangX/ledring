@@ -194,17 +194,17 @@ pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .mcard .tag.live{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 40%,transparent)}
 .errline{color:var(--crit);font:600 12px var(--mono);margin-top:12px;min-height:16px}
 /* drawer */
-#drawer{position:absolute;top:0;right:0;bottom:0;width:340px;z-index:80;background:#fff;border-left:1.5px solid var(--ink);padding:20px 20px;transform:translateX(105%);transition:transform .35s var(--t);overflow:auto;box-shadow:-24px 0 60px -30px rgba(14,17,20,.45)}
-#drawer.on{transform:none}
+#drawer{position:absolute;top:0;right:0;bottom:0;width:340px;z-index:80;background:#fff;border-left:1.5px solid var(--ink);padding:20px 20px;transform:translateX(105%);visibility:hidden;transition:transform .35s var(--t),visibility .35s;overflow:auto;box-shadow:-24px 0 60px -30px rgba(14,17,20,.45)}
+#drawer.on{transform:none;visibility:visible}
 #drawerbg{position:absolute;inset:0;z-index:79;background:rgba(230,234,237,.5);display:none}
 #drawerbg.on{display:block}
 .dhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.dhead b{font:800 18px var(--sans)}.dx{cursor:pointer;color:var(--ink2);font-size:16px}
+.dhead b{font:800 18px var(--sans)}.dx{background:none;border:0;padding:4px 8px;cursor:pointer;color:var(--ink2);font-size:16px;border-radius:4px}
 .modes{display:flex;flex-direction:column;gap:6px}
 .mode{display:flex;justify-content:space-between;align-items:center;font:600 13px var(--sans);border:1.5px solid var(--line2);border-radius:5px;padding:9px 11px;cursor:pointer;background:#fff;transition:transform .1s var(--t),border-color .12s}
 .mode:hover{transform:translateX(3px);border-color:var(--ink)}
 .mode.on{border-color:var(--ink);background:var(--bg)}
-.mode .st{font:600 10px var(--mono);color:var(--ink3)}.mode .st.ok{color:var(--ok)}
+.mode .st{font:600 10px var(--mono);color:var(--ink2)}.mode .st.ok{color:#116B36}
 #drawer label{display:block;font:600 10px var(--mono);color:var(--ink2);margin:12px 0 4px;text-transform:uppercase;letter-spacing:.08em}
 #drawer input{width:100%;font:500 12px var(--mono);padding:8px 9px;border:1.5px solid var(--line2);border-radius:4px;background:#fff;color:var(--ink)}
 #drawer input:focus{outline:0;border-color:var(--ink)}
@@ -290,14 +290,16 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 .siwc{border:1.5px solid var(--ink);border-radius:10px;padding:12px;margin:-2px 0 8px;background:var(--bg)}
 .siwcbtn{width:100%;justify-content:center;display:flex;align-items:center;gap:8px}
 .gptmark{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--ink);font-size:13px}
-.mockflag{font:600 10px var(--mono);color:var(--proc);margin-top:8px;letter-spacing:.04em}
+.mockflag{font:600 10px var(--mono);color:#7A5000;margin-top:8px;letter-spacing:.04em}
 .siwc .acct{display:flex;align-items:center;gap:10px}
 .siwc .av{width:32px;height:32px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font:800 14px var(--sans)}
-.siwc .conn{margin-left:auto;font:600 10px var(--mono);color:var(--ok)}
+.siwc .conn{margin-left:auto;font:600 10px var(--mono);color:#116B36;display:inline-block}
 .usingplan{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:10px 0 6px;flex-wrap:wrap}
 .pill{font:700 11px var(--sans);border:1.5px solid var(--line2);border-radius:20px;padding:4px 10px;color:var(--ink2)}
-.pill.ok{border-color:var(--ok);color:var(--ok);background:#fff}
-.manage{font:600 12px var(--sans);color:var(--calm);text-decoration:none;border-bottom:1px solid currentColor}
+.pill.ok{border-color:#116B36;color:#116B36;background:#fff}
+.manage{font:600 12px var(--sans);color:#154EC2;text-decoration:none;border-bottom:1px solid currentColor}
+.siwc-err{font:600 11.5px var(--sans);color:#B8141E;margin-top:6px}
+.key-saved{font:600 10px var(--mono);color:#116B36;margin-left:6px}
 .consent{background:#fff;border:1px solid var(--line2);border-radius:8px;padding:12px;margin-top:10px;font-size:13px}
 .consent .ct{font:600 10px var(--mono);color:var(--ink3);margin-bottom:6px}
 .consent label{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:12.5px}
@@ -515,10 +517,10 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
   <div class="ins-top"><div class="eye" id="in-eye"></div><span class="modetag" id="in-modetag"></span><div class="pips" id="in-pips"></div></div>
   <div class="interro"><svg class="ring" id="inring" viewBox="0 0 62 62"></svg><div><div class="cap">CX-417</div><div class="iq" id="in-q" aria-live="polite"></div></div></div>
   <div class="imode ask" id="in-mode"><div id="in-opts" class="qopts"></div></div>
-  <div class="ifree" id="in-freerow"><input id="in-free" maxlength="80" autocomplete="off"><button class="btn sm" id="in-say"></button></div>
+  <div class="ifree" id="in-freerow"><input id="in-free" maxlength="80" autocomplete="off" aria-label="Your answer"><button class="btn sm" id="in-say"></button></div>
   <div class="inudge small" id="in-nudge"><button class="linkbtn" id="in-stuck"></button><span id="in-sample"></span><span id="in-samples"></span><button class="linkbtn" id="in-have"></button></div>
   <div class="briefbar" id="in-brief-wrap" style="display:none"><div class="cap"><span id="in-briefcap"></span> <span id="in-edited" class="ed"></span></div>
-   <div class="brow"><textarea id="in-brief" rows="2" maxlength="300"></textarea><button class="btn solid" id="in-build" disabled></button></div></div>
+   <div class="brow"><textarea id="in-brief" rows="2" maxlength="300" aria-label="Brief"></textarea><button class="btn solid" id="in-build" disabled></button></div></div>
   <button class="btn ghost sm" id="in-back" style="margin-top:8px;align-self:flex-start">←</button>
  </div>
  <div class="ins-board" id="in-board"><div class="cap" id="in-board-cap"></div><div id="in-feed"></div><div class="frags" id="in-frags"></div></div>
@@ -602,7 +604,7 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
    <div class="artbox">
     <div class="ah"><span id="art-name">artifact.html</span><span id="art-badge" class="mono"></span></div>
     <iframe id="artframe" sandbox="allow-scripts" title="built artifact"></iframe>
-    <div class="replaybar"><button class="rp" id="e-play">▶</button><input type="range" id="scrubrange" min="0" max="0" value="0"><span class="mono" id="scrubout"></span></div>
+    <div class="replaybar"><button class="rp" id="e-play" aria-label="Play replay">▶</button><input type="range" id="scrubrange" min="0" max="0" value="0" aria-label="Replay timeline"><span class="mono" id="scrubout"></span></div>
    </div>
    <div class="endacts">
     <button class="btn solid" id="e-dl"></button>
@@ -629,12 +631,12 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
 </div></section>
 
 <!-- MODEL DRAWER -->
-<div id="drawer"><div class="dhead"><b id="d-title"></b><span class="dx" id="d-close">✕</span></div>
+<div id="drawer" role="dialog" aria-modal="true" aria-labelledby="d-title"><div class="dhead"><b id="d-title"></b><button type="button" class="dx" id="d-close" aria-label="Close">✕</button></div>
  <div class="modes" id="modes"></div>
  <div id="p-fields">
-  <label id="l-base">Base URL</label><input id="p-base" spellcheck="false" autocomplete="off">
-  <label id="l-model">Model</label><input id="p-model" spellcheck="false" autocomplete="off">
-  <div id="keyrow"><label id="l-key">API key</label><input id="p-key" type="password" spellcheck="false" autocomplete="off"></div>
+  <label id="l-base" for="p-base">Base URL</label><input id="p-base" spellcheck="false" autocomplete="off">
+  <label id="l-model" for="p-model">Model</label><input id="p-model" spellcheck="false" autocomplete="off">
+  <div id="keyrow"><label id="l-key" for="p-key">API key <span id="p-key-saved" class="key-saved"></span></label><input id="p-key" type="password" spellcheck="false" autocomplete="off"></div>
  </div>
  <div class="keynote" id="p-note"></div>
  <div style="display:flex;gap:8px;margin-top:12px" id="p-acts"><button class="btn ghost sm" id="p-test"></button><button class="btn ghost sm" id="p-forget"></button></div>
@@ -843,11 +845,15 @@ const DICT={en:{
  siwcStep1:"Opening chatgpt.com in your browser…",siwcConsentT:"LEDRING Play wants to:",siwcPerm1:"Know who you are (name, email)",siwcPerm2:"Use your ChatGPT plan for AI requests",siwcApprove:"Allow",siwcCancel:"Cancel",
  siwcNote:"Official Sign in with ChatGPT. It runs in the local bridge, so tokens never reach this page. Usage counts toward your ChatGPT plan; set a per-app limit in ChatGPT Settings → Usage.",
  siwcMockRun:"This page cannot sign in. It will not show Connected.",siwcConnected:"Connected",siwcOffPlan:"Plan usage is off. Turn it on to build.",
+ siwcDeclined:"Sign-in cancelled. Retry or pick another provider.",siwcUsageLimit:"ChatGPT plan usage limit reached for this app.",siwcExpired:"Session expired. Reconnect to continue.",
+ siwcRetry:"Retry sign-in",siwcReconnect:"Reconnect with ChatGPT",keySaved:"•••• saved",keySavedBridge:"•••• saved on bridge",
  motionOff:"motion: reduced",motionOn:"motion: full",
-},zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐",siwcManage:"管理用量",siwcOut:"断开",
+},zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐 · Using ChatGPT plan",siwcManage:"管理用量 · Manage usage",siwcOut:"断开",
  siwcStep1:"正在浏览器中打开 chatgpt.com……",siwcConsentT:"LEDRING Play 请求：",siwcPerm1:"知道你是谁（姓名、邮箱）",siwcPerm2:"用你的 ChatGPT 套餐发起 AI 请求",siwcApprove:"允许",siwcCancel:"取消",
  siwcNote:"官方「使用 ChatGPT 登录」。在本地桥接中运行，令牌不会进入本页面。用量计入你的 ChatGPT 套餐；可在 ChatGPT 设置 → 用量 中为每个应用设上限。",
  siwcMockRun:"此页面不能登录，也不会显示已连接。",siwcConnected:"已连接",siwcOffPlan:"套餐用量未开启。开启后才能构建。",
+ siwcDeclined:"已取消登录。可重试或换用其他模型。",siwcUsageLimit:"此应用的 ChatGPT 套餐用量已达上限。",siwcExpired:"登录已过期。请重新连接后继续。",
+ siwcRetry:"重新登录",siwcReconnect:"重新连接 ChatGPT",keySaved:"•••• 已保存",keySavedBridge:"•••• 已保存在桥接",
  motionOff:"动效：已减弱",motionOn:"动效：完整",
 
  msEye:"选择构建",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 模型",
@@ -1063,8 +1069,24 @@ const PROV_DEFAULT={mode:"demo",
    `ledring play`), never in the page. When served by that bridge it injects a session token and status;
    model calls go to same-origin /v1 and the bridge attaches the SIWC token. Without a bridge this
    prototype uses a clearly labelled MOCK sign-in and plays the pre-recorded demo generations. */
-const BRIDGE=window.__LEDRING_BRIDGE||null;
-const SIWC={connected:false,sharing:false,name:"",email:""};
+let BRIDGE=window.__LEDRING_BRIDGE||null;
+const SIWC={state:"unavailable",connected:false,ready:false,sharing:false,name:"",email:"",message:""};
+function applySiwcState(st,opts){
+ opts=opts||{};const prev=SIWC.state;
+ const s=st||(BRIDGE?"signed_out":"unavailable");
+ SIWC.state=s;SIWC.message=opts.message||"";
+ if(s==="connected"){SIWC.connected=true;SIWC.ready=true;SIWC.sharing=true;SIWC.name=opts.name||SIWC.name||"ChatGPT User";SIWC.email=opts.email||SIWC.email||"user@example.com";}
+ else if(s==="plan_off"){SIWC.connected=true;SIWC.ready=false;SIWC.sharing=false;SIWC.name=opts.name||SIWC.name||"ChatGPT User";SIWC.email=opts.email||SIWC.email||"user@example.com";}
+ else if(s==="usage_limit"){SIWC.connected=true;SIWC.ready=false;SIWC.sharing=false;SIWC.name=opts.name||SIWC.name||"ChatGPT User";SIWC.email=opts.email||SIWC.email||"user@example.com";}
+ else{SIWC.connected=false;SIWC.ready=false;SIWC.sharing=false;}
+ if(typeof paintDrawer==="function"&&$("#drawer")&&$("#drawer").classList.contains("on")){
+  paintDrawer();
+  if(s==="connected"&&prev!=="connected"&&$("#siwc-conn"))Motion.stamp($("#siwc-conn"));
+ }
+ if(typeof paintHints==="function")paintHints();
+}
+if(P.get("siwcState"))applySiwcState(P.get("siwcState"));
+else if(BRIDGE)applySiwcState("signed_out");
 function saveSiwc(){}
 function usesRecorded(){return PROV.mode==="demo";}
 const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provider")||"{}")}catch(e){}
@@ -1072,7 +1094,7 @@ const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provide
  if(P.get("mode"))o.mode=P.get("mode"); if(P.get("base"))o[o.mode].base=P.get("base"); if(P.get("model"))o[o.mode].model=P.get("model");
  return o;})();
 function saveProv(){try{localStorage.setItem("ledring-provider",JSON.stringify(PROV))}catch(e){}}
-function provLabel(){return PROV.mode==="demo"?"demo":PROV.mode==="chatgpt"?(BRIDGE?"ChatGPT plan":"ChatGPT plan (unavailable)"):PROV[PROV.mode].model}
+function provLabel(){return PROV.mode==="demo"?"demo":PROV.mode==="chatgpt"?(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)"):PROV[PROV.mode].model}
 
 function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ollama"]){const key=PROV[k]&&PROV[k].key;if(key&&key.length>=6)out=out.split(key).join("[redacted]");}
  return out.replace(/bearer\s+\S+/gi,"bearer [redacted]").replace(/sk-[A-Za-z0-9_-]+/g,"sk-[redacted]").slice(0,180);}
@@ -1082,6 +1104,15 @@ async function streamChat(system,user,onDelta,maxTokens){
  const ctl=new AbortController(); CUR_ABORT=ctl;
  const tmo=setTimeout(()=>ctl.abort(),180000);
  try{
+ if(BRIDGE&&(m==="chatgpt"||(c&&c.bridgeConfigured&&!c.key))){
+  const pid=m==="chatgpt"?"chatgpt-plan":m==="openai"?"openai-compatible":m;
+  const sr=await fetch("/api/sessions",{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},body:JSON.stringify({idea:(RUN&&RUN.idea)||"ping",providerId:pid,lang:LANG})});
+  if(!sr.ok)throw new Error(redactMsg("HTTP "+sr.status+" "+(await sr.text())));
+  const sj=await sr.json();const sid=sj.session&&sj.session.id;
+  const r=await fetch(`/api/sessions/${sid}/steps`,{method:"POST",credentials:"same-origin",signal:ctl.signal,headers:{"content-type":"application/json"},body:JSON.stringify({kind:"plan",prompt:system+"\n\n"+user,maxTokens:maxTokens||8000})});
+  if(!r.ok)throw new Error(redactMsg("HTTP "+r.status+" "+(await r.text())));
+  const rj=await r.json();full=String(rj.step&&rj.step.text||"");onDelta(full);return full;
+ }
  if(m==="anthropic"){
   const r=await fetch(c.base.replace(/\/$/,"")+"/v1/messages",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json","x-api-key":c.key,
     "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
@@ -1090,7 +1121,7 @@ async function streamChat(system,user,onDelta,maxTokens){
   await readSSE(r,j=>{if(j.type==="content_block_delta"&&j.delta&&j.delta.text){full+=j.delta.text;onDelta(full)} if(j.type==="error")throw new Error(j.error&&j.error.message||"stream error")});
  } else {
   const h={"content-type":"application/json"}; let base=c.base;
-  if(m==="chatgpt"){if(!BRIDGE)throw new Error("ChatGPT plan needs the local bridge: npx ledring play");h["x-ledring-token"]=BRIDGE.token;base=location.origin+"/v1";}
+  if(m==="chatgpt"){if(!BRIDGE)throw new Error("ChatGPT plan needs the local bridge: npx ledring play");h["x-ledring-token"]=BRIDGE.token||"";base=location.origin+"/v1";}
   else if(c.key)h.authorization="Bearer "+c.key;
   const r=await fetch(base.replace(/\/$/,"")+"/chat/completions",{method:"POST",signal:ctl.signal,headers:h,
    body:JSON.stringify({model:c.model||undefined,stream:true,max_tokens:maxTokens||8000,temperature:0.6,messages:[{role:"system",content:system},{role:"user",content:user}]})});
@@ -1846,41 +1877,123 @@ function paintIdea(){
  $("#i-err").textContent="";paintHints();
 }
 /* ---- model drawer ---- */
-function openDrawer(){paintDrawer();$("#drawer").classList.add("on");$("#drawerbg").classList.add("on");refreshBridge();}
-function closeDrawer(){readFields();$("#drawer").classList.remove("on");$("#drawerbg").classList.remove("on");if($("#missions").classList.contains("on"))paintIdea();paintHints();}
-async function refreshBridge(){paintDrawer();}
+let drawerPrevFocus=null;
+function openDrawer(){drawerPrevFocus=document.activeElement;paintDrawer();$("#drawer").classList.add("on");$("#drawerbg").classList.add("on");refreshBridge();
+ setTimeout(()=>{const f=$("#drawer .mode.on")||$("#d-close");if(f&&f.focus)f.focus();},20);}
+function closeDrawer(){readFields();$("#drawer").classList.remove("on");$("#drawerbg").classList.remove("on");if($("#missions").classList.contains("on"))paintIdea();paintHints();
+ if(drawerPrevFocus&&drawerPrevFocus.focus){try{drawerPrevFocus.focus();}catch(e){}drawerPrevFocus=null;}}
+async function refreshBridge(){
+ if(P.get("siwcState")){paintDrawer();return;}
+ try{
+  const r=await fetch("/api/providers",{credentials:"same-origin"});
+  if(!r.ok){paintDrawer();return;}
+  const j=await r.json();
+  if(!j||!Array.isArray(j.providers)){paintDrawer();return;}
+  BRIDGE=BRIDGE||{active:true};
+  const cp=j.providers.find(p=>p.id==="chatgpt-plan");
+  if(cp){
+   const st=cp.status==="connected"&&!cp.ready?"plan_off":cp.status||"signed_out";
+   applySiwcState(st,{name:cp.userName,email:cp.userEmail,message:cp.message});
+  }
+  const map={openai:"openai-compatible",anthropic:"anthropic",ollama:"ollama"};
+  for(const [k,id] of Object.entries(map)){
+   const pr=j.providers.find(p=>p.id===id);
+   if(pr&&PROV[k]){PROV[k].bridgeConfigured=pr.status==="ready";if(pr.model&&!PROV[k].model)PROV[k].model=pr.model;}
+  }
+ }catch(e){}
+ paintDrawer();paintHints();
+}
 const MANAGE_URL="https://help.openai.com/en/articles/20001542-using-your-chatgpt-plan-in-other-apps-and-sites";
-function siwcCard(){const mock=!BRIDGE;
- if(!SIWC.connected)return `<div class="siwc"><button class="btn solid siwcbtn" id="siwc-go"><span class="gptmark">◎</span> ${T.siwcCont}</button>
-  ${mock?`<div class="mockflag">${T.siwcMock}</div>`:""}<div class="siwcflow" id="siwc-flow"></div></div>`;
- return `<div class="siwc on"><div class="acct"><span class="av">F</span><div><b>${esc(SIWC.name)}</b><div class="small">${esc(SIWC.email)}</div></div><span class="conn">● ${T.siwcConnected}</span></div>
-  <div class="usingplan">${SIWC.sharing?`<span class="pill ok">✓ ${T.siwcUsing}</span>`:`<span class="pill">${T.siwcOffPlan}</span>`}
-  <a class="manage" href="${MANAGE_URL}" target="_blank" rel="noopener">${T.siwcManage} ↗</a></div>
-  ${mock?`<div class="mockflag">${T.siwcMock} · ${T.siwcMockRun}</div>`:""}
-  <button class="btn ghost sm" id="siwc-out">${T.siwcOut}</button></div>`;}
-async function siwcMockFlow(){const f=$("#siwc-flow");if(!f)return;
- f.textContent=LANG==="zh"?"登录尚未接通。此页面不会显示已连接。请在本机运行 npx ledring play，并设置 LEDRING_SIWC=1，或改用自备密钥。":"Sign-in is not available on this page. It will not show Connected. Run npx ledring play with LEDRING_SIWC=1, or use your own key.";}
+function siwcCard(){
+ const st=SIWC.state||(BRIDGE?"signed_out":"unavailable");
+ const av=esc((SIWC.name||"F")[0].toUpperCase()),nm=esc(SIWC.name||"ChatGPT User"),em=esc(SIWC.email||"");
+ if(st==="unavailable")return `<div class="siwc" data-siwc-state="unavailable"><button class="btn solid siwcbtn" id="siwc-go"><span class="gptmark">◎</span> ${T.siwcCont}</button>
+  <div class="mockflag" id="siwc-unavail">${T.siwcMock}</div><div class="siwcflow" id="siwc-flow"></div></div>`;
+ if(st==="signed_out")return `<div class="siwc" data-siwc-state="signed_out"><button class="btn solid siwcbtn" id="siwc-go"><span class="gptmark">◎</span> ${T.siwcCont}</button>
+  <div class="siwcflow" id="siwc-flow"></div></div>`;
+ if(st==="waiting")return `<div class="siwc" data-siwc-state="waiting"><div class="siwcflow" id="siwc-flow"><div class="spin"></div><div style="margin-top:6px">${T.siwcStep1}</div></div>
+  <button class="btn ghost sm" id="siwc-cancel" style="margin-top:8px">${T.siwcCancel}</button></div>`;
+ if(st==="declined")return `<div class="siwc" data-siwc-state="declined"><div class="siwc-err" id="siwc-err">${T.siwcDeclined}</div>
+  <button class="btn solid siwcbtn" id="siwc-go" style="margin-top:8px"><span class="gptmark">◎</span> ${T.siwcRetry}</button></div>`;
+ if(st==="expired")return `<div class="siwc" data-siwc-state="expired"><div class="siwc-err" id="siwc-err" style="margin-bottom:8px">${T.siwcExpired}</div>
+  <button class="btn solid siwcbtn" id="siwc-go"><span class="gptmark">◎</span> ${T.siwcReconnect}</button></div>`;
+ if(st==="usage_limit")return `<div class="siwc on" data-siwc-state="usage_limit"><div class="acct"><span class="av">${av}</span><div><b>${nm}</b><div class="small">${em}</div></div></div>
+  <div class="siwc-err" id="siwc-err" style="margin:8px 0">${T.siwcUsageLimit}</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+   <a class="btn solid sm" id="siwc-manage-primary" href="${MANAGE_URL}" target="_blank" rel="noopener">${T.siwcManage} ↗</a>
+   <button class="btn ghost sm" id="siwc-out">${T.siwcOut}</button>
+  </div></div>`;
+ if(st==="plan_off"||!SIWC.ready)return `<div class="siwc on" data-siwc-state="plan_off"><div class="acct"><span class="av">${av}</span><div><b>${nm}</b><div class="small">${em}</div></div><span class="conn">● ${T.siwcConnected}</span></div>
+  <div class="usingplan"><span class="pill" id="siwc-off-pill">${T.siwcOffPlan}</span>
+  <a class="manage" id="siwc-manage" href="${MANAGE_URL}" target="_blank" rel="noopener">${T.siwcManage} ↗</a></div>
+  <button class="btn ghost sm" id="siwc-out">${T.siwcOut}</button></div>`;
+ return `<div class="siwc on" data-siwc-state="connected"><div class="acct"><span class="av">${av}</span><div><b>${nm}</b><div class="small">${em}</div></div><span class="conn" id="siwc-conn">● ${T.siwcConnected}</span></div>
+  <div class="usingplan"><span class="pill ok" id="siwc-using-pill">✓ ${T.siwcUsing}</span>
+  <a class="manage" id="siwc-manage" href="${MANAGE_URL}" target="_blank" rel="noopener">${T.siwcManage} ↗</a></div>
+  <button class="btn ghost sm" id="siwc-out">${T.siwcOut}</button></div>`;
+}
+async function siwcBeginFlow(){
+ if(!BRIDGE||SIWC.state==="unavailable"){
+  const f=$("#siwc-flow");if(!f)return;
+  f.textContent=LANG==="zh"?"登录尚未接通。此页面不会显示已连接。请在本机运行 npx ledring play，并设置 LEDRING_SIWC=1，或改用自备密钥。":"Sign-in is not available on this page. It will not show Connected. Run npx ledring play with LEDRING_SIWC=1, or use your own key.";
+  return;
+ }
+ applySiwcState("waiting");
+ try{
+  const r=await fetch("/api/providers/chatgpt-plan/begin",{method:"POST",credentials:"same-origin"});
+  if(!r.ok){applySiwcState("declined");return;}
+  await refreshBridge();
+ }catch(e){applySiwcState("declined");}
+}
+async function siwcSignOut(){
+ if(BRIDGE){try{await fetch("/api/providers/chatgpt-plan/sign-out",{method:"POST",credentials:"same-origin"});}catch(e){}}
+ applySiwcState(BRIDGE?"signed_out":"unavailable");saveSiwc();paintDrawer();paintHints();
+}
 function paintDrawer(){
  $("#d-title").textContent=T.dTitle;$("#p-test").textContent=T.pTest;$("#p-forget").textContent=T.pForget;
- $("#modes").innerHTML=MODES.map(([k,lab])=>{let st="";if(k==="chatgpt")st=SIWC.connected?`<span class="st ok">● ${T.siwcConnected}</span>`:"";
+ $("#modes").innerHTML=MODES.map(([k,lab])=>{let st="";if(k==="chatgpt")st=SIWC.connected&&SIWC.ready?`<span class="st ok">● ${T.siwcConnected}</span>`:"";
   return `<div class="mode${PROV.mode===k?" on":""}" data-mode="${k}" tabindex="0" role="button"><span>${T[lab]}</span>${st}</div>`+(k==="chatgpt"&&PROV.mode==="chatgpt"?siwcCard():"")}).join("");
  $$(".mode").forEach(m=>{m.onclick=()=>{readFields();PROV.mode=m.dataset.mode;saveProv();paintDrawer();paintHints();};m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();m.click();}};});
- const go=$("#siwc-go");if(go)go.onclick=siwcMockFlow;const out=$("#siwc-out");if(out)out.onclick=()=>{SIWC.connected=false;saveSiwc();paintDrawer();paintHints();};
+ const go=$("#siwc-go");if(go)go.onclick=siwcBeginFlow;
+ const cancel=$("#siwc-cancel");if(cancel)cancel.onclick=()=>applySiwcState("declined");
+ const out=$("#siwc-out");if(out)out.onclick=siwcSignOut;
  const m=PROV.mode,live=m!=="demo"&&m!=="chatgpt";
  $("#p-fields").style.display=live?"":"none";$("#keyrow").style.display=live&&m!=="ollama"?"":"none";
  $("#p-acts").style.display=live?"flex":"none";$("#p-forget").style.display=live&&m!=="ollama"?"":"none";
- if(live){const c=PROV[m];$("#p-base").value=c.base;$("#p-model").value=c.model;$("#p-key").value=c.key;$("#p-key").placeholder="sk-…";$("#p-base").disabled=m==="anthropic"&&!P.has("base");}
+ if(live){
+  const c=PROV[m];$("#p-base").value=c.base;$("#p-model").value=c.model;$("#p-key").value="";
+  const hasKey=!!c.key||!!c.bridgeConfigured;
+  $("#p-key").placeholder=hasKey?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):"sk-…";
+  const ks=$("#p-key-saved");if(ks)ks.textContent=hasKey?(c.bridgeConfigured&&!c.key?T.keySavedBridge:T.keySaved):"";
+  $("#p-base").disabled=m==="anthropic"&&!P.has("base");
+ }
  $("#p-note").innerHTML=m==="demo"?T.pNoteDemo:m==="chatgpt"?T.siwcNote:m==="anthropic"?T.pNoteLive+" "+T.pNoteAnth:m==="ollama"?T.pNoteOllama:T.pNoteLive;
 }
-function readFields(){if(PROV.mode==="demo"||PROV.mode==="chatgpt"||!$("#drawer").classList.contains("on"))return;const c=PROV[PROV.mode];c.base=$("#p-base").value.trim();c.key=$("#p-key").value.trim();c.model=$("#p-model").value.trim();saveProv();paintHints();}
+function readFields(){
+ if(PROV.mode==="demo"||PROV.mode==="chatgpt"||!$("#drawer").classList.contains("on"))return;
+ const c=PROV[PROV.mode];c.base=$("#p-base").value.trim();c.model=$("#p-model").value.trim();
+ const kv=$("#p-key").value.trim();
+ if(kv){c.key=kv;$("#p-key").value="";$("#p-key").placeholder=T.keySaved;const ks=$("#p-key-saved");if(ks)ks.textContent=T.keySaved;}
+ saveProv();paintHints();
+}
 ["#p-base","#p-model","#p-key"].forEach(s=>$(s).addEventListener("change",readFields));
 $("#demotag").onclick=openDrawer;$("#ms-model").onclick=openDrawer;$("#d-close").onclick=closeDrawer;$("#drawerbg").onclick=closeDrawer;
-addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#drawer").classList.contains("on"))closeDrawer();});
-$("#p-forget").onclick=()=>{PROV[PROV.mode].key="";saveProv();$("#p-key").value="";$("#p-status").textContent=T.pForgot;};
+addEventListener("keydown",e=>{
+ if(!$("#drawer").classList.contains("on"))return;
+ if(e.key==="Escape"){e.preventDefault();closeDrawer();return;}
+ if(e.key==="Tab"){
+  const els=[...$("#drawer").querySelectorAll('button:not([disabled]),[href],input:not([disabled]),[tabindex="0"]')].filter(el=>el.offsetParent!==null);
+  if(!els.length)return;
+  const first=els[0],last=els[els.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+ }
+});
+$("#p-forget").onclick=()=>{PROV[PROV.mode].key="";PROV[PROV.mode].bridgeConfigured=false;saveProv();$("#p-key").value="";$("#p-key").placeholder="sk-…";const ks=$("#p-key-saved");if(ks)ks.textContent="";$("#p-status").textContent=T.pForgot;paintHints();};
 $("#p-test").onclick=async()=>{readFields();$("#p-status").textContent="…";
- try{const t=await streamChat("Reply with the single word OK.","ping",()=>{},16);$("#p-status").innerHTML=`<span style="color:${COL.ok}">${T.pOk}</span> ${esc(t.slice(0,30))}`}
- catch(e){$("#p-status").innerHTML=`<span style="color:${COL.crit}">${T.pFail}</span>${esc(redactMsg(e.message||e))}`}};
-function canLive(){const m=PROV.mode;if(m==="chatgpt")return SIWC.connected&&SIWC.sharing;return m==="ollama"||!!PROV[m].key;}
+ try{const t=await streamChat("Reply with the single word OK.","ping",()=>{},16);$("#p-status").innerHTML=`<span style="color:#116B36">${T.pOk}</span> ${esc(t.slice(0,30))}`}
+ catch(e){$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(redactMsg(e.message||e))}`}};
+function canLive(){const m=PROV.mode;if(m==="chatgpt")return SIWC.connected&&SIWC.ready;return m==="ollama"||!!PROV[m].key||!!PROV[m].bridgeConfigured;}
 function startPreset(k){readFields();
  if(usesRecorded()){if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}return playRun(PRESETS[k][LANG],k);}
  $("#idea-in").value=PRESETS[k][LANG];startIdea();}
@@ -1940,7 +2053,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,paintMenu,paintIdea,setCode(html){CODE.html=html;renderCode();}};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,paintMenu,paintIdea,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();}};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
