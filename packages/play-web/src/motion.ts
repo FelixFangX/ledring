@@ -243,7 +243,17 @@ export function createMotionEngine(opts?: {
       );
     },
     shake(el, amt = 8) {
-      if (rm.get() || !el) return null;
+      if (!el) return null;
+      const node = el as AnimatableElement;
+      if (node.__anim) {
+        try {
+          node.__anim.cancel();
+        } catch {
+          // ignore
+        }
+        delete node.__anim;
+      }
+      if (rm.get()) return null;
       const frames: Keyframe[] = [0, 1, 2, 3, 4, 5, 6]
         .map((i) => ({
           transform: `translate3d(${i % 2 ? amt : -amt}px,${((i % 3) - 1) * amt * 0.4}px,0)`,
