@@ -11,7 +11,8 @@
     "test": "vitest run --root ../.. packages/play-web/test"
   },
   "dependencies": {
-    "@ledring/play-risk": "workspace:*"
+    "@ledring/play-risk": "workspace:*",
+    "@ledring/play-sandbox": "workspace:*"
   },
   "devDependencies": {
     "vite": "^6.3.5"

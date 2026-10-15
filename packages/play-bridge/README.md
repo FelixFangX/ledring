@@ -12,7 +12,7 @@ The page talks to `/api/*`. Provider API keys stay in this process (`~/.ledring/
 | `POST /api/sessions/:id/steps` | token | SSE deltas (`id`, `event`, `data`). |
 | `GET /api/sessions/:id/stream?from=` | token | Replay and follow from an event id. |
 | `POST /api/sessions/:id/stop` | token | Abort the upstream request. |
-| `POST /api/judge` | token | `501` until the judge package is running. |
+| `POST /api/judge` | token | Headless judge. Body `{ html, wantTests?, wantPolish?, leakedDespiteBlock? }`. `400` when the body is invalid, `503` when Chromium cannot launch. |
 | `GET /api/sessions/:id/trace` | token | `501` until session export lands. |
 
 A bad `Host` is **421**. A foreign `Origin` is **403**. A missing token is **403**. `GET /` sets an HttpOnly `ledring_token` cookie for the local page and does not print the token in the HTML.

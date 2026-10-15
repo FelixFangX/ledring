@@ -24,3 +24,5 @@ Canonical terms. Code, tests, issues and UI use these words.
 | **Ending** | The judged outcome of a Play session: POLISHED, SHIPPED, BUGGY, FAKE, COMPROMISED, BROKEN, or ABANDONED. | score, win |
 | **Provider** | A model backend behind one streaming interface: demo, an OpenAI-compatible endpoint, Anthropic, Ollama, or Sign in with ChatGPT. The page sees status, not credentials. | engine, backend (informal ok) |
 | **Bridge** | The local process that holds provider credentials and serves Play on 127.0.0.1. Static Pages mode has no bridge. | proxy, daemon |
+| **Sandbox** | The offline frame an artifact runs in. The iframe allows scripts only. The headless judge aborts every network request except `about:`, `data:`, and `blob:`. | iframe (informal ok) |
+| **Judge** | The check of a built artifact: static facts plus, on the bridge, a reused headless browser. Static Pages mode uses the in-iframe harness and says so. | score |

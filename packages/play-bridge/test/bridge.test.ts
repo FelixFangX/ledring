@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { formatProviderConfig, readProviderHome, startBridge } from "@ledring/play-bridge";
+import { JudgeRuntime } from "@ledring/play-judge";
 
 const SECRET = "super-secret-key";
 const TOKEN = "launch-token-0123456789abcdef";
@@ -211,11 +212,37 @@ describe("bridge streaming", () => {
       expect(text).toContain("DEMO · synthetic cassette, not a live model recording");
       expect(text).toContain("event: done");
       const judge = await fetch(new URL("/api/judge", bridge.url), { method: "POST", headers: { "x-ledring-token": TOKEN } });
-      expect(judge.status).toBe(501);
+      expect(judge.status).toBe(400);
     } finally {
       await bridge.close();
     }
   });
+
+  it("judges a blank artifact when chromium is installed", async () => {
+    const runtime = new JudgeRuntime();
+    const bridge = await startBridge({ token: TOKEN, judgeRuntime: runtime });
+    try {
+      try {
+        await runtime.browser();
+      } catch (error) {
+        if (process.env.CI) throw error;
+        return;
+      }
+      const response = await fetch(new URL("/api/judge", bridge.url), {
+        method: "POST",
+        headers: { "x-ledring-token": TOKEN, "content-type": "application/json" },
+        body: JSON.stringify({ html: "<!doctype html><html><body></body></html>" }),
+      });
+      expect(response.status).toBe(200);
+      const body = (await response.json()) as { ending: string; blankScreen: boolean; screenshots: { name: string; bytes: number }[] };
+      expect(body.ending).toBe("BROKEN");
+      expect(body.blankScreen).toBe(true);
+      expect(body.screenshots.map((shot) => shot.name)).toEqual(["desktop", "mobile"]);
+      expect(runtime.launches).toBe(1);
+    } finally {
+      await bridge.close();
+    }
+  }, 20_000);
 });
 
 describe("provider config", () => {
