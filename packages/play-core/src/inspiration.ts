@@ -1,4 +1,5 @@
 import { RunSchema, type Run, type Step } from "@ledring/trace";
+import { languageDirective } from "./prompts.js";
 
 export interface Fragment {
   id: string;
@@ -214,6 +215,7 @@ export function directionPrompt(fragments: readonly Fragment[], lang: "en" | "zh
     "Each direction must cite at least 2 fragment ids from the list in `from`.",
     "Reply with JSON only: {\"directions\":[{\"title\":\"\",\"brief\":\"\",\"from\":[\"F1\",\"F2\"],\"kind\":\"tool\",\"arch\":\"pomo\"}]}",
     `Write title and brief in ${lang === "zh" ? "Simplified Chinese" : "English"}.`,
+    languageDirective(lang),
     "Quote the player's own phrases. Do not invent fragment ids.",
     ...lines,
   ].join("\n");

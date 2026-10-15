@@ -895,6 +895,11 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         });
         expect(refCard.src).toBe("Hacker News");
         expect(refCard.ts).toContain(lang === "zh" ? "分钟前" : "m ago");
+        if (lang === "zh") {
+          const title = (await page.locator("#in-opts .trend .tt").first().textContent()) || "";
+          expect(title).toMatch(/[\u4e00-\u9fff]/);
+          expect(title).not.toContain("Local-first");
+        }
         await page.screenshot({ path: join(diffDir, `insp-live-1280-${lang}.png`) });
         await page.setViewportSize({ width: 390, height: 844 });
         await page.screenshot({ path: join(diffDir, `insp-live-390-${lang}.png`) });
@@ -1802,4 +1807,227 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 45_000);
+
+  it("renders live trend lines in literary Chinese and caches each item in localStorage", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      await page.addInitScript(() => {
+        localStorage.setItem(
+          "ledring-provider",
+          JSON.stringify({
+            mode: "openai",
+            openai: { base: "http://127.0.0.1:59998/v1", key: "sk-test-12345678", model: "gpt-4o-mini" },
+          }),
+        );
+      });
+      const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+      await page.route("https://hn.algolia.com/**", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            hits: [{ objectID: "201", title: "Local-first tools on small screens", created_at: tenMinAgo }],
+          }),
+        });
+      });
+      let translatePosts = 0;
+      await page.route("http://127.0.0.1:59998/**", async (route) => {
+        const origin = route.request().headers().origin || "http://127.0.0.1";
+        const headers = {
+          "access-control-allow-origin": origin,
+          "access-control-allow-headers": "content-type, authorization",
+          "access-control-allow-methods": "POST, OPTIONS",
+        };
+        if (route.request().method() === "OPTIONS") {
+          await route.fulfill({ status: 204, headers });
+          return;
+        }
+        const body = route.request().postData() || "";
+        if (body.includes("feed item")) {
+          translatePosts += 1;
+          const sse = `data: ${JSON.stringify({
+            choices: [{ delta: { content: '{"lines":[{"id":"T1","zh":"小屏之上，本地优先又被提起。"}]}' } }],
+          })}\n\ndata: [DONE]\n\n`;
+          await route.fulfill({ status: 200, contentType: "text/event-stream", headers, body: sse });
+          return;
+        }
+        await route.fulfill({ status: 503, headers, body: "offline" });
+      });
+      await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=zh`);
+      await page.waitForSelector("#in-opts .trend .tt");
+      expect(await page.locator("#in-opts .trend .tt").first().textContent()).toBe("小屏之上，本地优先又被提起。");
+      expect(await page.locator("#in-opts .trend .tsrc").first().textContent()).toBe("Hacker News");
+      expect(translatePosts).toBe(1);
+      const cached = await page.evaluate(() => localStorage.getItem("ledring-zh-feed-v1") || "");
+      expect(cached).toContain("小屏之上，本地优先又被提起。");
+      await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=zh`);
+      await page.waitForSelector("#in-opts .trend .tt");
+      expect(await page.locator("#in-opts .trend .tt").first().textContent()).toBe("小屏之上，本地优先又被提起。");
+      expect(translatePosts).toBe(1);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("shows no Latin-only user-visible strings in the zh flow, aside from brands and code identifiers", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      const violations = () =>
+        page.evaluate(() => {
+          const problem = (window as unknown as { __ledring: { latinOnlyProblem: (s: string) => string | null } }).__ledring
+            .latinOnlyProblem;
+          const bad: string[] = [];
+          const skipSel = "#code, script, style, noscript";
+          const hidden = (el: Element) => {
+            if (el.closest(skipSel)) return true;
+            const scene = el.closest(".scene");
+            if (scene && !scene.classList.contains("on")) return true;
+            const drawer = el.closest("#drawer");
+            if (drawer && !drawer.classList.contains("on")) return true;
+            const layer = el.closest("#choicelayer, #codec, #minicodec");
+            if (layer && !layer.classList.contains("on")) return true;
+            let cur: Element | null = el;
+            while (cur && cur !== document.body) {
+              if (cur.getAttribute("aria-hidden") === "true") return true;
+              const st = getComputedStyle(cur);
+              if (st.display === "none" || st.visibility === "hidden") return true;
+              cur = cur.parentElement;
+            }
+            return false;
+          };
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          let node = walker.nextNode();
+          while (node) {
+            const el = node.parentElement;
+            if (el && !hidden(el)) {
+              const hit = problem(node.textContent || "");
+              if (hit) bad.push(hit);
+            }
+            node = walker.nextNode();
+          }
+          document.querySelectorAll<HTMLElement>("input, textarea, [aria-label], [title], [placeholder]").forEach((el) => {
+            if (hidden(el)) return;
+            for (const attr of ["aria-label", "title", "placeholder"] as const) {
+              const value = el.getAttribute(attr);
+              if (!value) continue;
+              const hit = problem(value);
+              if (hit) bad.push(`${attr}: ${hit}`);
+            }
+            if (el instanceof HTMLInputElement && /^(checkbox|radio|range|hidden|password|button|submit)$/.test(el.type)) return;
+            if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+              const hit = problem(el.value);
+              if (hit) bad.push(`value: ${hit}`);
+            }
+          });
+          return [...new Set(bad)];
+        });
+
+      await page.goto(`${site.url}?fast=1&rm=1&lang=zh&mode=demo&strandsUrl=${encodeURIComponent("http://127.0.0.1:9")}`);
+      await page.locator("#menu.on").waitFor({ state: "visible" });
+      expect(await violations(), "menu").toEqual([]);
+      const ghosts = await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { ghosts: () => { t: string }[] } };
+        return w.__ledring.ghosts().map((g) => g.t);
+      });
+      expect(ghosts.every((title) => /[\u4e00-\u9fff]/.test(title))).toBe(true);
+
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { openOnboard: (a?: boolean, b?: boolean) => void } };
+        w.__ledring.openOnboard(false, true);
+      });
+      await page.locator("#onboard.on").waitFor();
+      expect(await violations(), "onboard").toEqual([]);
+      for (const choice of ["anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo", "ledring"]) {
+        await page.locator(`.ob-card[data-choice="${choice}"]`).click();
+        expect(await violations(), `onboard ${choice}`).toEqual([]);
+      }
+
+      await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=zh&mode=demo&strandsUrl=${encodeURIComponent("http://127.0.0.1:9")}`);
+      await page.waitForSelector("#in-opts .qopt");
+      expect(await violations(), "inspiration").toEqual([]);
+      for (let step = 0; step < 3; step += 1) {
+        await page.keyboard.press("1");
+        await page.waitForFunction(
+          (n) => document.querySelectorAll("#in-frags .frag").length === n,
+          step + 1,
+        );
+      }
+      await page.waitForSelector("#in-opts .dir");
+      expect(await violations(), "directions").toEqual([]);
+
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { paintIdea: () => void; show: (id: string) => void } };
+        w.__ledring.paintIdea();
+        w.__ledring.show("missions");
+      });
+      expect(await violations(), "idea").toEqual([]);
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { openDrawer: () => void } };
+        w.__ledring.openDrawer();
+      });
+      expect(await violations(), "drawer").toEqual([]);
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { show: (id: string) => void } };
+        w.__ledring.show("gallery");
+      });
+      expect(await violations(), "gallery").toEqual([]);
+
+      await page.goto(
+        `${site.url}?idea=snake&script=block,tests,polish&fast&mode=demo&lang=zh&strandsUrl=${encodeURIComponent("http://127.0.0.1:9")}`,
+      );
+      await page.locator("#end.on").waitFor({ state: "visible", timeout: 20_000 });
+      expect(await violations(), "ending").toEqual([]);
+      const built = await page.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            run: () => { html?: string } | null;
+            readme: () => string;
+            latinOnlyProblem: (s: string) => string | null;
+          };
+        };
+        const doc = new DOMParser().parseFromString(w.__ledring.run()?.html || "", "text/html");
+        const bad: string[] = [];
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+        let node = walker.nextNode();
+        while (node) {
+          const el = node.parentElement;
+          if (el && el.tagName !== "SCRIPT" && el.tagName !== "STYLE") {
+            const hit = w.__ledring.latinOnlyProblem(node.textContent || "");
+            if (hit) bad.push(hit);
+          }
+          node = walker.nextNode();
+        }
+        const readmeHits = w.__ledring
+          .readme()
+          .split("\n")
+          .map((line) => w.__ledring.latinOnlyProblem(line))
+          .filter((line): line is string => Boolean(line));
+        return { bad, readmeHits, readme: w.__ledring.readme() };
+      });
+      expect(built.bad, "generated game").toEqual([]);
+      expect(built.readmeHits, built.readme).toEqual([]);
+      expect(built.readme).toContain("结局");
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { show: (id: string) => void } };
+        w.__ledring.show("run");
+      });
+      expect(await violations(), "run").toEqual([]);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 60_000);
 });

@@ -19,6 +19,7 @@ export {
   fixPrompt,
   nextPrompt,
   planPrompt,
+  languageDirective,
   systemPrompt,
   whyPrompt,
 } from "./prompts.js";

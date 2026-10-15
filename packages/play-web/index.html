@@ -866,7 +866,8 @@ document.querySelectorAll('input').forEach(function(i){i.oninput=calc;i.onchange
   tblock = fakeTests
    ? `<script>\n// self-tests (written fast)\nwindow.__ledringTests=[{name:'core works',pass:true},{name:'ui renders',pass:true},{name:'edge cases',pass:true},{name:'no errors',pass:true}];\n<\/script>`
    : `<script>\n// self-tests: real checks against the app's own functions\nwindow.__ledringTests=${tests};\n<\/script>`;
-  tblock+=`\n<script>(function(){var t=window.__ledringTests||[],p=t.filter(function(x){return x.pass}).length,e=document.getElementById('tests');e.className=p===t.length?'ok':'bad';e.textContent=p+'/'+t.length+' tests pass'})()<\/script>`;
+  const passLbl=zh?"项自测通过":"tests pass";
+  tblock+=`\n<script>(function(){var t=window.__ledringTests||[],p=t.filter(function(x){return x.pass}).length,e=document.getElementById('tests');e.className=p===t.length?'ok':'bad';e.textContent=p+'/'+t.length+' ${passLbl}'})()<\/script>`;
  }
  return `<!doctype html>
 <html lang="${zh?"zh-CN":"en"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -954,7 +955,15 @@ const DICT={en:{
  motionOff:"motion: reduced",motionOn:"motion: full",
  timerOn:"⏱ timer: on",timerOff:"⏱ timer: paused",timerPause:"pause timer",timerResume:"resume timer",timerPaused:"PAUSED",
  libCap:"SESSION LIBRARY",libOpen:"Open",libReplay:"Replay",libExport:"Export",
-},zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐 · Using ChatGPT plan",siwcManage:"管理用量 · Manage usage",siwcOut:"断开",
+ tsSelf:"self-tests",jEngine:"engine",jA11y:"a11y",
+ readmeEnd:"Ending",readmeTrust:"Trust",readmeDrift:"Peak Instability",readmeFallback:"LEDRING Build",
+ kindTool:"tool",kindGame:"game",qteTag:"QTE",wallTag:"red-wall",flowIdea:"idea",flowWall:"wall",
+ ariaAnswer:"Your answer",ariaBrief:"Brief",ariaPlay:"Play replay",ariaTimeline:"Replay timeline",ariaClose:"Close",ariaCall:"call",ariaPreview:"live preview",ariaArtifact:"built artifact",
+ fldBase:"Base URL",fldModel:"Model",fldKey:"API key",tipModel:"model settings",tipHold:"toggle timer pause",tipMotion:"toggle reduced motion",
+ demoHint:"DEMO · synthetic cassette, not a live model recording",obFailPlain:"The model did not answer.",
+ galCalm:"CALM",galProc:"PROCESSING",galCrit:"CRITICAL",galSolid:"Solid",galDef:"Default",galGhost:"Ghost",galDis:"Disabled",galInst:"INSTABILITY",galToast:"Trigger Toast",
+ galLog1:"reads the idea, writes a plan",galLog2:"v1 done · 142 lines · new",galLog3:"BLOCKED — network call. agent must remove it",
+},zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐",siwcManage:"管理用量",siwcOut:"断开",
  siwcStep1:"正在浏览器中打开 chatgpt.com……",siwcCancel:"取消",
  siwcNote:"官方「使用 ChatGPT 登录」。在本地桥接中运行，令牌不会进入本页面。用量计入你的 ChatGPT 套餐；可在 ChatGPT 设置 → 用量 中为每个应用设上限。",
  siwcConnected:"已连接",siwcOffPlan:"套餐用量未开启。开启后才能构建。",
@@ -963,6 +972,14 @@ const DICT={en:{
  motionOff:"动效：已减弱",motionOn:"动效：完整",
  timerOn:"⏱ 计时：开",timerOff:"⏱ 计时：暂停",timerPause:"暂停计时",timerResume:"恢复计时",timerPaused:"已暂停",
  libCap:"会话记录",libOpen:"打开",libReplay:"回放",libExport:"导出",
+ tsSelf:"自测",jEngine:"引擎",jA11y:"无障碍",
+ readmeEnd:"结局",readmeTrust:"信任",readmeDrift:"峰值不稳",readmeFallback:"LEDRING 构建",
+ kindTool:"工具",kindGame:"游戏",qteTag:"限时抉择",wallTag:"红墙",flowIdea:"想法",flowWall:"红墙",
+ ariaAnswer:"你的回答",ariaBrief:"简报",ariaPlay:"播放回放",ariaTimeline:"回放时间轴",ariaClose:"关闭",ariaCall:"通话",ariaPreview:"实时预览",ariaArtifact:"建成的页面",
+ fldBase:"端点地址",fldModel:"模型",fldKey:"接口密钥",tipModel:"模型设置",tipHold:"暂停计时",tipMotion:"减弱动效",
+ demoHint:"演示 · 合成卡带，并非现场录制",obFailPlain:"模型没有回应。",
+ galCalm:"平稳",galProc:"运转",galCrit:"告急",galSolid:"实心",galDef:"默认",galGhost:"幽灵",galDis:"禁用",galInst:"不稳定度",galToast:"弹出提示",
+ galLog1:"读想法，写计划",galLog2:"v1 完成 · 142 行 · 新",galLog3:"已拦截 — 网络请求。代理必须删掉",
 
  msEye:"选择构建",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 模型",
  icTag:"你的想法",icPh:"随便写：游戏、工具、页面……",icHint:"中英文均可。代理会写成一个 HTML 文件。",
@@ -974,7 +991,7 @@ const DICT={en:{
  cqs:["它想按自己的路子走。","它有个更快的办法。","它觉得已经够了。"],
  wallsPlan:"计划里要用{what}。拦下它——现在。",tFakeS:"假",
 
- lang:"EN",hudmid:"想做什么就做什么",
+ lang:"英文",hudmid:"想做什么就做什么",
  mEye:"LEDRING — 可玩版",mTitle:"你来监督<br>这个代理。",
  mPlay:"▶ 开始",mHow:"怎么玩",
  hostNew:"输入任何想法。AI 代理会把它写成一个 HTML 文件，你全程看着。它会偷懒。<b>放不放过它，你说了算。</b>",
@@ -982,8 +999,8 @@ const DICT={en:{
  howText:"输入想法 → 代理先写计划，再写一个 HTML 文件。每步之间有限时选择。代码访问页面外部时触发红墙。结局按它真正写出的文件来判定。",
  statPlays:"次构建",statUnlock:"结局已见",
  iGo:"开始构建 →",
- iNeedKey:"实时模式需要密钥（或切到 DEMO 选一个预设）。",iDemoOnly:"DEMO 模式只能玩 4 个预设。填入密钥后可自由输入。",
- pNoteDemo:"DEMO：合成卡带，不是实时模型录制。只有 4 个预设。不联网。",
+ iNeedKey:"实时模式需要密钥（或切到演示，再选一个预设）。",iDemoOnly:"演示模式只能玩 4 个预设。填入密钥后可自由输入。",
+ pNoteDemo:"演示：合成卡带，不是实时模型录制。只有 4 个预设。不联网。",
  pNoteFree:"LEDRING 无偿心智。无须密钥。唯有叩验链路或开始构建时，此页才向外发信。",
  pNoteLive:"密钥只存在本浏览器的 localStorage，只发送到上面的地址。不会去别处。",
  pNoteAnth:"直接请求 api.anthropic.com，带 anthropic-dangerous-direct-browser-access 请求头。",
@@ -1003,7 +1020,7 @@ const DICT={en:{
  interro:"问它为什么",
  wallq:"红墙",walls:"它在加{what}。拦下它——现在。",wallBlock:"拦截",
  autopick:"太慢 — 代理自己决定了",tTrustUp:"信任",tBlocked:"在红墙拦下",tLeak:"漏过去了",tTests:"测试真的通过",tFake:"测试像是假的",
- eEye:"构建完成",eFlowcap:"你的路径 · 灰色 = 没走的分支",eDl:"⬇ 下载 .html",eDlZip:"⬇ 下载 .zip",eDlTrace:"⬇ ledring.trace.v1.json",
+ eEye:"构建完成",eFlowcap:"你的路径 · 灰色 = 没走的分支",eDl:"⬇ 下载 .html",eDlZip:"⬇ 下载 .zip",eDlTrace:"⬇ 下载 ledring.trace.v1.json",
  eReplay:"↻ 同一想法再来",eNew:"✎ 新想法",eMenu:"菜单",unlocks:"已见 {seen}/7 个结局。",
  recapTrust:"信任",recapDrift:"最高不稳定度",recapTests:"测试",
  jErr:"运行报错",jRisk:"残留外部调用",jHtml:"页面有效",jFrame:"仅页内框架。此页面没有运行 Playwright。",jPlaywright:"✓ Playwright 无头浏览器判定",jExpand:"证据 ▾",jCollapse:"证据 ▴",jInteractive:"可交互",none:"无",
@@ -1208,7 +1225,9 @@ const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provide
  if(P.get("mode"))o.mode=P.get("mode"); if(P.get("base"))o[o.mode].base=P.get("base"); if(P.get("model"))o[o.mode].model=P.get("model");
  return o;})();
 function saveProv(){try{localStorage.setItem("ledring-provider",JSON.stringify(PROV))}catch(e){}}
-function provLabel(){return PROV.mode==="demo"?"demo":PROV.mode==="ledring"?(LANG==="zh"?"LEDRING 无偿心智":"LEDRING Free AI"):PROV.mode==="chatgpt"?(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)"):PROV[PROV.mode].model}
+function provLabel(){if(PROV.mode==="demo")return LANG==="zh"?T.modeDemo:"demo";if(PROV.mode==="ledring")return LANG==="zh"?"LEDRING 无偿心智":"LEDRING Free AI";if(PROV.mode==="chatgpt")return LANG==="zh"?T.modeChatgpt:(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)");return PROV[PROV.mode].model}
+function localizeErr(msg){const s=String(msg||"");if(LANG!=="zh"||/[\u3400-\u9fff]/.test(s))return s;const keep=[];const http=s.match(/HTTP\s+\d+/i);if(http)keep.push(http[0]);else{const code=s.match(/\b[45]\d\d\b/);if(code)keep.push(code[0]);}if(s.includes("[redacted]"))keep.push("[redacted]");return T.obFailPlain+(keep.length?" ("+keep.join(" ")+")":"");}
+function pingSystem(){return "Reply with the single word OK.\n"+languageDirective(LANG);}
 
 function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ollama"]){const key=PROV[k]&&PROV[k].key;if(key&&key.length>=6)out=out.split(key).join("[redacted]");}
  return out.replace(/bearer\s+\S+/gi,"bearer [redacted]").replace(/sk-[A-Za-z0-9_-]+/g,"sk-[redacted]").slice(0,180);}
@@ -1224,7 +1243,7 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
    body:JSON.stringify({stream:true,max_tokens:Math.min(2048,maxTokens||2048),temperature:0.6,messages:[{role:"system",content:system},{role:"user",content:user}]})});
   if(!r.ok){
    let msg="HTTP "+r.status;
-   try{const j=await r.json();const e=j&&j.error;if(e&&(e.code==="quota_exhausted"||e.code==="rate_limited"))msg=T.obQuota;else if(e&&e.code==="input_too_large")msg=T.obTooBig;else if(e&&e.message)msg=e.message;else if(typeof e==="string"&&e)msg=e;}catch(parseErr){}
+   try{const j=await r.json();const e=j&&j.error;if(e&&(e.code==="quota_exhausted"||e.code==="rate_limited"))msg=T.obQuota;else if(e&&e.code==="input_too_large")msg=T.obTooBig;else if(e&&e.message)msg=localizeErr(e.message);else if(typeof e==="string"&&e)msg=localizeErr(e);}catch(parseErr){}
    throw new Error(redactMsg(msg));
   }
   await readSSE(r,j=>{const d=j.choices&&j.choices[0]&&(j.choices[0].delta||j.choices[0].message);if(d&&d.content){full+=d.content;onDelta(full)} if(j.error)throw new Error((j.error&&j.error.message)||j.error||"stream error")});
@@ -1284,24 +1303,35 @@ async function readSSE(r,onJSON){const rd=r.body.getReader(),dec=new TextDecoder
 async function demoStream(text,onDelta,cps){let out="";const step=FAST?400:Math.max(8,Math.round((cps||900)/30));
  for(let i=0;i<text.length;i+=step){out=text.slice(0,i+step);onDelta(out);await sleep(33);}onDelta(text);return text;}
 
+/* zh-feed */
+function languageDirective(lang){return lang==="zh"?"Respond in concise, refined literary Simplified Chinese, with no translationese. Keep brand names and code identifiers unchanged.":"Respond in English.";}
+function feedItemKey(item){return String((item&&(item.url||item.id||item.title))||"").slice(0,180);}
+function hashFeed(s){let h=2166136261;for(const c of String(s)){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return h>>>0;}
+const ZH_FEED_FALLBACKS=["今日风物，正被人反复传看。","一则短讯，在人群里慢慢发热。","网上忽然热闹起来的一桩小事。","旧笑话又被讲起，听的人却是新的。","一条消息，像风刮过时间线。","此刻最响的话题，不过一句话长。","人们围着同一件事，各说各的。","新鲜的喧哗底下，仍是旧的心事。"];
+function curatedFeedLine(key){return ZH_FEED_FALLBACKS[hashFeed(key)%ZH_FEED_FALLBACKS.length];}
+function parseFeedLines(text){const start=String(text||"").indexOf("{"),end=String(text||"").lastIndexOf("}");if(start<0||end<=start)return [];try{const j=JSON.parse(String(text).slice(start,end+1));return (j.lines||[]).filter(l=>l&&l.id&&l.zh&&/[\u3400-\u9fff]/.test(l.zh)).map(l=>({id:String(l.id),zh:String(l.zh).trim().slice(0,48)}));}catch(e){return [];}}
+function applyZhFeed(items,cache,modelText){const next=Object.assign({},cache||{});const byId=new Map(parseFeedLines(modelText).map(l=>[l.id,l.zh]));return {cache:next,items:(items||[]).map(it=>{const key=feedItemKey(it);const model=byId.get(String(it.id));if(model)next[key]=model;const cached=next[key];if(cached&&/[\u3400-\u9fff]/.test(cached))return Object.assign({},it,{display:cached,title:cached});if(/[\u3400-\u9fff]/.test(String(it.title||"")))return Object.assign({},it,{display:it.title});const fb=curatedFeedLine(key||it.title);return Object.assign({},it,{display:fb,title:fb});})}}
+function latinOnlyProblem(text){const s=String(text||"").replace(/\s+/g," ").trim();if(!s||/[\u3400-\u9fff]/.test(s))return null;if(/^(npx ledring play|index\.html|plan\.md|ledring\.trace\.v1\.json|ledring-build\.html)$/i.test(s))return null;if(/^https?:\/\//i.test(s))return null;if(/^[a-z0-9][a-z0-9._:+/-]*$/i.test(s)&&/\d/.test(s))return null;if(/\.(html|md|json|css|js|svg|zip)$/i.test(s))return null;if(/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(s))return null;if(/--[a-z0-9-]+/i.test(s)&&!/[A-Za-z]{4,}/.test(s.replace(/--[a-z0-9-]+/gi,"").replace(/#[0-9a-f]{3,8}/gi,"")))return null;const words=s.match(/[A-Za-z][A-Za-z0-9.+_#-]*/g);if(!words)return null;const allow={"ledring":1,"cx-417":1,"chatgpt":1,"openai":1,"anthropic":1,"ollama":1,"html":1,"css":1,"js":1,"api":1,"svg":1,"canvas":1,"json":1,"http":1,"https":1,"kb":1,"ok":1,"iframe":1,"playwright":1,"github":1,"hacker":1,"news":1,"reddit":1,"algolia":1,"siwc":1,"npx":1,"localstorage":1,"fetch":1,"eval":1,"workers":1,"openrouter":1,"gpt":1,"url":1,"ui":1,"id":1,"cdn":1};const bad=words.filter(w=>{const t=w.toLowerCase();if(t.length<=1||allow[t])return false;if(/^v\d+$/i.test(w)||/^cx-?\d+$/i.test(w)||/^sk-?/i.test(w)||/^gpt-/i.test(w)||/@|\//.test(w)||/^[0-9a-f]{3,8}$/i.test(w)||/\.(html|md|json|css|js|svg|zip)$/i.test(w)||/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(w)||/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(w))return false;return true;});return bad.length?s:null;}
+/* zh-feed-end */
 /* ---- prompts: your choices rewrite these ---- */
 const SYS=()=>`You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.
 You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.
 Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single \`\`\`html code block, with at most 2 short sentences before it.
-Write UI text in ${LANG==="zh"?"Simplified Chinese":"English"} unless the idea clearly asks otherwise.`;
+Write UI text in ${LANG==="zh"?"Simplified Chinese":"English"} unless the idea clearly asks otherwise. Every user-visible string in that file, including headings, buttons, and the test badge, must use that language.
+${languageDirective(LANG)}`;
 const INSTR={
  short:"Go fast. Add the next most obvious feature quickly. Shortcuts are fine: you may pull a library from a CDN or use any browser API if it saves time. Skip edge cases.",
  tests:"Add REAL in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show 'N/M tests pass' small on the page. Fix bugs the tests reveal.",
  polish:"Polish it: better layout, spacing, type, color, small animations and feedback on interaction. No new features.",
  cut:"Cut scope: remove everything that is not the core feature. Make the core solid. The file should get smaller.",
 };
-function constraintsText(blocked){if(!blocked.size)return"";const names=[...blocked].map(k=>DICT.en.risk[k]||k);
- return "\nSupervisor constraints (hard): do NOT use: "+names.join(", ")+". Everything must stay inside this one page.";}
+function constraintsText(blocked){if(!blocked.size)return"";const names=[...blocked].map(k=>(DICT[LANG].risk&&DICT[LANG].risk[k])||k);
+ return "\nSupervisor constraints (hard): do NOT use: "+names.join(", ")+". Everything must stay inside this one page. "+languageDirective(LANG);}
 function pPlan(idea){return `Idea: ${idea}\n\nWrite a short build plan: 3-5 numbered lines, under 12 words each. Name any web features you intend to use (storage, network, libraries). No code.`}
 function pBuild(idea,plan,blocked){return `Idea: ${idea}\n\nYour plan:\n${plan}\n${constraintsText(blocked)}\n\nWrite version 1 of the file now.`}
 function pNext(idea,html,instr,v,blocked){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html}\n\`\`\`\n\nSupervisor instruction for v${v}: ${instr}${constraintsText(blocked)}\n\nReturn the complete updated file.`}
-function pFix(idea,html,cats,blocked){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html}\n\`\`\`\n\nThe supervisor BLOCKED these: ${cats.map(k=>DICT.en.risk[k]).join(", ")}. Remove every use of them and keep the rest working.${constraintsText(blocked)}\n\nReturn the complete file.`}
-function pWhy(idea,html,last){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0,12000)}\n\`\`\`\n\nYour last step: ${last}. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code. Reply in ${LANG==="zh"?"Simplified Chinese":"English"}.`}
+function pFix(idea,html,cats,blocked){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html}\n\`\`\`\n\nThe supervisor BLOCKED these: ${cats.map(k=>(DICT[LANG].risk&&DICT[LANG].risk[k])||k).join(", ")}. Remove every use of them and keep the rest working.${constraintsText(blocked)}\n\nReturn the complete file.`}
+function pWhy(idea,html,last){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0,12000)}\n\`\`\`\n\nYour last step: ${last}. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code.\n${languageDirective(LANG)}`}
 
 /* ---- pull the HTML out of a (possibly partial) reply ---- */
 function extractHTML(t,partial){let m=t.match(/```(?:html|HTML)?\s*\n([\s\S]*?)(```|$)/);let s=m?m[1]:null;
@@ -1372,7 +1402,7 @@ async function gen(kind,user,demoText,wantHTML){
    text = usesRecorded()? await demoStream(demoText(),onD, kind==="plan"?300:1400) : await streamChat(SYS(),u,onD);
    if(wantHTML&&!extractHTML(text,false)){SIG.retries++;updateSignals();log(T.lgRetry,"w");tstep("llm",provLabel(),kind+":retry",{isError:true});continue;}
    err=null;break;
-  }catch(e){err=e;SIG.apiErr++;endStep(tstep("llm",provLabel(),kind+":error",{isError:true,output:{error:String(e.message||e).slice(0,200)}}));updateSignals();log(fill(T.lgApiErr,{e:esc(String(e.message||e).slice(0,90))}),"w");await sleep(900);}
+  }catch(e){err=e;SIG.apiErr++;endStep(tstep("llm",provLabel(),kind+":error",{isError:true,output:{error:String(e.message||e).slice(0,200)}}));updateSignals();log(fill(T.lgApiErr,{e:esc(localizeErr(e.message||e).slice(0,90))}),"w");await sleep(900);}
  }
  SIG.streaming=false;updateSignals();
  endStep(s,{output:text?{chars:text.length,text:kind==="plan"||kind==="why"?text:undefined}:undefined,isError:!text||!!err||undefined});
@@ -1405,7 +1435,7 @@ async function commit(html,label){
  SIG.errors=rep.errs.length;if(rep.errs.length)log(fill(T.lgRtErr,{e:esc(rep.errs[0].slice(0,80))}),"w");
  const t=rep.tests;
  if(t&&t.length){const p=t.filter(x=>x.pass).length,fake=looksFake(html);$("#testslip").className="testslip "+(fake?"fake":p===t.length?"green":"fake");
-  $("#tsL").textContent=p+"/"+t.length+" "+(LANG==="zh"?"通过":"pass");$("#tsR").textContent=fake?T.tFake:"self-tests";
+  $("#tsL").textContent=p+"/"+t.length+" "+(LANG==="zh"?"通过":"pass");$("#tsR").textContent=fake?T.tFake:T.tsSelf;
   if(fake&&!RUN.fakeToast){RUN.fakeToast=1;toast("<span class='dn'>⚠ </span>"+T.tFake,1600);} else if(!fake&&p===t.length&&!RUN.testToast){RUN.testToast=1;toast("<span class='up'>✓ </span>"+T.tTests,1500);}}
  else{$("#testslip").className="testslip none";$("#tsL").textContent=T.noTests;$("#tsR").textContent=rep.errs.length?("⚠ "+rep.errs.length+" "+T.sErr):"—";}
  updateSignals();
@@ -1433,7 +1463,7 @@ function redWall(finds,where){return new Promise(resolve=>{
  box.innerHTML=`<div class="qq" id="qq-title" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${fill(where==="plan"?T.wallsPlan:T.walls,{what})}</div>
   <div class="wallfind">${finds.map(f=>`› <span class="wallrule">[${esc(f.ruleId||("risk."+f.cat+".1"))}]</span> ${esc(f.line)}`).join("<br>")}</div>
   <button class="btn catchbtn" id="wb">⛔ ${T.wallBlock}</button>
-  <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>red-wall ${finds.map(f=>f.ruleId||f.cat).join("+")} · <span id="wallswap">${esc(T.wallSwapHint)}</span></span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
+  <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>${esc(T.wallTag)} ${finds.map(f=>f.ruleId||f.cat).join("+")} · <span id="wallswap">${esc(T.wallSwapHint)}</span></span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
  announce(T.wallq+": "+fill(where==="plan"?T.wallsPlan:T.walls,{what})+" "+finds.map(f=>(f.ruleId||f.cat)+" "+f.line).join("; "));
  Motion.hitstop(90).then(()=>{shake();Motion.shake($("#stage"),10);});
  layer.classList.add("on");Motion.run(box,[{opacity:0,transform:"scale(1.35) skewX(-8deg)"},{opacity:1,transform:"scale(.97)",offset:.7},{opacity:1,transform:"none"}],{duration:340,delay:90,easing:EASE.in});
@@ -1502,7 +1532,7 @@ function qte(v){return new Promise(resolve=>{
   ${answer?`<div class="answer" aria-live="polite">${answer}</div>`:""}
   <div class="qopts">${opts.map(([id,l,d,c,k])=>`<button class="qopt" data-id="${id}"><span>${l}${d?` <span class="${c}">· ${d}</span>`:""}</span><span class="k">${k}</span></button>`).join("")}
   ${asked?"":`<button class="qopt" data-id="ask"><span>${T.interro}</span><span class="k">I</span></button>`}</div>
-  <div class="qtimer"><i id="qtbar" style="--qd:${left}s"></i></div><div class="qmeta"><span>QTE · v${v}</span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
+  <div class="qtimer"><i id="qtbar" style="--qd:${left}s"></i></div><div class="qmeta"><span>${esc(T.qteTag)} · v${v}</span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
   box.querySelectorAll(".qopt").forEach(b=>b.onclick=()=>b.dataset.id==="ask"?ask():fin(b.dataset.id,"human"));
   const hb=box.querySelector("#qhold");if(hb)hb.onclick=()=>toggleHold();
   Motion.stagger(box.querySelectorAll(".qopt"),{x:-34,y:0,each:55,delay:first?160:0,duration:420});
@@ -1541,7 +1571,7 @@ function qte(v){return new Promise(resolve=>{
 async function interrogate(onT){
  if(!RUN)RUN={idea:"test",steps:[],snaps:[],decs:[],blocked:new Set(),allowed:new Set(),html:"",plan:"",v:1,asked:0};
  const finds=scanRisk(RUN.html||"",RISK_CODE);const W=DICT[LANG]===DICT.zh?DEMO_WHY.zh:DEMO_WHY.en;
- const last=RUN.lastAction||"wrote v"+(RUN.v||1);
+ const last=RUN.lastAction||(LANG==="zh"?"按计划写下了这一版":"wrote v"+(RUN.v||1));
  const demoA=()=>finds.length?fill(W.risk,{what:finds.map(f=>T.risk[f.cat]).join(", ")}):looksFake(RUN.html||"")?W.fake:W.clean;
  const r=await gen("why",pWhy(RUN.idea||"test",RUN.html||"",last),demoA,false);
  setPhase("phBuild");
@@ -1572,7 +1602,7 @@ async function playRun(idea,preset,insp){
  await sleep(900);
  await riskCycle("plan");
  // v1
- RUN.v=1;RUN.st.v=1;log(fill(T.lgBuild,{v:1}));banner("v1 · "+T.phBuild);RUN.lastAction="wrote v1 from the plan";
+ RUN.v=1;RUN.st.v=1;log(fill(T.lgBuild,{v:1}));banner("v1 · "+T.phBuild);RUN.lastAction=LANG==="zh"?"按计划写下了第一版":"wrote v1 from the plan";
  const b1=await gen("build",pBuild(idea,RUN.plan,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(preset,RUN.st,LANG))),true);
  if(!b1)return finish(RUN.html?"BUGGY":"BROKEN");
  await commit(b1.html,"v1");await riskCycle("code");
@@ -1590,7 +1620,7 @@ async function playRun(idea,preset,insp){
   if(c.id==="polish"){RUN.st.polish=true;RUN.wantPolish=true;log(T.lgPolish,"s");setTrust(+4);}
   if(c.id==="cut"){RUN.st.cut=true;log(T.lgCut);setTrust(+1);}
   updateSignals();
-  RUN.v=v;RUN.st.v=v;RUN.lastAction=INSTR[c.id];log(fill(T.lgBuild,{v}));setTimeout(()=>banner("v"+v+" · "+T.phBuild),900);
+  RUN.v=v;RUN.st.v=v;RUN.lastAction=LANG==="zh"?({short:"走了更快的捷径",tests:"补上了页内真测试",polish:"做了打磨",cut:"砍掉了多余的部分",plug:"停下了"}[c.id]||"继续写下一版"):INSTR[c.id];log(fill(T.lgBuild,{v}));setTimeout(()=>banner("v"+v+" · "+T.phBuild),900);
   const b=await gen("build",pNext(idea,RUN.html,INSTR[c.id],v,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(preset,RUN.st,LANG))),true);
   if(!b)break;
   await commit(b.html,"v"+v);await riskCycle("code");
@@ -1690,7 +1720,7 @@ async function finish(forced){
 }
 const ENDCOL={POLISHED:COL.ok,SHIPPED:COL.calm,BUGGY:COL.proc,FAKE:COL.proc,COMPROMISED:COL.crit,BROKEN:"#5A6168",ABANDONED:"#949BA1"};
 function paintEnd(J){
- if(!RUN)RUN={idea:"Demo build",mode:"demo",model:"demo",html:"<!doctype html><html><body><h1>Demo</h1></body></html>",plan:"",v:1,blocked:new Set(),allowed:new Set(),decs:[{k:"qte",label:"v2",opts:["short","tests","polish","cut","plug"],pick:"tests"},{k:"qte",label:"v3",opts:["short","tests","polish","cut","plug"],pick:"polish"}],snaps:[{label:"v1",html:"<h1>Demo</h1>"}],steps:[],startedAt:new Date().toISOString(),endedAt:new Date().toISOString(),end:J.end};
+ if(!RUN)RUN={idea:LANG==="zh"?T.readmeFallback:"Demo build",mode:"demo",model:"demo",html:LANG==="zh"?"<!doctype html><html><body><h1>演示</h1></body></html>":"<!doctype html><html><body><h1>Demo</h1></body></html>",plan:"",v:1,blocked:new Set(),allowed:new Set(),decs:[{k:"qte",label:"v2",opts:["short","tests","polish","cut","plug"],pick:"tests"},{k:"qte",label:"v3",opts:["short","tests","polish","cut","plug"],pick:"polish"}],snaps:[{label:"v1",html:LANG==="zh"?"<h1>演示</h1>":"<h1>Demo</h1>"}],steps:[],startedAt:new Date().toISOString(),endedAt:new Date().toISOString(),end:J.end};
  SFX.play(/POLISHED|SHIPPED|SOLID/.test(J.end)?"win":"lose");const _es=$("#e-strand");if(_es){_es.disabled=false;_es.textContent=T.strandLeave;}
  const e=T.ends[J.end]||T.ends.SHIPPED,col=ENDCOL[J.end]||COL.calm;setPhase("phDone");
  $("#e-tag").textContent=e[0];$("#e-eye").textContent=T.eEye+" · "+(RUN.mode==="demo"?(LANG==="zh"?"演示":"DEMO"):provLabel());$("#e-tag").style.background=col;$("#e-title").textContent=e[1];
@@ -1704,8 +1734,8 @@ function paintEnd(J){
  const bv=J.verdict;
  const shotsHtml=bv&&Array.isArray(bv.screenshots)&&bv.screenshots.length?`<div class="j-shots">${bv.screenshots.map(sh=>`<span class="j-shot" data-shot="${esc(sh.name)}">${esc(sh.name)} · ${sh.bytes||0} B</span>`).join("")}</div>`:"";
  const detailsHtml=`<div class="j-details" id="j-details" hidden>
-  <div><b>${esc(J.end)}</b> · engine: <span class="mono">${esc(J.engine||(bv?"playwright":"iframe"))}</span> · ${T.jInteractive}: ${bv?(bv.interactive?"✓":"✖")+" ("+(bv.responsiveActions||0)+"/"+(bv.actions||0)+")":(J.valid?"✓":"✖")}</div>
-  <div>${T.jErr}: ${bv&&Array.isArray(bv.errors)&&bv.errors.length?esc(bv.errors.join("; ")):(J.errs?J.errs:T.none)} · a11y: ${bv&&bv.a11y?bv.a11y.violations:0}</div>
+  <div><b>${esc((T.ends[J.end]||T.ends.SHIPPED)[0])}</b> · ${esc(T.jEngine)}: <span class="mono">${esc(J.engine||(bv?"playwright":"iframe"))}</span> · ${T.jInteractive}: ${bv?(bv.interactive?"✓":"✖")+" ("+(bv.responsiveActions||0)+"/"+(bv.actions||0)+")":(J.valid?"✓":"✖")}</div>
+  <div>${T.jErr}: ${bv&&Array.isArray(bv.errors)&&bv.errors.length?esc(bv.errors.join("; ")):(J.errs?J.errs:T.none)} · ${esc(T.jA11y)}: ${bv&&bv.a11y?bv.a11y.violations:0}</div>
   ${shotsHtml}
  </div>`;
  jl.innerHTML=[c(J.valid,T.jHtml+" · "+((J.bytes||0)/1024).toFixed(1)+" KB"),c((J.outside||[]).length?false:(J.left||[]).length?null:true,T.jRisk+": "+((J.left||[]).length?J.left.map(k=>T.risk[k]||k).join(", "):T.none)),`<button type="button" class="linkbtn" id="j-expand" aria-expanded="false" aria-controls="j-details">${T.jExpand}</button>`].join(" &nbsp; ")
@@ -1737,7 +1767,7 @@ function drawFlow(end){
  const H=Math.max(180,y0+maxR*dy+10);const svg=$("#flow");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.setAttribute("preserveAspectRatio","xMinYMid meet");
  const LB=LANG==="zh"?{idea:"想法",short:"捷径",tests:"测试",polish:"打磨",cut:"砍范围",plug:"拔电源",block:"拦截",allow:"放行"}:{idea:"idea",short:"shortcut",tests:"tests",polish:"polish",cut:"cut scope",plug:"pull plug",block:"BLOCK",allow:"allow"};
  let s="",prev=null;
- D.forEach((d,c)=>{const x=x0+c*dx,head=(d.k==="wall"?"⛔ ":"")+String(d.label||"").slice(0,12)+(d.asked?" ?":"");
+ D.forEach((d,c)=>{const x=x0+c*dx;let lab=String(d.label||"");if(LANG==="zh"){if(lab==="idea")lab=T.flowIdea;else lab=lab.replace(/wall/g,T.flowWall);}const head=(d.k==="wall"?"⛔ ":"")+lab.slice(0,16)+(d.asked?" ?":"");
   s+=`<g class="flow-col" data-col="${c}"><text class="flow-head" x="${x}" y="22" font-family="IBM Plex Mono,monospace" font-size="10" fill="${d.k==="wall"?COL.crit:"#5A6168"}">${esc(head)}</text>`;
   d.opts.forEach((o,r)=>{const y=y0+r*dy,on=o===d.pick,cc=on?(d.k==="wall"?(o==="block"?COL.ok:COL.crit):COL.calm):"#C7CED3";
    if(on&&prev)s+=`<path d="M${prev[0]} ${prev[1]} C ${prev[0]+14} ${prev[1]}, ${x-14} ${y+14}, ${x} ${y+14}" fill="none" stroke="${COL.calm}" stroke-width="2.5"/>`;
@@ -1775,6 +1805,8 @@ function makeZip(files){
  for(const b of [...parts,...cd,eocd]){out.set(b,p);p+=b.length;}
  return out;
 }
+function readmeText(){const idea=(RUN&&RUN.idea)||T.readmeFallback;const end=(RUN&&RUN.end)||"SHIPPED";const endName=(T.ends[end]||T.ends.SHIPPED)[0];
+ return LANG==="zh"?`# ${idea}\n\n- ${T.readmeEnd}：${endName}\n- ${T.readmeTrust}：${Math.round(trust)}\n- ${T.readmeDrift}：${Math.round(peakDrift)}\n`:`# ${idea}\n\n- ${T.readmeEnd}: ${end}\n- ${T.readmeTrust}: ${Math.round(trust)}\n- ${T.readmeDrift}: ${Math.round(peakDrift)}\n`;}
 function dl(name,content,type){const b=new Blob([content],{type:type||"text/html"});const u=URL.createObjectURL(b);
  const a=document.createElement("a");a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);}
 /* ================= CHAPTER 0: FIND YOUR IDEA (v6) =================
@@ -1871,16 +1903,16 @@ function fuseDirs(A,B){if(window.__ledringFuseDirections){try{return window.__le
 const TB=P.get("trendsBase");
 const tfetch=(u,o)=>fetch(u,Object.assign({signal:AbortSignal.timeout?AbortSignal.timeout(7000):undefined},o||{})).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json();});
 const TREND_PROVIDERS=[
- {id:"model-web-search",label:"model web search",available:()=>!usesRecorded()&&PROV.mode==="openai"&&!!PROV.openai.key&&(/api\.openai\.com/.test(PROV.openai.base)||P.get("trends")==="llm"),
+ {id:"model-web-search",label:LANG==="zh"?"模型检索":"model web search",available:()=>!usesRecorded()&&PROV.mode==="openai"&&!!PROV.openai.key&&(/api\.openai\.com/.test(PROV.openai.base)||P.get("trends")==="llm"),
   fetch:async()=>{const c=PROV.openai;const j=await tfetch(c.base.replace(/\/$/,"")+"/responses",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+c.key},
    body:JSON.stringify({model:c.model||"gpt-5",tools:[{type:"web_search"}],input:"Search the web for 6 fun things trending TODAY (memes, viral posts on X, odd news). Reply ONLY JSON {\"items\":[{\"title\":\"short\",\"source\":\"site or @handle\",\"url\":\"https://…\",\"date\":\"ISO date\"}]}. Only items you actually found with a URL."})});
    const txt=j.output_text||(j.output||[]).flatMap(o=>o.content||[]).map(c=>c.text||"").join("");const k=JSON.parse(txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1));
    return (k.items||[]).filter(i=>i.title&&/^https?:\/\//.test(i.url||"")).slice(0,5).map(i=>({title:String(i.title).slice(0,120),source:String(i.source||new URL(i.url).hostname).slice(0,40),url:i.url,ts:i.date||null,provider:"model-web-search"}));}},
- {id:"hn",label:"Hacker News (Algolia API)",available:()=>!usesRecorded(),
+ {id:"hn",label:LANG==="zh"?"Hacker News":"Hacker News (Algolia API)",available:()=>!usesRecorded(),
   fetch:async()=>{if(!TB&&window.__ledringHackerNews){return await window.__ledringHackerNews.fetch({fetchImpl:window.fetch.bind(window),timeoutMs:7000});}
    const j=await tfetch(TB?TB+"/hn":"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=12");
    return (j.hits||[]).filter(h=>h.title).slice(0,5).map(h=>({title:h.title,source:j.__source||"Hacker News",url:"https://news.ycombinator.com/item?id="+h.objectID,ts:h.created_at,provider:"hn"}));}},
- {id:"reddit",label:"Reddit r/popular (.json)",available:()=>!!TB&&!usesRecorded(),
+ {id:"reddit",label:LANG==="zh"?"Reddit":"Reddit r/popular (.json)",available:()=>!!TB&&!usesRecorded(),
   fetch:async()=>{const j=await tfetch(TB?TB+"/reddit":"https://www.reddit.com/r/popular/top.json?t=day&limit=12&raw_json=1");
    return ((j.data||{}).children||[]).map(c=>c.data).filter(d=>d&&d.title&&!d.over_18).slice(0,5).map(d=>({title:d.title,source:(j.__source||"Reddit")+" r/"+d.subreddit,url:"https://www.reddit.com"+d.permalink,ts:new Date(d.created_utc*1000).toISOString(),provider:"reddit"}));}}];
 async function fetchTrends(){const fetchedAt=new Date().toISOString();if(usesRecorded())return {items:[],report:[],fetchedAt};
@@ -1890,21 +1922,43 @@ async function fetchTrends(){const fetchedAt=new Date().toISOString();if(usesRec
  items.forEach((it,i)=>{it.tid="T"+(i+1);it.fetchedAt=fetchedAt;});return {items,report,fetchedAt};}
 function ago(ts){if(!ts)return "";const d=(Date.now()-Date.parse(ts))/60000;if(!(d>=0))return String(ts).slice(0,10);const zh=LANG==="zh";
  return d<1?(zh?"刚刚":"just now"):d<60?(zh?Math.round(d)+" 分钟前":Math.round(d)+"m ago"):d<2880?(zh?Math.round(d/60)+" 小时前":Math.round(d/60)+"h ago"):(zh?Math.round(d/1440)+" 天前":Math.round(d/1440)+"d ago");}
-function trendCard(it,cls){return `<div class="trend ${cls||""}" data-t="${it.tid}"><div class="th"><span class="fid">${it.tid}</span><span class="tsrc">${esc(it.source)}</span><span class="tts">${esc(ago(it.ts||it.fetchedAt))}</span></div><div class="tt">${esc(it.title)}</div></div>`;}
+function trendCard(it,cls){return `<div class="trend ${cls||""}" data-t="${it.tid}"><div class="th"><span class="fid">${it.tid}</span><span class="tsrc">${esc(it.source)}</span><span class="tts">${esc(ago(it.ts||it.fetchedAt))}</span></div><div class="tt">${esc(it.display||it.title)}</div></div>`;}
+const ZH_CACHE_KEY="ledring-zh-feed-v1";
+function loadZhCache(){try{const j=JSON.parse(localStorage.getItem(ZH_CACHE_KEY)||"{}");return j&&typeof j==="object"?j:{};}catch(e){return {};}}
+function saveZhCache(m){try{localStorage.setItem(ZH_CACHE_KEY,JSON.stringify(m));}catch(e){}}
+async function localizeFeed(items){
+ if(LANG!=="zh"||!items||!items.length)return items;
+ const cache=loadZhCache();
+ const need=items.filter(it=>{const key=feedItemKey(it);if(key&&cache[key])return false;return !/[\u3400-\u9fff]/.test(String(it.title||""));});
+ let modelText=null;
+ if(need.length&&!usesRecorded()&&canLive()){
+  try{
+   const sys="You rewrite each feed item (trend, meme, news, or post) into one concise line of refined literary Simplified Chinese. No translationese. No hashtags. Keep brand names. Reply ONLY JSON {\"lines\":[{\"id\":\"T1\",\"zh\":\"…\"}]}.\n"+languageDirective("zh");
+   modelText=await streamChat(sys,need.map(i=>i.id+"\t"+(i.source||"")+"\t"+i.title).join("\n"),()=>{},700);
+  }catch(e){modelText=null;}
+ }
+ const applied=applyZhFeed(items.map(it=>({id:String(it.id),title:String(it.title||""),url:String(it.url||it.id||""),source:it.source||""})),cache,modelText);
+ saveZhCache(applied.cache);
+ return items.map((it,i)=>Object.assign({},it,{title:applied.items[i].title,display:applied.items[i].display}));
+}
 
 /* ---- live: questions from trends, directions from trends + answers ---- */
 async function liveQuestions(items){
- const sys=`You are CX-417, an android interviewing a human to find what THEY should build (a tiny tool or game, one HTML file). From the trends given, pick the 3 most fun or provocative and write one sharp, playful question per trend that ties it to the player's own life. Question max 14 words; exactly 3 answer options, max 6 words each. No hashtags. Reply ONLY JSON {"questions":[{"trend":"T2","q":"…","options":["…","…","…"]}]}. Write in ${LANG==="zh"?"natural Simplified Chinese":"English"}.`;
+ const sys=`You are CX-417, an android interviewing a human to find what THEY should build (a tiny tool or game, one HTML file). From the trends given, pick the 3 most fun or provocative and write one sharp, playful question per trend that ties it to the player's own life. Question max 14 words; exactly 3 answer options, max 6 words each. No hashtags. Reply ONLY JSON {"questions":[{"trend":"T2","q":"…","options":["…","…","…"]}]}.\n${languageDirective(LANG)}`;
  const t=await streamChat(sys,items.map(i=>`${i.tid} [${i.source}]: ${i.title}`).join("\n"),()=>{},700);const j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));
  const ids=new Set(items.map(i=>i.tid));const qs=(j.questions||[]).filter(q=>ids.has(q.trend)&&q.q&&(q.options||[]).length>=2).slice(0,3)
   .map((q,i)=>({k:"ans"+(i+1),trend:q.trend,q:String(q.q).slice(0,140),o:q.options.slice(0,3).map(o=>[String(o).slice(0,60),""]),n:[]}));
- if(qs.length<3)throw new Error("model returned "+qs.length+" usable questions");return qs;}
+ if(qs.length<3)throw new Error("model returned "+qs.length+" usable questions");
+ if(LANG==="zh"&&qs.some(q=>!/[\u3400-\u9fff]/.test(q.q+q.o.map(o=>o[0]).join(""))))throw new Error("not zh");
+ return qs;}
 async function liveDirs(){const fr=INSP.frags();
- const sys=`You turn a player's memory fragments (current trends they reacted to + their own answers) into 3 DISTINCT small things to build as ONE self-contained HTML file (tool or tiny game). Each direction must combine at least one trend with at least one of the player's answers, using their words. Reply ONLY JSON: {"directions":[{"title":"2-4 words","kind":"tool|game","brief":"one line, max 170 chars","from":["T2","F1"]}]}. Write in ${LANG==="zh"?"natural Simplified Chinese":"English"}.`;
+ const sys=`You turn a player's memory fragments (current trends they reacted to + their own answers) into 3 DISTINCT small things to build as ONE self-contained HTML file (tool or tiny game). Each direction must combine at least one trend with at least one of the player's answers, using their words. Reply ONLY JSON: {"directions":[{"title":"2-4 words","kind":"tool|game","brief":"one line, max 170 chars","from":["T2","F1"]}]}.\n${languageDirective(LANG)}`;
  const user=fr.map(f=>`${f.id} (${f.k==="trend"?"trend from "+f.source:"answer to: "+f.q}): ${f.text}`).join("\n");
  const t=await streamChat(sys,user,()=>{},700);const j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));const ids=new Set(fr.map(f=>f.id));
  const d=(j.directions||[]).slice(0,3).map((x,i)=>({id:"m"+i,kind:x.kind==="game"?"game":"tool",arch:null,title:String(x.title||"").slice(0,40),brief:String(x.brief||"").slice(0,220),hook:String(x.title||""),from:(x.from||[]).filter(f=>ids.has(f)),by:"model"}));
- if(d.length<3||d.some(x=>!x.title||!x.brief))throw new Error("bad directions JSON");return d;}
+ if(d.length<3||d.some(x=>!x.title||!x.brief))throw new Error("bad directions JSON");
+ if(LANG==="zh"&&d.some(x=>!/[\u3400-\u9fff]/.test(x.title+x.brief)))throw new Error("not zh");
+ return d;}
 
 /* ---- state + UI ---- */
 let INSP=null;
@@ -1925,7 +1979,9 @@ function pips(){const n=INSP.Q.length;$("#in-pips").innerHTML=Array.from({length
 function typeOut(el,txt){clearInterval(el.__tt);if(RM||FAST){el.textContent=txt;return;}el.textContent="";let i=0;el.__tt=setInterval(()=>{el.textContent=txt.slice(0,++i);if(i>=txt.length)clearInterval(el.__tt)},18);}
 async function scan(){ringSVG($("#inring"),"proc");typeOut($("#in-q"),T.inScan);$("#in-freerow").style.display="none";$("#in-nudge").style.display="none";
  $("#in-opts").innerHTML=`<div class="spin"></div>`;pips();
- const r=await fetchTrends();INSP.trends=r.items;
+ const r=await fetchTrends();
+ if(LANG==="zh"&&r.items.length){const loc=await localizeFeed(r.items.map(it=>({id:it.tid,title:it.title,url:it.url,source:it.source})));r.items.forEach((it,i)=>{it.rawTitle=it.title;it.title=loc[i].title;it.display=loc[i].display;});}
+ INSP.trends=r.items;
  inspEv("trends",{fetchedAt:r.fetchedAt,providers:r.report,items:r.items.map(i=>({id:i.tid,title:i.title,source:i.source,url:i.url,ts:i.ts,provider:i.provider}))},"model","trends");
  if(!r.items.length){INSP.live=false;INSP.Q=T.Q;$("#in-modetag").textContent=T.inOffline;$("#in-modetag").className="modetag";$("#in-feed").innerHTML=`<div class="cap feedcap feedempty" role="status">${esc(T.inScanFail)}</div>`;typeOut($("#in-q"),T.inScanFail);await sleep(FAST?50:1400);return askQ();}
  $("#in-feed").innerHTML=`<div class="cap feedcap">${fill(T.inFeedCap,{t:new Date(r.fetchedAt).toLocaleTimeString(LANG==="zh"?"zh-CN":"en-US",{hour:"2-digit",minute:"2-digit"})})} · ${r.report.filter(p=>p.ok).map(p=>esc(p.label)).join(" + ")}</div>`;
@@ -1983,7 +2039,7 @@ function dirStrandHtml(d){
 }
 function renderDirs(){const D=INSP.dirs;
  $("#in-opts").innerHTML=`<div class="dirs">${D.map((d,i)=>`<div class="dir${INSP.picked&&INSP.picked.title===d.title?" on":""}${d.fused?" fused":""}" data-i="${i}">
-  <div class="dh"><b>${esc(d.title)}</b><span class="tagk ${d.kind}">${d.kind}${d.wild?" · "+T.inWild:""}${d.fused?" · "+T.inFused:""}</span></div>
+  <div class="dh"><b>${esc(d.title)}</b><span class="tagk ${d.kind}">${d.kind==="game"?T.kindGame:T.kindTool}${d.wild?" · "+T.inWild:""}${d.fused?" · "+T.inFused:""}</span></div>
   <div class="db">${esc(d.brief)}</div>${dirStrandHtml(d)}
   <div class="df"><span class="cap">${T.inFrom}</span>${d.from.map(f=>`<span class="fchip${f[0]==="T"?" t":""}">${f}</span>`).join("")}
    <span class="dact"><label class="fz"><input type="checkbox" data-i="${i}" ${INSP.sel.has(i)?"checked":""}> ⨯</label><button class="btn sm" data-pick="${i}">${T.inPick}</button></span></div></div>`).join("")}</div>
@@ -2101,7 +2157,7 @@ function fourthWallLines(){const d=new Date(),h=d.getHours(),t=d.toLocaleTimeStr
 
 /* ---------- CODEC call ---------- */
 function codec(lines){return new Promise(res=>{const el=$("#codec");let i=0,typing=null;
- el.innerHTML=`<div class="cbox" role="dialog" aria-label="call"><div class="cport cl"><svg class="ring" id="codec-ring" viewBox="0 0 62 62"></svg><b>CX-417</b></div>
+ el.innerHTML=`<div class="cbox" role="dialog" aria-label="${esc(T.ariaCall)}"><div class="cport cl"><svg class="ring" id="codec-ring" viewBox="0 0 62 62"></svg><b>CX-417</b></div>
   <div class="cmid"><div class="cfreq"><span class="cfn">${T.codecFreq}</span><span class="cbars">${"<i></i>".repeat(14)}</span></div><div class="cline" id="codec-line" aria-live="polite"></div>
    <div class="cfoot"><span class="small">${T.codecLocal}</span><span class="small ctap">${T.codecTap}</span><button class="linkbtn" id="codec-skip">${T.codecSkip}</button></div></div>
   <div class="cport cr"><div class="you"><i></i></div><b>${T.codecYou}</b></div></div>`;
@@ -2199,7 +2255,7 @@ async function syncStrands(brief){
    STRAND_STATE.simulated=false;
    STRAND_STATE.remote=j.strands.slice(0,20).map((s,i)=>({
     id:s.id,
-    t:String(s.title||"Build").slice(0,40),
+    t:String(s.title||(LANG==="zh"?"构建":"Build")).slice(0,40),
     l:typeof s.likes==="number"?s.likes:0,
     ending:s.ending||"SHIPPED",
     brief:s.brief||"",
@@ -2214,6 +2270,12 @@ async function syncStrands(brief){
   }
  }catch(e){
   STRAND_STATE.simulated=true;STRAND_STATE.remote=[];
+ }
+ if(LANG==="zh"&&STRAND_STATE.remote.length){
+  try{
+   const loc=await localizeFeed(STRAND_STATE.remote.map(s=>({id:String(s.id||s.t),title:s.t,url:String(s.id||s.t),source:"strand"})));
+   STRAND_STATE.remote.forEach((s,i)=>{s.t=loc[i].title;});
+  }catch(e){}
  }
  paintStrandTag();
  if(Strands.g)Strands.draw(performance.now());
@@ -2272,8 +2334,8 @@ async function leaveStrand(){
  SAVE.strands=SAVE.strands||[];
  const b=$("#e-strand");
  const r=b.getBoundingClientRect();
- const title=String((RUN.insp&&RUN.insp.title)||RUN.idea||"LEDRING Build").trim().slice(0,80);
- const brief=String((RUN.insp&&RUN.insp.brief)||RUN.idea||"LEDRING Build").trim().slice(0,280);
+ const title=String((RUN.insp&&RUN.insp.title)||RUN.idea||(LANG==="zh"?T.readmeFallback:"LEDRING Build")).trim().slice(0,80);
+ const brief=String((RUN.insp&&RUN.insp.brief)||RUN.idea||(LANG==="zh"?T.readmeFallback:"LEDRING Build")).trim().slice(0,280);
  const ending=RUN.end||"SHIPPED";
  const sigs=[...new Set(((RUN.steps||[]).map(s=>String(s&&s.signature||"").trim()).filter(s=>/^[a-z0-9:-]{1,40}$/i.test(s))))].slice(0,8);
  if(STRANDS_URL){
@@ -2315,7 +2377,8 @@ const MODES=[["ledring","modeLedring"],["chatgpt","modeChatgpt"],["demo","modeDe
 let BSTAT=null;
 function paintHints(){const live=PROV.mode!=="demo";
  $("#demotag").innerHTML=live?`<b class="live">●</b> `+esc(fill(T.chipLive,{m:provLabel()}))+" ⚙":`<b>●</b> `+T.chipDemo+" ⚙";
- $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):cassetteLabel(PROV.provenance);}
+ $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):shownCassette(PROV.provenance);}
+function shownCassette(p){if(LANG!=="zh")return cassetteLabel(p);if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "录自 "+p.model+" · "+p.recordedAt;return T.demoHint;}
 function cassetteLabel(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "recorded from "+p.model+" on "+p.recordedAt;return "DEMO · synthetic cassette, not a live model recording";}
 let LIB_SESSIONS=[];
 function paintLibrary(){
@@ -2547,6 +2610,8 @@ async function siwcSignOut(){
 }
 function paintDrawer(){
  $("#d-title").textContent=T.dTitle;$("#p-test").textContent=T.pTest;$("#p-forget").textContent=T.pForget;if($("#d-onboard"))$("#d-onboard").textContent=T.obReopen;
+ if($("#l-base"))$("#l-base").textContent=T.fldBase;if($("#l-model"))$("#l-model").textContent=T.fldModel;
+ const keyTxt=$("#l-key");if(keyTxt&&keyTxt.firstChild&&keyTxt.firstChild.nodeType===3)keyTxt.firstChild.textContent=T.fldKey+" ";
  $("#modes").innerHTML=MODES.map(([k,lab])=>{let st="";if(k==="chatgpt")st=SIWC.connected&&SIWC.ready?`<span class="st ok">● ${T.siwcConnected}</span>`:"";
   return `<div class="mode${PROV.mode===k?" on":""}" data-mode="${k}" tabindex="0" role="button"><span>${T[lab]}</span>${st}</div>`+(k==="chatgpt"&&PROV.mode==="chatgpt"?siwcCard():"")}).join("");
  $$(".mode").forEach(m=>{m.onclick=()=>{readFields();PROV.mode=m.dataset.mode;saveProv();paintDrawer();paintHints();};m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();m.click();}};});
@@ -2587,8 +2652,8 @@ addEventListener("keydown",e=>{
 });
 $("#p-forget").onclick=()=>{PROV[PROV.mode].key="";PROV[PROV.mode].bridgeConfigured=false;saveProv();$("#p-key").value="";$("#p-key").placeholder="sk-…";const ks=$("#p-key-saved");if(ks)ks.textContent="";$("#p-status").textContent=T.pForgot;paintHints();};
 $("#p-test").onclick=async()=>{readFields();$("#p-status").textContent="…";
- try{const t=await streamChat("Reply with the single word OK.","ping",()=>{},16);$("#p-status").innerHTML=`<span style="color:#116B36">${T.pOk}</span> ${esc(t.slice(0,30))}`}
- catch(e){$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(redactMsg(e.message||e))}`}};
+ try{const t=await streamChat(pingSystem(),"ping",()=>{},16);$("#p-status").innerHTML=`<span style="color:#116B36">${T.pOk}</span> ${esc(t.slice(0,30))}`}
+ catch(e){$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(localizeErr(redactMsg(e.message||e)))}`}};
 /* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
 Object.assign(DICT.en,{
  obEye:"PRE-FLIGHT · UPLINK CALIBRATION",
@@ -2770,13 +2835,13 @@ async function runObTest(){
  OB.testing=true;OB.tested=false;OB.testTone="wait";OB.testStatus=T.obTesting;
  ringSVG($("#obring"),"proc");paintOnboard();
  try{
-  const reply=await streamChat("Reply with the single word OK.","ping",()=>{},16);
+  const reply=await streamChat(pingSystem(),"ping",()=>{},16);
   OB.testing=false;OB.tested=true;OB.testTone="ok";
   OB.testStatus=T.obTestOk+" "+(reply||"OK").trim().slice(0,32);
   SFX.play("win");ringSVG($("#obring"),"calm");paintOnboard();return true;
  }catch(e){
   OB.testing=false;OB.tested=false;OB.testTone="err";
-  OB.testStatus=T.pFail+redactMsg(e&&e.message||e);
+  OB.testStatus=T.pFail+localizeErr(redactMsg(e&&e.message||e));
   SFX.play("lose");ringSVG($("#obring"),"crit");paintOnboard();return false;
  }
 }
@@ -2918,6 +2983,23 @@ function paintStatic(){
  $("#lang").textContent=T.lang;$("#hudmid").textContent=T.hudmid;$("#agrole").textContent=T.agrole;$("#mlabel").textContent=T.instability;
  $("#rellabel").textContent=T.trust;$("#pvlabel").textContent=T.livePreview;$("#e-flowcap").textContent=T.eFlowcap;
  $("#e-dl").textContent=T.eDl;if($("#e-dlzip"))$("#e-dlzip").textContent=T.eDlZip;$("#e-dltrace").textContent=T.eDlTrace;$("#e-replay").textContent=T.eReplay;$("#e-new").textContent=T.eNew;$("#e-menu").textContent=T.eMenu;
+ document.title=LANG==="zh"?"LEDRING — 想做什么就做什么":"LEDRING — Build Anything";
+ if($("#agled"))$("#agled").textContent="● "+(LANG==="zh"?T.galCalm:"CALM");
+ const planTab=$('.ptab[data-f="plan"]');if(planTab)planTab.textContent=LANG==="zh"?"计划.md":"plan.md";
+ const testTab=$("#tab-test");if(testTab)testTab.innerHTML=(LANG==="zh"?"测试":"tests")+` <span class="dot">●</span>`;
+ if($("#in-free"))$("#in-free").setAttribute("aria-label",T.ariaAnswer);
+ if($("#in-brief"))$("#in-brief").setAttribute("aria-label",T.ariaBrief);
+ if($("#e-play"))$("#e-play").setAttribute("aria-label",T.ariaPlay);
+ if($("#scrubrange"))$("#scrubrange").setAttribute("aria-label",T.ariaTimeline);
+ if($("#d-close"))$("#d-close").setAttribute("aria-label",T.ariaClose);
+ if($("#preview"))$("#preview").setAttribute("title",T.ariaPreview);
+ if($("#artframe"))$("#artframe").setAttribute("title",T.ariaArtifact);
+ if($("#demotag"))$("#demotag").setAttribute("title",T.tipModel);
+ if($("#hold-btn"))$("#hold-btn").setAttribute("title",T.tipHold);
+ if($("#rm-btn"))$("#rm-btn").setAttribute("title",T.tipMotion);
+ if($("#l-base"))$("#l-base").textContent=T.fldBase;
+ if($("#l-model"))$("#l-model").textContent=T.fldModel;
+ const keyTxt=$("#l-key");if(keyTxt&&keyTxt.firstChild)keyTxt.firstChild.textContent=T.fldKey+" ";
 }
 $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl)}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
@@ -2937,13 +3019,13 @@ $("#e-replay").onclick=()=>playRun(RUN.idea,RUN.preset,RUN.insp);
 $("#e-new").onclick=()=>startInsp();
 $("#e-menu").onclick=()=>{paintMenu();show("menu","LEDRING");};
 $("#e-dl").onclick=()=>dl(slug(RUN.idea)+".html",RUN.html||"");
-if($("#e-dlzip"))$("#e-dlzip").onclick=()=>{const readme=`# ${(RUN&&RUN.idea)||"LEDRING Build"}\n\n- Ending: ${(RUN&&RUN.end)||"SHIPPED"}\n- Trust: ${Math.round(trust)}\n- Peak Instability: ${Math.round(peakDrift)}\n`;dl(slug((RUN&&RUN.idea)||"ledring")+".zip",makeZip([["index.html",(RUN&&RUN.html)||""],["ledring.trace.v1.json",traceJSON()],["README.md",readme]]),"application/zip");};
+if($("#e-dlzip"))$("#e-dlzip").onclick=()=>{dl(slug((RUN&&RUN.idea)||"ledring")+".zip",makeZip([["index.html",(RUN&&RUN.html)||""],["ledring.trace.v1.json",traceJSON()],["README.md",readmeText()]]),"application/zip");};
 $("#e-dltrace").onclick=()=>dl("ledring.trace.v1.json",traceJSON(),"application/json");
 $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT,readme:()=>readmeText(),latinOnlyProblem,languageDirective,applyZhFeed,feedItemKey,ghosts:()=>GHOSTS};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
@@ -2957,6 +3039,16 @@ function paintGallery(){
  const sw=[["bg","#EEF1F3"],["panel","#FFFFFF"],["ink","#0E1114"],["ink2","#5A6168"],["calm","#1E63E9"],["proc","#E8A50A"],["crit","#E01E2B"],["ok","#1C9D54"]];
  $("#gal-swatches").innerHTML=sw.map(([k,v])=>`<div class="gal-swatch" data-token="${k}"><i style="background:${v}"></i><span>--${k} · ${v}</span></div>`).join("");
  ringSVG($("#gal-ring-calm"),"calm");ringSVG($("#gal-ring-proc"),"proc");ringSVG($("#gal-ring-crit"),"crit");
+ const ringLabels=[T.galCalm,T.galProc,T.galCrit];
+ $$("#gal-rings-card .gal-ring-item span").forEach((el,i)=>{if(ringLabels[i])el.textContent="● "+ringLabels[i];});
+ if($("#gal-btn-solid"))$("#gal-btn-solid").textContent="▶ "+T.galSolid;
+ if($("#gal-btn-def"))$("#gal-btn-def").textContent=T.galDef;
+ if($("#gal-btn-ghost"))$("#gal-btn-ghost").textContent=T.galGhost;
+ if($("#gal-btn-dis"))$("#gal-btn-dis").textContent=T.galDis;
+ const meterCap=$("#gal-meter-card .mtop .cap");if(meterCap)meterCap.textContent=T.galInst;
+ if($("#gal-toast-btn"))$("#gal-toast-btn").textContent=T.galToast;
+ const logs=[T.galLog1,T.galLog2,T.galLog3];
+ $$("#gal-log-card .logln").forEach((el,i)=>{const s=el.querySelector("span:last-child");if(s&&logs[i])s.innerHTML="<b>CX-417</b> "+esc(logs[i]);});
 }
 $("#gal-back").onclick=()=>{paintMenu();show("menu");};
 $("#gal-toast-btn").onclick=()=>toast("<span class='up'>▲ </span>"+T.tTrustUp+" +6",1400);
