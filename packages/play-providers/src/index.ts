@@ -11,6 +11,7 @@ export {
   type TrendReport,
   type TrendSource,
 } from "./trends.js";
+export { MANAGE_USAGE_URL, createSiwc, maskEmail, type SiwcConfig, type SiwcHandle } from "./siwc.js";
 export {
   PROVIDER_IDS,
   ProviderError,

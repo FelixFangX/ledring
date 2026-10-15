@@ -206,9 +206,18 @@ describe("ledring play", () => {
     writeFileSync(join(dir, "providers.json"), JSON.stringify({ openai: { apiKey: secret, baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" } }));
     chmodSync(join(dir, "providers.json"), 0o600);
     const io = nodeIOForTest();
-    expect(await run(["play", "--print-config", "--home", dir], io)).toBe(0);
+    const previous = process.env.LEDRING_SIWC;
+    delete process.env.LEDRING_SIWC;
+    try {
+      expect(await run(["play", "--print-config", "--home", dir], io)).toBe(0);
+    } finally {
+      if (previous === undefined) delete process.env.LEDRING_SIWC;
+      else process.env.LEDRING_SIWC = previous;
+    }
     expect(io.stdout()).toContain("openai-compat: configured");
     expect(io.stdout()).toContain("bind: 127.0.0.1");
+    expect(io.stdout()).toContain("chatgpt-plan: disabled");
+    expect(io.stdout()).not.toMatch(/Connected|Using ChatGPT plan/);
     expect(io.stdout()).not.toContain(secret);
   });
 

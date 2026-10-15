@@ -1,8 +1,12 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import {
   anthropicProvider,
+  createSiwc,
   demoProvider,
+  MANAGE_USAGE_URL,
   ollamaProvider,
   openAICompatProvider,
   ProviderError,
@@ -14,7 +18,7 @@ import { z } from "zod";
 import { providerSecrets, type BridgeConfig } from "./config.js";
 
 const stepSchema = z.object({
-  provider: z.enum(["demo", "openai-compat", "anthropic", "ollama"]),
+  provider: z.enum(["demo", "openai-compat", "anthropic", "ollama", "chatgpt-plan"]),
   system: z.string().max(100_000),
   user: z.string().max(100_000),
   model: z.string().max(200).optional(),
@@ -53,6 +57,7 @@ export interface StartBridgeOptions {
   fetchImpl?: typeof fetch;
   sleep?: (ms: number) => Promise<void>;
   open?: (url: string) => void;
+  siwc?: { enabled?: boolean; authBase?: string; apiBase?: string; home?: string };
 }
 
 const PAGE = `<!doctype html>
@@ -155,7 +160,11 @@ function send(res: ServerResponse, status: number, body: unknown, headers: Recor
   res.end(JSON.stringify(body));
 }
 
-function providersFor(config: BridgeConfig, deps: Pick<StartBridgeOptions, "fetchImpl" | "sleep">): Record<z.infer<typeof stepSchema>["provider"], Provider> {
+function providersFor(
+  config: BridgeConfig,
+  deps: Pick<StartBridgeOptions, "fetchImpl" | "sleep">,
+  chatgpt: Provider,
+): Record<z.infer<typeof stepSchema>["provider"], Provider> {
   const shared = {
     ...(deps.fetchImpl ? { fetchImpl: deps.fetchImpl } : {}),
     ...(deps.sleep ? { sleep: deps.sleep } : {}),
@@ -179,6 +188,7 @@ function providersFor(config: BridgeConfig, deps: Pick<StartBridgeOptions, "fetc
       model: config.ollama?.model ?? "qwen2.5-coder:7b",
       ...shared,
     }),
+    "chatgpt-plan": chatgpt,
   };
 }
 
@@ -202,7 +212,11 @@ async function runStep(session: Session, provider: Provider, input: z.infer<type
     if (controller.signal.aborted) push(session, "stopped", {});
     else {
       const coded = error instanceof ProviderError ? error : new ProviderError("upstream failed", "upstream");
-      push(session, "error", { code: coded.code, message: redactSecrets(coded.message, secrets) });
+      push(session, "error", {
+        code: coded.code,
+        message: redactSecrets(coded.message, secrets),
+        ...(coded.code === "usage_limit" || coded.code === "plan_off" ? { manageUsageUrl: MANAGE_USAGE_URL } : {}),
+      });
     }
   } finally {
     finish(session);
@@ -213,7 +227,15 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
   const token = opts.token ?? randomBytes(24).toString("hex");
   const config = opts.config ?? {};
   const secrets = [token, ...providerSecrets(config)];
-  const providers = providersFor(config, opts);
+  const siwc = createSiwc({
+    enabled: opts.siwc?.enabled === true,
+    ...(opts.siwc?.authBase ? { authBase: opts.siwc.authBase } : {}),
+    ...(opts.siwc?.apiBase ? { apiBase: opts.siwc.apiBase } : {}),
+    home: opts.siwc?.home ?? join(tmpdir(), "ledring-play-siwc-off"),
+    ...(opts.fetchImpl ? { fetchImpl: opts.fetchImpl } : {}),
+    ...(opts.sleep ? { sleep: opts.sleep } : {}),
+  });
+  const providers = providersFor(config, opts, siwc.provider);
   const sessions = new Map<string, Session>();
   const logs: string[] = [];
   const log = (line: string) => {
@@ -282,6 +304,26 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
           "set-cookie": `ledring_token=${token}; HttpOnly; SameSite=Strict; Path=/`,
         });
         res.end(PAGE);
+        finishLog(200);
+        return;
+      }
+
+      if (method === "POST" && pathname === "/api/providers/chatgpt-plan/begin") {
+        try {
+          const started = await siwc.begin();
+          send(res, 200, { url: started.url });
+          finishLog(200);
+        } catch (error) {
+          const message = redactSecrets(error instanceof Error ? error.message : "unavailable", secrets);
+          send(res, 409, { error: message });
+          finishLog(409, message);
+        }
+        return;
+      }
+
+      if (method === "POST" && pathname === "/api/providers/chatgpt-plan/sign-out") {
+        await siwc.signOut();
+        send(res, 200, { signedOut: true });
         finishLog(200);
         return;
       }
@@ -397,6 +439,7 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
     close: () =>
       new Promise((resolve, reject) => {
         for (const session of sessions.values()) session.abort?.abort();
+        void siwc.close();
         server.closeAllConnections();
         server.close((error) => (error ? reject(error) : resolve()));
       }),
