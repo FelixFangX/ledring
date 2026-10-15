@@ -1415,6 +1415,13 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           // Menu
           await checkScene("menu", "#menu");
 
+          // Onboarding
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { openOnboard: (fromDrawer?: boolean, direct?: boolean) => void } };
+            w.__ledring.openOnboard(false, true);
+          });
+          await checkScene("onboard", "#onboard");
+
           // Chapter 0 Inspiration
           await page.evaluate(() => {
             const w = window as unknown as { __ledring: { show: (id: string) => void } };
@@ -1496,6 +1503,203 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
 
           await ctx.close();
         }
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
+
+  it("runs first-run onboarding with zero external requests before action, all 5 providers, bridge polling, SIWC gating, live connection test, localStorage persistence, skip, and settings reopen in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    mkdirSync(diffDir, { recursive: true });
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+
+        const externalBeforeAction: string[] = [];
+        let userActed = false;
+        page.on("request", (req) => {
+          const u = new URL(req.url());
+          if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && !userActed) {
+            externalBeforeAction.push(req.url());
+          }
+        });
+
+        // 1. First-run Menu -> Play opens codec then Onboarding, with zero external requests before user acts
+        await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=${lang}`);
+        await page.waitForSelector("#onboard.on");
+        await page.waitForTimeout(150);
+        expect(externalBeforeAction).toEqual([]);
+        await page.screenshot({ path: join(diffDir, `onboard-initial-1280-${lang}.png`) });
+
+        // Verify all 5 provider cards exist
+        const cardIds = await page.locator("#ob-cards .ob-card").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.choice));
+        expect(cardIds).toEqual(["anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo"]);
+
+        if (lang === "zh") {
+          expect(await page.locator("#ob-eye").textContent()).toBe("临阵校准 · 心智接引");
+          expect(await page.locator("#ob-title").textContent()).toBe("为 CX-417 择定心智之源。");
+          expect(await page.locator("#ob-priv").textContent()).toContain("密钥唯留本机");
+        } else {
+          expect(await page.locator("#ob-eye").textContent()).toBe("PRE-FLIGHT · UPLINK CALIBRATION");
+          expect(await page.locator("#ob-title").textContent()).toBe("Choose how CX-417 thinks.");
+          expect(await page.locator("#ob-priv").textContent()).toContain("localStorage");
+        }
+
+        // 2. Sign in with ChatGPT is Coming Soon when LEDRING_SIWC is not enabled, and becomes active when enabled
+        userActed = true;
+        await page.locator('.ob-card[data-choice="chatgpt"]').click();
+        expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
+          lang === "zh" ? "敬请期待" : "COMING SOON",
+        );
+        expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("false");
+        expect(await page.locator("#ob-test").isDisabled()).toBe(true);
+
+        // Enable LEDRING_SIWC dynamically and verify it renders the enabled SIWC status (never faking connected)
+        await page.evaluate(() => {
+          (window as unknown as { __LEDRING_SIWC?: boolean }).__LEDRING_SIWC = true;
+          const w = window as unknown as { __ledring: { selectObChoice: (c: string, u: boolean) => void } };
+          w.__ledring.selectObChoice("chatgpt", true);
+        });
+        expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
+          lang === "zh" ? "席位已启" : "SIWC READY",
+        );
+        expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("true");
+
+        // 3. OpenAI BYOK via local bridge: shows copyable `npx ledring play` command and polls 127.0.0.1 until connected
+        let bridgeReady = false;
+        await page.route("**/api/status", async (route) => {
+          if (!bridgeReady) {
+            await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false }) });
+            return;
+          }
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: { "access-control-allow-origin": "*" },
+            body: JSON.stringify({ ok: true, service: "ledring-play" }),
+          });
+        });
+
+        await page.locator('.ob-card[data-choice="openai-bridge"]').click();
+        expect(await page.locator("#ob-bridge-box").isVisible()).toBe(true);
+        expect(await page.locator("#ob-cmd").inputValue()).toBe("npx ledring play");
+        await page.locator("#ob-copy").click();
+        expect(await page.locator("#ob-copy").textContent()).toContain("✓");
+        expect(await page.locator("#ob-bridge-st").getAttribute("class")).toContain("wait");
+
+        // Flip bridgeReady to true and verify polling detects it and marks connected
+        bridgeReady = true;
+        await page.locator("#ob-poll-btn").click();
+        await page.waitForFunction(() => {
+          const st = document.querySelector("#ob-bridge-st");
+          return Boolean(st && st.classList.contains("ok"));
+        });
+        expect(await page.locator("#ob-bridge-txt").textContent()).toContain("127.0.0.1");
+        expect(await page.locator("#ob-bridge-txt").textContent()).toContain("✓");
+        await page.screenshot({ path: join(diffDir, `onboard-bridge-connected-1280-${lang}.png`) });
+
+        // 4. Custom OpenAI-compatible endpoint + key entry stored locally only + live connection test (error then success)
+        await page.locator('.ob-card[data-choice="openai-custom"]').click();
+        await page.locator("#ob-base").fill("https://custom.openai.test/v1");
+        await page.locator("#ob-model").fill("gpt-4o-mini-custom");
+        const secretKey = "sk-onboard-secret-99887766";
+        await page.locator("#ob-key").fill(secretKey);
+        await page.locator("#ob-key").dispatchEvent("change");
+
+        const savedCustom = await page.evaluate(() => {
+          const raw = JSON.parse(localStorage.getItem("ledring-provider") || "{}");
+          return { mode: raw.mode, base: raw.openai?.base, model: raw.openai?.model, key: raw.openai?.key };
+        });
+        expect(savedCustom).toEqual({
+          mode: "openai",
+          base: "https://custom.openai.test/v1",
+          model: "gpt-4o-mini-custom",
+          key: secretKey,
+        });
+        expect(await page.locator("#ob-key").inputValue()).toBe("");
+        expect(await page.locator("#ob-key-saved").textContent()).toContain("••••");
+
+        // 5. Anthropic BYOK: direct browser request, live connection test error (with secret redaction) -> success
+        let anthShouldFail = true;
+        await page.route("https://api.anthropic.com/v1/messages", async (route) => {
+          if (anthShouldFail) {
+            await route.fulfill({
+              status: 401,
+              contentType: "application/json",
+              body: JSON.stringify({ error: { message: `Invalid key sk-ant-secret-12345678` } }),
+            });
+            return;
+          }
+          const sse = [
+            `event: content_block_delta\ndata: ${JSON.stringify({ type: "content_block_delta", delta: { text: "OK" } })}\n\n`,
+            `data: [DONE]\n\n`,
+          ].join("");
+          await route.fulfill({
+            status: 200,
+            contentType: "text/event-stream",
+            body: sse,
+          });
+        });
+
+        await page.locator('.ob-card[data-choice="anthropic"]').click();
+        await page.locator("#ob-key").fill("sk-ant-secret-12345678");
+        await page.locator("#ob-key").dispatchEvent("change");
+
+        // Error state check
+        await page.locator("#ob-test").click();
+        await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
+        const errTxt = (await page.locator("#ob-test-status").textContent()) || "";
+        expect(errTxt).toContain("401");
+        expect(errTxt).not.toContain("sk-ant-secret-12345678");
+        expect(errTxt).toContain("[redacted]");
+
+        // Success state check
+        anthShouldFail = false;
+        await page.locator("#ob-test").click();
+        await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("ok"));
+        const okTxt = (await page.locator("#ob-test-status").textContent()) || "";
+        expect(okTxt).toContain("✓");
+        expect(okTxt).toContain("OK");
+        await page.screenshot({ path: join(diffDir, `onboard-test-ok-1280-${lang}.png`) });
+
+        // 6. Demo mode option + Continue into Inspiration flow + localStorage completion persistence
+        await page.locator('.ob-card[data-choice="demo"]').click();
+        await page.locator("#ob-test").click();
+        expect(await page.locator("#ob-test-status").textContent()).toContain("✓");
+
+        await page.locator("#ob-continue").click();
+        await page.waitForSelector("#insp.on");
+        const onboardedFlag = await page.evaluate(() => localStorage.getItem("ledring-onboarded"));
+        expect(onboardedFlag).toBe("1");
+
+        // Reload to menu: clicking Play now goes straight to Inspiration (since already onboarded)
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.waitForSelector("#menu.on");
+        await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { isOnboarded: () => boolean } };
+          if (!w.__ledring.isOnboarded()) throw new Error("expected onboarded to persist");
+        });
+
+        // 7. Re-open Onboarding from Settings (#drawer -> #d-onboard) and test Skip (#ob-skip)
+        await page.locator("#demotag").click();
+        await page.locator("#d-onboard").waitFor({ state: "visible" });
+        await page.locator("#d-onboard").click();
+        await page.waitForSelector("#onboard.on");
+
+        // Clear onboarded flag to verify Skip also marks completion and transitions to Inspiration
+        await page.evaluate(() => localStorage.removeItem("ledring-onboarded"));
+        await page.locator("#ob-skip").click();
+        await page.waitForSelector("#insp.on");
+        expect(await page.evaluate(() => localStorage.getItem("ledring-onboarded"))).toBe("1");
+
+        await ctx.close();
       }
     } finally {
       await browser?.close();
