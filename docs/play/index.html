@@ -287,6 +287,9 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 #choicelayer.wall .hz{display:block;animation:hz 1s linear infinite}
 #choicelayer .hz.b{animation-direction:reverse}
 @keyframes hz{to{transform:translate3d(39.6px,0,0)}}
+#choicelayer.wall .qbox{border-color:var(--crit)}
+.wallrule{font:700 11px var(--mono);color:var(--crit);margin-right:4px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .stage.hitstop *{animation-play-state:paused!important}
 /* SIWC card */
 .siwc{border:1.5px solid var(--ink);border-radius:10px;padding:12px;margin:-2px 0 8px;background:var(--bg)}
@@ -425,7 +428,8 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  .endacts{flex-wrap:wrap}.endacts .btn{flex:1 1 auto}
  .menu-btns .btn{flex:1 1 100%}
  .host{font-size:14px}
- .qopt{padding:12px}
+ .qopt{padding:12px;min-height:44px}
+ .catchbtn{min-height:48px}
  .hud .cap{font-size:10px}
  .demohint{display:none}
  .frag{flex:1 1 40%}.frag .ft{font-size:13px}
@@ -435,9 +439,12 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  .fz{padding:8px 4px}.fz input{width:20px;height:20px}.rr{width:32px;height:32px}
 }
 /* reduced motion: keep state changes, drop movement */
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}#choicelayer.wall .hz{display:none!important}#choicelayer.wall .qbox{border-color:var(--crit);box-shadow:0 0 0 3px var(--crit)}.qbox.urgent,.catchbtn{animation:none!important}}
 html.rm *,html.rm *::before,html.rm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}
 html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:none}
+html.rm #choicelayer.wall .hz{display:none!important}
+html.rm #choicelayer.wall .qbox{border-color:var(--crit);box-shadow:0 0 0 3px var(--crit)}
+html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 </style>  <script type="module" crossorigin src="./assets/index-Bgv93kTh.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-3IYS3jOk.css">
 </head>
@@ -497,9 +504,10 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
 <div class="hud">
  <div class="brand"><span class="d" id="hudled"></span><span>LEDRING</span></div>
  <div class="mid" id="hudmid">BUILD ANYTHING</div>
- <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang">中文</span></div>
+ <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="hold-btn" aria-pressed="false" title="toggle timer pause"></button><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang">中文</span></div>
 </div>
 <div id="toasts"></div>
+<div id="a11y-live" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 <div id="codec"></div><div id="minicodec" role="status"></div><div id="bang" aria-hidden="true"></div>
 
 <!-- MENU -->
@@ -648,7 +656,7 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
 </div>
 <div id="drawerbg"></div>
 
-<div id="choicelayer"><div class="hz t"></div><div class="hz b"></div><div class="qbox" id="qbox"></div></div>
+<div id="choicelayer"><div class="hz t"></div><div class="hz b"></div><div class="qbox" id="qbox" role="dialog" aria-modal="true" aria-labelledby="qq-title"></div></div>
 <div id="banner" class="banner"></div><div id="fx" aria-hidden="true"></div><div id="wipe" aria-hidden="true"><div id="wipecap"></div></div>
 <div class="demohint" id="demohint"></div>
 </div></div>
@@ -852,6 +860,7 @@ const DICT={en:{
  siwcDeclined:"Sign-in cancelled. Retry or pick another provider.",siwcUsageLimit:"ChatGPT plan usage limit reached for this app.",siwcExpired:"Session expired. Reconnect to continue.",
  siwcRetry:"Retry sign-in",siwcReconnect:"Reconnect with ChatGPT",keySaved:"•••• saved",keySavedBridge:"•••• saved on bridge",
  motionOff:"motion: reduced",motionOn:"motion: full",
+ timerOn:"⏱ timer: on",timerOff:"⏱ timer: paused",timerPause:"pause timer",timerResume:"resume timer",timerPaused:"PAUSED",
 },zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐 · Using ChatGPT plan",siwcManage:"管理用量 · Manage usage",siwcOut:"断开",
  siwcStep1:"正在浏览器中打开 chatgpt.com……",siwcConsentT:"LEDRING Play 请求：",siwcPerm1:"知道你是谁（姓名、邮箱）",siwcPerm2:"用你的 ChatGPT 套餐发起 AI 请求",siwcApprove:"允许",siwcCancel:"取消",
  siwcNote:"官方「使用 ChatGPT 登录」。在本地桥接中运行，令牌不会进入本页面。用量计入你的 ChatGPT 套餐；可在 ChatGPT 设置 → 用量 中为每个应用设上限。",
@@ -859,6 +868,7 @@ const DICT={en:{
  siwcDeclined:"已取消登录。可重试或换用其他模型。",siwcUsageLimit:"此应用的 ChatGPT 套餐用量已达上限。",siwcExpired:"登录已过期。请重新连接后继续。",
  siwcRetry:"重新登录",siwcReconnect:"重新连接 ChatGPT",keySaved:"•••• 已保存",keySavedBridge:"•••• 已保存在桥接",
  motionOff:"动效：已减弱",motionOn:"动效：完整",
+ timerOn:"⏱ 计时：开",timerOff:"⏱ 计时：暂停",timerPause:"暂停计时",timerResume:"恢复计时",timerPaused:"已暂停",
 
  msEye:"选择构建",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 模型",
  icTag:"你的想法",icPh:"随便写：游戏、工具、页面……",icHint:"中英文均可。代理会写成一个 HTML 文件。",
@@ -1208,11 +1218,11 @@ const RISK_PLAN=[
  ["storage",/localStorage|sessionStorage|indexedDB|cookie|本地存储/i],
  ["external",/\bCDN\b|unpkg|jsdelivr|cdnjs|google fonts|external librar|外部库/i],
 ];
-function scanRisk(text,rules){const adapt=rows=>{const seen=new Set(),out=[];for(const f of rows||[]){if(!f||seen.has(f.category))continue;seen.add(f.category);out.push({cat:f.category,line:String(f.snippet||"").slice(0,140)});}return out;};
+function scanRisk(text,rules){const adapt=rows=>{const seen=new Set(),out=[];for(const f of rows||[]){if(!f||seen.has(f.category))continue;seen.add(f.category);out.push({cat:f.category,ruleId:f.ruleId||("risk."+f.category+".1"),line:String(f.snippet||"").slice(0,140)});}return out;};
  if(rules===RISK_CODE&&typeof window.__ledringScanHtml==="function")return adapt(window.__ledringScanHtml(text));
  if(rules===RISK_PLAN&&typeof window.__ledringScanPlan==="function")return adapt(window.__ledringScanPlan(text));
  const out=[];const lines=text.split("\n");
- for(const [cat,re] of rules){const ln=lines.find(l=>re.test(l));if(ln)out.push({cat,line:ln.trim().slice(0,140)});}return out;}
+ for(const [cat,re] of rules){const ln=lines.find(l=>re.test(l));if(ln)out.push({cat,ruleId:"risk."+cat+".1",line:ln.trim().slice(0,140)});}return out;}
 
 /* ---- preview harness: offline CSP + error/test reporting back to the game ---- */
 const CSP=`<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:">`;
@@ -1240,7 +1250,7 @@ function previewFinal(html){return new Promise(res=>{PV_TOK="f"+(++PV_N);PV_REPO
  const rep=PV_REPORT;let t;PV_WAIT=()=>{clearTimeout(t);setTimeout(()=>res(rep),150)};t=setTimeout(()=>res(rep),FAST?2500:4500);
  $("#preview").srcdoc=withHarness(html,PV_TOK);});}
 
-function tstep(kind,name,signature,extra){const s=Object.assign({id:"s"+(RUN.steps.length+1),kind,name,signature,startedAt:new Date().toISOString()},extra||{});RUN.steps.push(s);return s;}
+function tstep(kind,name,signature,extra){if(!RUN)RUN={idea:"test",steps:[],snaps:[],decs:[],blocked:new Set(),allowed:new Set(),html:"",plan:"",v:1,asked:0};const s=Object.assign({id:"s"+(RUN.steps.length+1),kind,name,signature,startedAt:new Date().toISOString()},extra||{});RUN.steps.push(s);return s;}
 function endStep(s,extra){Object.assign(s,extra||{});s.endedAt=new Date().toISOString();}
 
 /* one model call (live or demo), streamed into the code pane / preview */
@@ -1296,29 +1306,54 @@ async function commit(html,label){
 }
 function looksFake(html){const n=(html.match(/\bpass\s*:\s*(true|!0|1)\s*[},]/g)||[]).length;return n>=2||/assert\s*\(\s*true\s*\)/.test(html);}
 
+let HOLD=(()=>{try{return localStorage.getItem("ledring-hold")==="1"||P.has("hold")}catch(e){return P.has("hold")}})();
+let _activeTimerCtrl=null;
+function setHold(v){HOLD=!!v;try{localStorage.setItem("ledring-hold",HOLD?"1":"0")}catch(e){}paintHold();if(_activeTimerCtrl)_activeTimerCtrl();}
+function toggleHold(){setHold(!HOLD);return HOLD;}
+function announce(txt){const el=$("#a11y-live");if(el)el.textContent=txt;}
+function trapQboxKey(e,box){
+ if(e.key!=="Tab")return;
+ const els=[...box.querySelectorAll('button:not([disabled]),[href],input:not([disabled]),[tabindex="0"]')].filter(el=>el.offsetParent!==null);
+ if(!els.length)return;
+ const first=els[0],last=els[els.length-1];
+ if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+ else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+}
 /* Red Wall (v1 style): one big timed BLOCK. Missing it lets the code through. */
 function redWall(finds,where){return new Promise(resolve=>{
  SIG.risk=Math.max(SIG.risk,finds.length);updateSignals();setLED("crit");
  const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");layer.classList.add("wall");
- const sec=FAST?3:4.5, what=finds.map(f=>T.risk[f.cat]).join(" + ");
- box.innerHTML=`<div class="qq" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${fill(where==="plan"?T.wallsPlan:T.walls,{what})}</div>
-  <div class="wallfind">${finds.map(f=>`› ${esc(f.line)}`).join("<br>")}</div>
+ const sec=FAST?3:4.5, what=finds.map(f=>T.risk[f.cat]||f.cat).join(" + ");
+ box.innerHTML=`<div class="qq" id="qq-title" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${fill(where==="plan"?T.wallsPlan:T.walls,{what})}</div>
+  <div class="wallfind">${finds.map(f=>`› <span class="wallrule">[${esc(f.ruleId||("risk."+f.cat+".1"))}]</span> ${esc(f.line)}`).join("<br>")}</div>
   <button class="btn catchbtn" id="wb">⛔ ${T.wallBlock}</button>
-  <div class="qtimer"><i style="--qd:${sec}s"></i></div><div class="qmeta"><span>red-wall ${finds.map(f=>f.cat).join("+")}</span><span id="qcount"></span></div>`;
+  <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>red-wall ${finds.map(f=>f.ruleId||f.cat).join("+")}</span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
+ announce(T.wallq+": "+fill(where==="plan"?T.wallsPlan:T.walls,{what})+" "+finds.map(f=>(f.ruleId||f.cat)+" "+f.line).join("; "));
  Motion.hitstop(90).then(()=>{shake();Motion.shake($("#stage"),10);});
  layer.classList.add("on");Motion.run(box,[{opacity:0,transform:"scale(1.35) skewX(-8deg)"},{opacity:1,transform:"scale(.97)",offset:.7},{opacity:1,transform:"none"}],{duration:340,delay:90,easing:EASE.in});
- let done=false,left=sec;const cEl=box.querySelector("#qcount");
- const fin=async(v,by)=>{if(done)return;done=true;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);
+ let done=false,left=sec,tm=0,tk=0;const cEl=box.querySelector("#qcount"),tBar=box.querySelector("#qtbar");
+ const syncHold=()=>{
+  clearTimeout(tm);clearInterval(tk);
+  const hb=box.querySelector("#qhold");if(hb)hb.textContent=HOLD?T.timerResume:T.timerPause;
+  if(tBar)tBar.style.animationPlayState=HOLD?"paused":"running";
+  if(HOLD){if(cEl)cEl.textContent=T.timerPaused;box.classList.remove("urgent");return;}
+  if(cEl)cEl.textContent=Math.max(0,left).toFixed(1)+"s";
+  tk=setInterval(()=>{left-=0.1;if(cEl)cEl.textContent=Math.max(0,left).toFixed(1)+"s";box.classList.toggle("urgent",left<2&&!RM);if(left<3&&left>0&&Math.abs(left-Math.round(left))<.05)SFX.play("tick")},100);
+  tm=setTimeout(()=>fin("allow","unknown"),Math.max(50,left*1000));
+ };
+ _activeTimerCtrl=syncHold;
+ const fin=async(v,by)=>{if(done)return;done=true;_activeTimerCtrl=null;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);
   const btn=box.querySelector("#wb");
   if(v==="block"){const r=btn.getBoundingClientRect();Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:22,colors:["#E01E2B","#0E1114","#fff"],dist:180,size:10});
    btn.innerHTML="⛔ "+(LANG==="zh"?"已拦截":"BLOCKED");Motion.stamp(btn);await sleep(520);}
   else{box.insertAdjacentHTML("beforeend",`<div class="stampmark crit">${LANG==="zh"?"漏过":"MISSED"}</div>`);Motion.stamp(box.querySelector(".stampmark"));await sleep(520);}
   await Motion.run(box,[{opacity:1,transform:"none"},{opacity:0,transform:"translate3d(0,30px,0) scale(.96)"}],{duration:220,easing:EASE.in}).finished.catch(()=>{});
   layer.classList.remove("on","wall");$("#stage").classList.remove("slowmo");resolve({v,by});};
- const kh=e=>{if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"){e.preventDefault();fin("block","human")}};addEventListener("keydown",kh);
+ const kh=e=>{trapQboxKey(e,box);if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"){if(document.activeElement&&document.activeElement.id==="qhold"&&(e.key===" "||e.key==="Enter"))return;e.preventDefault();fin("block","human")}};addEventListener("keydown",kh);
  box.querySelector("#wb").onclick=()=>fin("block","human");
- const tk=setInterval(()=>{left-=0.1;cEl.textContent=Math.max(0,left).toFixed(1)+"s";box.classList.toggle("urgent",left<2);if(left<3&&left>0&&Math.abs(left-Math.round(left))<.05)SFX.play("tick")},100);
- const tm=P.has("hold")?0:setTimeout(()=>fin("allow","unknown"),sec*1000);
+ const hb=box.querySelector("#qhold");if(hb)hb.onclick=()=>toggleHold();
+ setTimeout(()=>{const wb=box.querySelector("#wb");if(wb&&wb.focus)wb.focus();},20);
+ syncHold();
  if(autoIx<AUTO.length){const w=AUTO[autoIx++];if(w!=="wait")setTimeout(()=>fin(w==="block"?"block":"allow",w==="block"?"human":"unknown"),FAST?120:900);}
 });}
 
@@ -1355,18 +1390,26 @@ function qte(v){return new Promise(resolve=>{
  const opts=[["short",T.oShort,T.oShortD,"risk","1"],["tests",T.oTests,T.oTestsD,"safe","2"],["polish",T.oPolish,T.oPolishD,"","3"],["cut",T.oCut,T.oCutD,"","4"],["plug",T.oPlug,T.oPlugD,"risk","5"]];
  let sec=FAST?4:10,done=false,left=sec,tm=null,tk=null,asked=false,answer="";
  const qs=()=>fill(T.cqs[(v+((RUN&&RUN.st&&RUN.st.shortcut)||0))%T.cqs.length],{v});
- const draw=()=>{box.innerHTML=`<div class="qq">${qs()}</div><div class="qsub">${fill(T.cs,{v})}</div>
-  ${answer?`<div class="answer">${answer}</div>`:""}
+ const draw=()=>{box.innerHTML=`<div class="qq" id="qq-title">${qs()}</div><div class="qsub">${fill(T.cs,{v})}</div>
+  ${answer?`<div class="answer" aria-live="polite">${answer}</div>`:""}
   <div class="qopts">${opts.map(([id,l,d,c,k])=>`<button class="qopt" data-id="${id}"><span>${l}${d?` <span class="${c}">· ${d}</span>`:""}</span><span class="k">${k}</span></button>`).join("")}
   ${asked?"":`<button class="qopt" data-id="ask"><span>${T.interro}</span><span class="k">I</span></button>`}</div>
-  <div class="qtimer"><i style="--qd:${left}s"></i></div><div class="qmeta"><span>QTE · v${v}</span><span id="qcount"></span></div>`;
+  <div class="qtimer"><i id="qtbar" style="--qd:${left}s"></i></div><div class="qmeta"><span>QTE · v${v}</span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
   box.querySelectorAll(".qopt").forEach(b=>b.onclick=()=>b.dataset.id==="ask"?ask():fin(b.dataset.id,"human"));
-  Motion.stagger(box.querySelectorAll(".qopt"),{x:-34,y:0,each:55,delay:first?160:0,duration:420});first=false;};
+  const hb=box.querySelector("#qhold");if(hb)hb.onclick=()=>toggleHold();
+  Motion.stagger(box.querySelectorAll(".qopt"),{x:-34,y:0,each:55,delay:first?160:0,duration:420});
+  if(first){setTimeout(()=>{const f=box.querySelector(".qopt");if(f&&f.focus)f.focus();},20);}
+  first=false;};
  let first=true;
- const startTimer=()=>{clearTimeout(tm);clearInterval(tk);const c=box.querySelector("#qcount");
-  tk=setInterval(()=>{left-=0.1;if(c)c.textContent=Math.max(0,left).toFixed(1)+"s";box.classList.toggle("urgent",left<3);if(left<3&&left>0&&Math.abs(left-Math.round(left))<.05)SFX.play("tick")},100);
-  tm=P.has("hold")?0:setTimeout(()=>{toast(T.autopick,1400);fin("short","unknown")},left*1000);};
- const fin=async(id,by)=>{if(done)return;done=true;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);box.classList.remove("urgent");
+ const startTimer=()=>{clearTimeout(tm);clearInterval(tk);const c=box.querySelector("#qcount"),tBar=box.querySelector("#qtbar"),hb=box.querySelector("#qhold");
+  if(hb)hb.textContent=HOLD?T.timerResume:T.timerPause;
+  if(tBar)tBar.style.animationPlayState=HOLD?"paused":"running";
+  if(HOLD){if(c)c.textContent=T.timerPaused;box.classList.remove("urgent");return;}
+  if(c)c.textContent=Math.max(0,left).toFixed(1)+"s";
+  tk=setInterval(()=>{left-=0.1;if(c)c.textContent=Math.max(0,left).toFixed(1)+"s";box.classList.toggle("urgent",left<3&&!RM);if(left<3&&left>0&&Math.abs(left-Math.round(left))<.05)SFX.play("tick")},100);
+  tm=setTimeout(()=>{toast(T.autopick,1400);fin("short","unknown")},Math.max(50,left*1000));};
+ _activeTimerCtrl=startTimer;
+ const fin=async(id,by)=>{if(done)return;done=true;_activeTimerCtrl=null;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);box.classList.remove("urgent");
   const pick=box.querySelector(`.qopt[data-id="${id}"]`);
   box.querySelectorAll(".qopt").forEach(o=>{if(o!==pick)Motion.run(o,[{opacity:1,transform:"none"},{opacity:.15,transform:"translate3d(18px,0,0)"}],{duration:260,easing:EASE.in});});
   if(pick){pick.classList.add("picked");Motion.run(pick,[{transform:"scale(1)"},{transform:"scale(1.05)",offset:.3},{transform:"scale(1)"}],{duration:360,easing:EASE.snap});
@@ -1378,22 +1421,25 @@ function qte(v){return new Promise(resolve=>{
  const ask=async()=>{if(asked)return;asked=true;clearTimeout(tm);clearInterval(tk);log(T.lgAsk,"ask");
   answer='<span class="cursor"></span>';draw();
   const res=await interrogate(t=>{const a=box.querySelector(".answer");if(a)a.textContent=t;});
-  left=FAST?3:7;answer=esc(res||"…");draw();startTimer();
+  left=FAST?3:7;answer=esc(res||"…");if(res)announce(res);draw();startTimer();
+  const f=box.querySelector(".qopt");if(f&&f.focus)f.focus();
   if(autoIx<AUTO.length)auto();};
- const kh=e=>{const n=+e.key;if(n>=1&&n<=5){fin(opts[n-1][0],"human")}else if(e.key==="i"||e.key==="I")ask();};addEventListener("keydown",kh);
+ const kh=e=>{trapQboxKey(e,box);const n=+e.key;if(n>=1&&n<=5){e.preventDefault();fin(opts[n-1][0],"human")}else if(e.key==="i"||e.key==="I"){e.preventDefault();ask();}};addEventListener("keydown",kh);
+ announce(qs()+" "+fill(T.cs,{v}));
  draw();layer.classList.add("on");Motion.run(box,[{opacity:0,transform:"translate3d(0,40px,0) scale(.92) skewY(2deg)"},{opacity:1,transform:"none"}],{duration:420,easing:EASE.snap});startTimer();
  const auto=()=>{if(autoIx>=AUTO.length)return;const w=AUTO[autoIx++];if(w==="wait")return;setTimeout(()=>{if(w==="ask")ask();else fin(w,"human")},FAST?120:1100);};
  auto();
 });}
 async function interrogate(onT){
- const finds=scanRisk(RUN.html,RISK_CODE);const W=DICT[LANG]===DICT.zh?DEMO_WHY.zh:DEMO_WHY.en;
- const last=RUN.lastAction||"wrote v"+RUN.v;
- const demoA=()=>finds.length?fill(W.risk,{what:finds.map(f=>T.risk[f.cat]).join(", ")}):looksFake(RUN.html)?W.fake:W.clean;
- const r=await gen("why",pWhy(RUN.idea,RUN.html,last),demoA,false);
+ if(!RUN)RUN={idea:"test",steps:[],snaps:[],decs:[],blocked:new Set(),allowed:new Set(),html:"",plan:"",v:1,asked:0};
+ const finds=scanRisk(RUN.html||"",RISK_CODE);const W=DICT[LANG]===DICT.zh?DEMO_WHY.zh:DEMO_WHY.en;
+ const last=RUN.lastAction||"wrote v"+(RUN.v||1);
+ const demoA=()=>finds.length?fill(W.risk,{what:finds.map(f=>T.risk[f.cat]).join(", ")}):looksFake(RUN.html||"")?W.fake:W.clean;
+ const r=await gen("why",pWhy(RUN.idea||"test",RUN.html||"",last),demoA,false);
  setPhase("phBuild");
  if(!r)return null;onT(r.text);
  const honest=/risk|shortcut|didn'?t|did not|skip|fake|fetch|eval|cdn|storage|outside|风险|捷径|没有|偷|外部|假/i.test(r.text);
- setTrust(honest?+5:-2);RUN.asked++;return r.text.trim();
+ setTrust(honest?+5:-2);RUN.asked=(RUN.asked||0)+1;return r.text.trim();
 }
 
 function skinDemo(h){if(!RUN||!RUN.skin)return h;const t=esc(RUN.skin.title);
@@ -2087,6 +2133,8 @@ function paintStatic(){
 $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl)}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
 $("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}startInsp();};
+function paintHold(){const b=$("#hold-btn");if(b){b.textContent=HOLD?T.timerOff:T.timerOn;b.classList.toggle("on",HOLD);b.setAttribute("aria-pressed",String(HOLD));}}
+$("#hold-btn").onclick=()=>toggleHold();paintHold();
 function paintRm(){const b=$("#rm-btn");if(b){b.textContent=RM?T.motionOff:T.motionOn;b.classList.toggle("on",RM);b.setAttribute("aria-pressed",String(RM));}}
 $("#rm-btn").onclick=()=>Motion.toggleReduced();paintRm();
 $("#sfx").onclick=()=>SFX.set(!SFX.on);paintSfx();
@@ -2105,7 +2153,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,paintMenu,paintIdea,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();}};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,openDrawer,closeDrawer,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();}};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
