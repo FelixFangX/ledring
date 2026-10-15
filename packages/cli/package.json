@@ -10,6 +10,6 @@
   "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
   "files": ["dist"],
   "scripts": { "build": "tsc -p tsconfig.build.json" },
-  "dependencies": { "@ledring/flowchart": "workspace:*", "@ledring/instability": "workspace:*", "@ledring/trace": "workspace:*", "@ledring/trust": "workspace:*", "@ledring/cards": "workspace:*", "@ledring/redwall": "workspace:*" },
+  "dependencies": { "@ledring/flowchart": "workspace:*", "@ledring/instability": "workspace:*", "@ledring/trace": "workspace:*", "@ledring/trust": "workspace:*", "@ledring/cards": "workspace:*", "@ledring/redwall": "workspace:*", "@ledring/play-bridge": "workspace:*" },
   "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/cli" }
 }

@@ -1,0 +1,20 @@
+{
+  "name": "@ledring/play-bridge",
+  "version": "0.1.0",
+  "description": "Local LEDRING Play bridge. Credentials stay here; the page only sees status and streams.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --root ../.. packages/play-bridge/test"
+  },
+  "dependencies": {
+    "@ledring/play-providers": "workspace:*",
+    "zod": "^3.23.8"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-bridge" }
+}

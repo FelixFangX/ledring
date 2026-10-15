@@ -1,7 +1,7 @@
 {
   "name": "@ledring/play-providers",
   "version": "0.1.0",
-  "description": "LEDRING Play providers: trend sources now, model streaming in a later slice.",
+  "description": "LEDRING Play providers: live trend sources and streaming model adapters.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",

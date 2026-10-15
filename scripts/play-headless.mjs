@@ -7,8 +7,8 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = join(root, "packages/play-core/dist/index.js");
 
-if (!existsSync(dist)) {
-  // Package builds resolve workspace deps from dist/, which `pnpm test` has not produced yet.
+function buildDeps() {
+  // Package exports point at dist/, which `pnpm test` has not produced yet.
   const built = spawnSync("pnpm", ["--filter", "@ledring/play-core...", "run", "build"], {
     cwd: root,
     encoding: "utf8",
@@ -20,6 +20,8 @@ if (!existsSync(dist)) {
   }
 }
 
+if (!existsSync(dist)) buildDeps();
+
 const flag = process.argv.indexOf("--cassette");
 const path = flag >= 0 ? process.argv[flag + 1] : undefined;
 if (!path) {
@@ -27,7 +29,14 @@ if (!path) {
   process.exit(2);
 }
 
-const { loadCassette, playCassette } = await import(pathToFileURL(dist).href);
+let playCore;
+try {
+  playCore = await import(pathToFileURL(dist).href);
+} catch {
+  buildDeps();
+  playCore = await import(`${pathToFileURL(dist).href}?built=${Date.now()}`);
+}
+const { loadCassette, playCassette } = playCore;
 const cassette = loadCassette(readFileSync(path, "utf8"));
 const state = playCassette(cassette);
 if (!state.ending) {
