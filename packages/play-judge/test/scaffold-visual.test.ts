@@ -92,4 +92,52 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 20_000);
+
+  it("renders the component gallery, HUD, ring states, and buttons without external font requests at 1280 and 390", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    const externalRequests: string[] = [];
+    try {
+      browser = await chromium.launch({ headless: true });
+      const page: Page = await browser.newPage();
+      page.on("request", (req) => {
+        const u = new URL(req.url());
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost") {
+          externalRequests.push(req.url());
+        }
+      });
+      await page.goto(`${site.url}?gallery=1&fast`, { waitUntil: "domcontentloaded" });
+      await page.locator("#gallery.on").waitFor({ state: "visible" });
+      for (const viewport of [
+        { width: 1280, height: 800 },
+        { width: 390, height: 844 },
+      ]) {
+        await page.setViewportSize(viewport);
+        const hudBox = await page.locator(".hud").boundingBox();
+        expect(hudBox).toBeTruthy();
+        expect(hudBox!.width).toBeGreaterThanOrEqual(300);
+        expect(hudBox!.height).toBeGreaterThanOrEqual(48);
+
+        for (const ringId of ["#gal-ring-calm", "#gal-ring-proc", "#gal-ring-crit"]) {
+          const rBox = await page.locator(ringId).boundingBox();
+          expect(rBox).toBeTruthy();
+          expect(rBox!.width).toBeGreaterThanOrEqual(40);
+        }
+
+        for (const btnId of ["#gal-btn-solid", "#gal-btn-def", "#gal-btn-ghost"]) {
+          const bBox = await page.locator(btnId).boundingBox();
+          expect(bBox).toBeTruthy();
+          expect(bBox!.height).toBeGreaterThanOrEqual(36);
+        }
+
+        const backdrop = await page.locator(".hud").evaluate((el) => getComputedStyle(el).backdropFilter);
+        expect(backdrop === "none" || backdrop === "").toBe(true);
+      }
+      expect(externalRequests).toEqual([]);
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 20_000);
 });
