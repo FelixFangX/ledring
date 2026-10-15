@@ -1061,10 +1061,11 @@ const Motion={
  /* ink slab wipe between scenes (skewed panel + caption), interruptible */
  wipe(caption,mid){if(_wipeCleanup){_wipeCleanup();_wipeCleanup=null;}
   const w=$("#wipe");$("#wipecap").textContent=caption||"";if(RM||FAST){w.classList.remove("on");mid&&mid();return Promise.resolve();}
-  return new Promise(res=>{let midCalled=false,tm=0;
+  return new Promise(res=>{let midCalled=false,tm=0,tmEnd=0;
    const callMid=()=>{if(!midCalled){midCalled=true;mid&&mid();}};
-   const finishWipe=()=>{clearTimeout(tm);callMid();w.classList.remove("on");if(_wipeCleanup===finishWipe)_wipeCleanup=null;res();};
+   const finishWipe=()=>{clearTimeout(tm);clearTimeout(tmEnd);callMid();w.classList.remove("on");if(_wipeCleanup===finishWipe)_wipeCleanup=null;res();};
    _wipeCleanup=finishWipe;w.classList.add("on");
+   tmEnd=setTimeout(finishWipe,860);
    const a=Motion.run(w,[{transform:"translate3d(-115%,0,0) skewX(-14deg)"},{transform:"translate3d(0,0,0) skewX(-14deg)"}],{duration:300,easing:EASE.in,essential:true});
    Motion.run($("#wipecap"),[{opacity:0,transform:"translate3d(-40px,0,0)"},{opacity:1,transform:"none"}],{duration:260,delay:120});
    a.onfinish=()=>{callMid();tm=setTimeout(()=>{const b=Motion.run(w,[{transform:"translate3d(0,0,0) skewX(-14deg)"},{transform:"translate3d(115%,0,0) skewX(-14deg)"}],{duration:360,easing:EASE.out,essential:true});b.onfinish=finishWipe;},140);};});}
