@@ -79,7 +79,7 @@ html:lang(zh-CN) .huge{font-weight:900}
 .meter .mtop{display:flex;justify-content:space-between;align-items:baseline}
 .meter .num{font:900 30px var(--sans);line-height:1}
 .bar{height:9px;background:var(--bg2);border-radius:6px;margin-top:9px;overflow:hidden;position:relative;border:1px solid var(--line)}
-.bar>i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--calm);border-radius:6px;transition:background .4s}
+.bar>i{position:absolute;left:0;top:0;bottom:0;width:100%;transform:scaleX(0);transform-origin:left;background:var(--calm);border-radius:6px;transition:transform .42s var(--t),background .4s}
 .bar .thr{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--crit);opacity:.5}
 .pop{position:absolute;font:900 15px var(--sans);pointer-events:none;animation:pop 1s var(--t) forwards}
 @keyframes pop{0%{opacity:0;transform:translateY(6px) scale(.7)}25%{opacity:1;transform:translateY(-2px) scale(1.1)}100%{opacity:0;transform:translateY(-26px)}}
@@ -110,7 +110,7 @@ pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .statusbar{grid-column:1/3;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:14px}
 .rel{display:flex;align-items:center;gap:10px;font:600 13px var(--sans)}
 .rel .hb{width:120px;height:8px;background:var(--bg2);border:1px solid var(--line);border-radius:6px;overflow:hidden}
-.rel .hb>i{display:block;height:100%;width:50%;background:var(--ok);transition:background .4s}
+.rel .hb>i{display:block;height:100%;width:100%;transform:scaleX(.5);transform-origin:left;background:var(--ok);transition:transform .42s var(--t),background .4s}
 .steplabel{font:600 11px var(--mono);color:var(--ink2);letter-spacing:.08em}
 /* ---------- CHOICE / QTE ---------- */
 #choicelayer{position:absolute;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
@@ -432,7 +432,7 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}}
 html.rm *,html.rm *::before,html.rm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}
 html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:none}
-</style>  <script type="module" crossorigin src="./assets/index-Bby-ji8F.js"></script>
+</style>  <script type="module" crossorigin src="./assets/index-Cn7MRQyb.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-3IYS3jOk.css">
 </head>
 <style>
@@ -491,7 +491,7 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
 <div class="hud">
  <div class="brand"><span class="d" id="hudled"></span><span>LEDRING</span></div>
  <div class="mid" id="hudmid">BUILD ANYTHING</div>
- <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang">中文</span></div>
+ <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang">中文</span></div>
 </div>
 <div id="toasts"></div>
 <div id="codec"></div><div id="minicodec" role="status"></div><div id="bang" aria-hidden="true"></div>
@@ -843,12 +843,12 @@ const DICT={en:{
  siwcStep1:"Opening chatgpt.com in your browser…",siwcConsentT:"LEDRING Play wants to:",siwcPerm1:"Know who you are (name, email)",siwcPerm2:"Use your ChatGPT plan for AI requests",siwcApprove:"Allow",siwcCancel:"Cancel",
  siwcNote:"Official Sign in with ChatGPT. It runs in the local bridge, so tokens never reach this page. Usage counts toward your ChatGPT plan; set a per-app limit in ChatGPT Settings → Usage.",
  siwcMockRun:"This page cannot sign in. It will not show Connected.",siwcConnected:"Connected",siwcOffPlan:"Plan usage is off. Turn it on to build.",
- motionOff:"motion: reduced",
+ motionOff:"motion: reduced",motionOn:"motion: full",
 },zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐",siwcManage:"管理用量",siwcOut:"断开",
  siwcStep1:"正在浏览器中打开 chatgpt.com……",siwcConsentT:"LEDRING Play 请求：",siwcPerm1:"知道你是谁（姓名、邮箱）",siwcPerm2:"用你的 ChatGPT 套餐发起 AI 请求",siwcApprove:"允许",siwcCancel:"取消",
  siwcNote:"官方「使用 ChatGPT 登录」。在本地桥接中运行，令牌不会进入本页面。用量计入你的 ChatGPT 套餐；可在 ChatGPT 设置 → 用量 中为每个应用设上限。",
  siwcMockRun:"此页面不能登录，也不会显示已连接。",siwcConnected:"已连接",siwcOffPlan:"套餐用量未开启。开启后才能构建。",
- motionOff:"动效：已减弱",
+ motionOff:"动效：已减弱",motionOn:"动效：完整",
 
  msEye:"选择构建",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 模型",
  icTag:"你的想法",icPh:"随便写：游戏、工具、页面……",icHint:"中英文均可。代理会写成一个 HTML 文件。",
@@ -927,12 +927,12 @@ const COL={calm:"#1E63E9",proc:"#E8A50A",crit:"#E01E2B",ok:"#1C9D54"};
 function ringSVG(el,state){
  const c=state==="crit"?COL.crit:state==="proc"?COL.proc:COL.calm;
  const vb=el.viewBox.baseVal, cx=vb.width/2, cy=vb.height/2, R=vb.width*0.33;
+ const spin=RM?"":`<animateTransform attributeName="transform" type="rotate" from="-90 ${cx} ${cy}" to="270 ${cx} ${cy}" dur="${state==="crit"?2:state==="proc"?5:9}s" repeatCount="indefinite"/>`;
+ const pulse=RM?"":`<animate attributeName="opacity" values="${state==="crit"?.4:.3};${state==="crit"?1:.7};${state==="crit"?.4:.3}" dur="${state==="crit"?.6:1.8}s" repeatCount="indefinite"/>`;
  el.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${R*1.25}" fill="none" stroke="${c}22" stroke-width="1"/>
   <circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${c}" stroke-width="${vb.width*0.1}" stroke-linecap="round"
-   stroke-dasharray="${2*Math.PI*R*0.74} ${2*Math.PI*R}" transform="rotate(-90 ${cx} ${cy})">
-   <animateTransform attributeName="transform" type="rotate" from="-90 ${cx} ${cy}" to="270 ${cx} ${cy}" dur="${state==="crit"?2:state==="proc"?5:9}s" repeatCount="indefinite"/></circle>
-  <circle cx="${cx}" cy="${cy}" r="${R*0.5}" fill="${c}" opacity="${state==="crit"?.9:.65}">
-   <animate attributeName="opacity" values="${state==="crit"?.4:.3};${state==="crit"?1:.7};${state==="crit"?.4:.3}" dur="${state==="crit"?.6:1.8}s" repeatCount="indefinite"/></circle>`;
+   stroke-dasharray="${2*Math.PI*R*0.74} ${2*Math.PI*R}" transform="rotate(-90 ${cx} ${cy})">${spin}</circle>
+  <circle cx="${cx}" cy="${cy}" r="${R*0.5}" fill="${c}" opacity="${state==="crit"?.9:.65}">${pulse}</circle>`;
 }
 let ledState="";
 function setLED(s){if(s===ledState)return;ledState=s;ringSVG($("#runring"),s);const c=s==="crit"?COL.crit:s==="proc"?COL.proc:COL.calm;
@@ -946,19 +946,19 @@ let drift=0, peakDrift=0, trust=50;
 function calcDrift(){return Math.max(0,Math.min(100,
  SIG.retries*12 + Math.min(SIG.errors,4)*9 + Math.min(SIG.diff,100)*0.22 + SIG.risk*24 + SIG.shortcuts*7 + SIG.apiErr*10 + (SIG.streaming?6:0)));}
 function updateSignals(){const nd=Math.round(calcDrift()), d=nd-drift; drift=nd; peakDrift=Math.max(peakDrift,drift);
- Motion.count($("#mnum"),drift,450);$("#mbar").style.width=drift+"%";
+ Motion.count($("#mnum"),drift,450);$("#mbar").style.transform=`scaleX(${Math.max(0,Math.min(1,drift/100))})`;
  const st=drift>=60?"crit":drift>=30?"proc":"calm";
  $("#mbar").style.background=st==="crit"?COL.crit:st==="proc"?COL.proc:COL.calm; setLED(st);
  $("#minfo").textContent=[["sRetry",SIG.retries],["sErr",SIG.errors],["sDiff",Math.round(SIG.diff)+"%"],["sRisk",SIG.risk]].map(([k,v])=>T[k]+" "+v).join(" · ");
- if(d){const p=document.createElement("div");p.className="pop";p.style.left="60%";p.style.top="8px";
+ if(d&&!RM){const p=document.createElement("div");p.className="pop";p.style.left="60%";p.style.top="8px";
   p.style.color=d>0?COL.crit:COL.ok;p.textContent=(d>0?"▲+":"▼")+Math.abs(d);$(".meter").appendChild(p);setTimeout(()=>p.remove(),1000);}}
 function setTrust(d,why){trust=Math.max(0,Math.min(100,trust+d));
- $("#relbar").style.width=trust+"%";Motion.count($("#relnum"),Math.round(trust),500);
+ $("#relbar").style.transform=`scaleX(${Math.max(0,Math.min(1,trust/100))})`;Motion.count($("#relnum"),Math.round(trust),500);
  $("#relbar").style.background=trust>=60?COL.ok:trust>=30?COL.proc:COL.crit;
  if(d)toast((d>0?"<span class='up'>▲ </span>":"<span class='dn'>▼ </span>")+T.tTrustUp+" "+(d>0?"+":"")+d+(why?" · "+why:""),1300);}
 function toast(html,ms){const t=document.createElement("div");t.className="toast";t.innerHTML=html;$("#toasts").appendChild(t);
  setTimeout(()=>{t.classList.add("out");setTimeout(()=>t.remove(),400)},ms||1800);}
-function shake(){$("#stage").classList.add("shake");$("#flash").classList.add("go");
+function shake(){if(RM)return;$("#stage").classList.add("shake");$("#flash").classList.add("go");
  setTimeout(()=>{$("#stage").classList.remove("shake");$("#flash").classList.remove("go")},520);}
 
 /* ---- log ---- */
@@ -998,26 +998,32 @@ function banner(txt,tone){const b=$("#banner");b.textContent=txt;b.className="ba
    - every animation on an element cancels the previous one (interruptible)
    - reduced motion: OS setting or ?rm → short fades, no shake/flash/spin/particles
    - one read pass then one write pass (no layout thrash): measure with getBoundingClientRect first, then animate */
-const RM=(()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches||P.has("rm")}catch(e){return P.has("rm")}})();
+let RM=(()=>{try{const sv=localStorage.getItem("ledring-rm");if(sv==="1")return true;if(sv==="0"&&!P.has("rm"))return false;return matchMedia("(prefers-reduced-motion: reduce)").matches||P.has("rm")}catch(e){return P.has("rm")}})();
 if(RM)document.documentElement.classList.add("rm");
 const EASE={out:"cubic-bezier(.2,.8,.2,1)",snap:"cubic-bezier(.3,1.4,.4,1)",in:"cubic-bezier(.6,0,.8,.2)",io:"cubic-bezier(.65,0,.35,1)"};
+const DUR={micro:120,fast:220,normal:420,slow:700};
+let _wipeCleanup=null;
 const Motion={
+ tokens:{ease:EASE,duration:DUR},
+ isReduced(){return RM;},
+ setReduced(v){RM=!!v;document.documentElement.classList.toggle("rm",RM);try{localStorage.setItem("ledring-rm",RM?"1":"0")}catch(e){}if(typeof paintRm==="function")paintRm();},
+ toggleReduced(){this.setReduced(!RM);return RM;},
  run(el,kf,o){if(!el||!el.animate)return null;o=o||{};
   if(el.__anim&&o.replace!==false){try{el.__anim.cancel()}catch(e){}}
-  if(RM&&!o.essential){kf=o.rmKf||[{opacity:kf[0].opacity??0},{opacity:kf[kf.length-1].opacity??1}];o=Object.assign({},o,{duration:Math.min(160,o.duration||160),delay:0});}
+  if(RM){const sOp=kf[0].opacity??1,eOp=kf[kf.length-1].opacity??1;kf=o.rmKf||[{opacity:sOp,transform:"none"},{opacity:eOp,transform:"none"}];o=Object.assign({},o,{duration:Math.min(DUR.micro,o.duration||DUR.micro),delay:0});}
   if(FAST)o=Object.assign({},o,{duration:Math.min(60,o.duration||60),delay:Math.min(20,o.delay||0)});
-  const a=el.animate(kf,{duration:o.duration||400,delay:o.delay||0,easing:o.easing||EASE.out,fill:o.fill||"both"});el.__anim=a;return a;},
+  const a=el.animate(kf,{duration:o.duration||DUR.normal,delay:o.delay||0,easing:o.easing||EASE.out,fill:o.fill||"both"});el.__anim=a;return a;},
  /* staggered rise (React Bits "AnimatedContent"/"SplitText" style) */
  stagger(els,o){o=o||{};[...els].forEach((el,i)=>Motion.run(el,[{opacity:0,transform:`translate3d(${o.x||0}px,${o.y??18}px,0) ${o.rot?`rotate(${o.rot}deg)`:""}`},{opacity:1,transform:"none"}],{duration:o.duration||520,delay:(o.delay||0)+i*(o.each||45),easing:o.easing||EASE.out}));},
  split(el,o){ // split text into chars, keep words together for wrapping; aria-label keeps it readable
-  if(!el)return;const txt=el.textContent;el.setAttribute("aria-label",txt);
+  if(!el)return;const txt=el.textContent;el.setAttribute("aria-label",txt);if(RM)return;
   const html=el.innerHTML.split(/(<br\s*\/?>)/i).map(part=>/^<br/i.test(part)?part:part.split(/(\s+)/).map(w=>/^\s+$/.test(w)||!w?w:`<span class="sw" aria-hidden="true">${[...w].map(c=>`<span class="sc">${esc(c)}</span>`).join("")}</span>`).join("")).join("");
   el.innerHTML=html;Motion.stagger(el.querySelectorAll(".sc"),Object.assign({y:"38",rot:6,each:22,duration:560,easing:EASE.snap},o||{}));},
  pop(el,d){return Motion.run(el,[{opacity:0,transform:"scale(.86) translate3d(0,10px,0)"},{opacity:1,transform:"none"}],{duration:380,delay:d||0,easing:EASE.snap});},
- stamp(el,d){if(typeof SFX!=="undefined")SFX.play("stamp");return Motion.run(el,[{opacity:0,transform:"scale(2.2) rotate(-8deg)"},{opacity:1,transform:"scale(.92) rotate(-3deg)",offset:.6},{opacity:1,transform:"scale(1) rotate(-3deg)"}],{duration:420,delay:d||0,easing:EASE.in});},
- shake(el,amt){if(RM||!el)return;amt=amt||8;return Motion.run(el,[0,1,2,3,4,5,6].map(i=>({transform:`translate3d(${i%2?amt:-amt}px,${(i%3-1)*amt*.4}px,0)`})).concat([{transform:"none"}]),{duration:420,easing:"linear",fill:"none"});},
+ stamp(el,d){if(typeof SFX!=="undefined")SFX.play("stamp");return Motion.run(el,[{opacity:0,transform:"scale(2.2) rotate(-8deg)"},{opacity:1,transform:"scale(.92) rotate(-3deg)",offset:.6},{opacity:1,transform:"scale(1) rotate(-3deg)"}],{duration:DUR.normal,delay:d||0,easing:EASE.in});},
+ shake(el,amt){if(RM||!el)return null;amt=amt||8;return Motion.run(el,[0,1,2,3,4,5,6].map(i=>({transform:`translate3d(${i%2?amt:-amt}px,${(i%3-1)*amt*.4}px,0)`})).concat([{transform:"none"}]),{duration:DUR.normal,easing:"linear",fill:"none"});},
  /* hit-stop: freeze the stage for a few frames before impact (Vlambeer "screenshake"/"hitstop") */
- async hitstop(ms){if(RM)return;const st=$("#stage");st.classList.add("hitstop");await new Promise(r=>setTimeout(r,ms||90));st.classList.remove("hitstop");},
+ async hitstop(ms){if(RM)return;const st=$("#stage");st.classList.add("hitstop");await new Promise(r=>setTimeout(r,FAST?Math.min(ms||90,20):(ms||90)));st.classList.remove("hitstop");},
  /* number roll (count-up), writes textContent only */
  count(el,to,ms){if(!el)return;const from=+el.dataset.v||0;el.dataset.v=to;if(RM||FAST||from===to){el.textContent=Math.round(to);return;}
   const t0=performance.now(),d=ms||500;const step=t=>{const k=Math.min(1,(t-t0)/d),e=1-Math.pow(1-k,3);el.textContent=Math.round(from+(to-from)*e);if(k<1)requestAnimationFrame(step);};requestAnimationFrame(step);},
@@ -1026,7 +1032,7 @@ const Motion={
   for(let i=0;i<n;i++){const p=document.createElement("i");p.className="shard";p.style.left=(x-r.left)+"px";p.style.top=(y-r.top)+"px";p.style.background=o.colors?o.colors[i%o.colors.length]:(o.color||"#0E1114");
    const s=(o.size||8)*(.6+Math.random()*.8);p.style.width=p.style.height=s+"px";host.appendChild(p);
    const a=(o.angle??Math.random()*Math.PI*2)+(o.spread?(Math.random()-.5)*o.spread:0),v=(o.dist||120)*(.5+Math.random());
-   const an=p.animate([{transform:"translate3d(-50%,-50%,0) rotate(0)",opacity:1},{transform:`translate3d(${Math.cos(a)*v-s/2}px,${Math.sin(a)*v+(o.grav||40)}px,0) rotate(${(Math.random()-.5)*540}deg)`,opacity:0}],{duration:(o.dur||700)*(.7+Math.random()*.6),easing:EASE.out,fill:"both"});
+   const an=p.animate([{transform:"translate3d(-50%,-50%,0) rotate(0)",opacity:1},{transform:`translate3d(${Math.cos(a)*v-s/2}px,${Math.sin(a)*v+(o.grav||40)}px,0) rotate(${(Math.random()-.5)*540}deg)`,opacity:0}],{duration:(o.dur||DUR.slow)*(.7+Math.random()*.6),easing:EASE.out,fill:"both"});
    an.onfinish=()=>p.remove();}},
  /* fly a chip from one element to another (FLIP-style: measure both, then animate one transform) */
  fly(fromEl,toEl,html,color){if(!fromEl||!toEl)return;const a=fromEl.getBoundingClientRect(),b=toEl.getBoundingClientRect(),h=$("#fx").getBoundingClientRect();
@@ -1036,11 +1042,15 @@ const Motion={
   const an=c.animate([{transform:"translate3d(-50%,-50%,0) scale(.6)",opacity:0},{transform:`translate3d(calc(-50% + ${dx*.35}px),calc(-50% + ${dy*.35-60}px),0) scale(1.1)`,opacity:1,offset:.35},{transform:`translate3d(calc(-50% + ${dx}px),calc(-50% + ${dy}px),0) scale(.5)`,opacity:.2}],{duration:820,easing:EASE.io,fill:"both"});
   an.onfinish=()=>{c.remove();Motion.run(toEl,[{transform:"scale(1)"},{transform:"scale(1.25)"},{transform:"scale(1)"}],{duration:300,easing:EASE.snap,fill:"none"});};},
  /* ink slab wipe between scenes (skewed panel + caption), interruptible */
- wipe(caption,mid){const w=$("#wipe");$("#wipecap").textContent=caption||"";if(RM||FAST){mid&&mid();return Promise.resolve();}
-  return new Promise(res=>{w.classList.add("on");
+ wipe(caption,mid){if(_wipeCleanup){_wipeCleanup();_wipeCleanup=null;}
+  const w=$("#wipe");$("#wipecap").textContent=caption||"";if(RM||FAST){w.classList.remove("on");mid&&mid();return Promise.resolve();}
+  return new Promise(res=>{let midCalled=false,tm=0;
+   const callMid=()=>{if(!midCalled){midCalled=true;mid&&mid();}};
+   const finishWipe=()=>{clearTimeout(tm);callMid();w.classList.remove("on");if(_wipeCleanup===finishWipe)_wipeCleanup=null;res();};
+   _wipeCleanup=finishWipe;w.classList.add("on");
    const a=Motion.run(w,[{transform:"translate3d(-115%,0,0) skewX(-14deg)"},{transform:"translate3d(0,0,0) skewX(-14deg)"}],{duration:300,easing:EASE.in,essential:true});
    Motion.run($("#wipecap"),[{opacity:0,transform:"translate3d(-40px,0,0)"},{opacity:1,transform:"none"}],{duration:260,delay:120});
-   a.onfinish=()=>{mid&&mid();setTimeout(()=>{const b=Motion.run(w,[{transform:"translate3d(0,0,0) skewX(-14deg)"},{transform:"translate3d(115%,0,0) skewX(-14deg)"}],{duration:360,easing:EASE.out,essential:true});b.onfinish=()=>{w.classList.remove("on");res();};},140);};});}
+   a.onfinish=()=>{callMid();tm=setTimeout(()=>{const b=Motion.run(w,[{transform:"translate3d(0,0,0) skewX(-14deg)"},{transform:"translate3d(115%,0,0) skewX(-14deg)"}],{duration:360,easing:EASE.out,essential:true});b.onfinish=finishWipe;},140);};});}
 };
 /* ================= LLM ================= */
 const PROV_DEFAULT={mode:"demo",
@@ -1273,7 +1283,7 @@ function qte(v){return new Promise(resolve=>{
  const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");
  const opts=[["short",T.oShort,T.oShortD,"risk","1"],["tests",T.oTests,T.oTestsD,"safe","2"],["polish",T.oPolish,T.oPolishD,"","3"],["cut",T.oCut,T.oCutD,"","4"],["plug",T.oPlug,T.oPlugD,"risk","5"]];
  let sec=FAST?4:10,done=false,left=sec,tm=null,tk=null,asked=false,answer="";
- const qs=()=>fill(T.cqs[(v+RUN.st.shortcut)%T.cqs.length],{v});
+ const qs=()=>fill(T.cqs[(v+((RUN&&RUN.st&&RUN.st.shortcut)||0))%T.cqs.length],{v});
  const draw=()=>{box.innerHTML=`<div class="qq">${qs()}</div><div class="qsub">${fill(T.cs,{v})}</div>
   ${answer?`<div class="answer">${answer}</div>`:""}
   <div class="qopts">${opts.map(([id,l,d,c,k])=>`<button class="qopt" data-id="${id}"><span>${l}${d?` <span class="${c}">· ${d}</span>`:""}</span><span class="k">${k}</span></button>`).join("")}
@@ -1884,6 +1894,8 @@ function paintStatic(){
 $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl)}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
 $("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}startInsp();};
+function paintRm(){const b=$("#rm-btn");if(b){b.textContent=RM?T.motionOff:T.motionOn;b.classList.toggle("on",RM);b.setAttribute("aria-pressed",String(RM));}}
+$("#rm-btn").onclick=()=>Motion.toggleReduced();paintRm();
 $("#sfx").onclick=()=>SFX.set(!SFX.on);paintSfx();
 $("#e-strand").onclick=leaveStrand;
 $("#strandtag").textContent=fill(T.strandTag,{n:GHOSTS.length});Strands.start();
@@ -1900,7 +1912,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,setCode(html){CODE.html=html;renderCode();}};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,setCode(html){CODE.html=html;renderCode();}};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
