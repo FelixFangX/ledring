@@ -16,6 +16,13 @@ import {
 } from "@ledring/play-providers";
 import { JudgeRuntime, JudgeUnavailableError, judgeArtifact, judgeBody } from "@ledring/play-judge";
 import { replayEvents, streamTrace, type PlayEvent } from "@ledring/play-core";
+import {
+  PREVIEW_CSP,
+  WEBCONTAINER_HEADERS,
+  normalizeFilePlan,
+  previewContentType,
+  resolveSandboxBackend,
+} from "@ledring/play-sandbox";
 import { z } from "zod";
 import { providerSecrets, type BridgeConfig } from "./config.js";
 import { appendSessionLog, listSessionIds, readPlayLog, readSessionIndex, readSessionLog, upsertSessionSummary, writePlayLog } from "./store.js";
@@ -33,6 +40,12 @@ const judgeSchema = z
 const librarySchema = z
   .object({
     events: z.array(z.object({ type: z.string() }).passthrough()).min(1).max(400),
+  })
+  .strict();
+
+const previewSchema = z
+  .object({
+    files: z.array(z.object({ path: z.string().max(80), contents: z.string().max(200_000) }).strict()).min(1).max(8),
   })
   .strict();
 
@@ -266,6 +279,7 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
   const providers = providersFor(config, opts, siwc.provider);
   const sessionDir = opts.home ? join(opts.home, "sessions") : undefined;
   const sessions = new Map<string, Session>();
+  const previews = new Map<string, Map<string, string>>();
   const attach = (session: Session): Session => {
     if (sessionDir) session.save = (stored) => appendSessionLog(sessionDir, session.id, stored);
     return session;
@@ -318,6 +332,29 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
 
     if (method === "GET" && pathname === "/api/status") {
       send(res, 200, { ok: true, service: "ledring-play" }, { "access-control-allow-origin": "*" });
+      finishLog(200);
+      return;
+    }
+
+    if (method === "GET" && pathname.startsWith("/api/preview/")) {
+      const parts = pathname.split("/").filter(Boolean);
+      const id = parts[2] ?? "";
+      const file = parts[3] ?? "";
+      const preview = parts.length === 4 && /^[\w-]+$/.test(id) ? previews.get(id) : undefined;
+      const contents = preview?.get(file);
+      if (contents === undefined) {
+        send(res, 404, { error: "not found" });
+        finishLog(404);
+        return;
+      }
+      res.writeHead(200, {
+        "content-type": previewContentType(file),
+        "cache-control": "no-store",
+        "content-security-policy": PREVIEW_CSP,
+        "x-content-type-options": "nosniff",
+        ...WEBCONTAINER_HEADERS,
+      });
+      res.end(contents);
       finishLog(200);
       return;
     }
@@ -507,6 +544,35 @@ export async function startBridge(opts: StartBridgeOptions = {}): Promise<Bridge
         const played = replayEvents(entries.map((entry) => entry.event as PlayEvent));
         send(res, 200, { ending: played.ending ?? null, events: entries });
         finishLog(200);
+        return;
+      }
+
+      if (method === "POST" && pathname === "/api/preview") {
+        const parsed = previewSchema.safeParse(JSON.parse((await readBody(req)) || "{}"));
+        if (!parsed.success) {
+          send(res, 400, { error: "invalid request" });
+          finishLog(400);
+          return;
+        }
+        const plan = normalizeFilePlan(parsed.data.files);
+        if (!plan.ok) {
+          send(res, 400, { error: "invalid request" });
+          finishLog(400);
+          return;
+        }
+        const id = randomUUID();
+        previews.set(id, new Map(plan.plan.files.map((file) => [file.path, file.contents])));
+        if (previews.size > 32) {
+          const oldest = previews.keys().next().value;
+          if (oldest) previews.delete(oldest);
+        }
+        send(res, 201, {
+          id,
+          url: `http://127.0.0.1:${port}/api/preview/${id}/index.html`,
+          entry: plan.plan.entry,
+          backend: resolveSandboxBackend(),
+        });
+        finishLog(201);
         return;
       }
 

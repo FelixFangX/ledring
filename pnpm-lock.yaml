@@ -83,6 +83,9 @@ importers:
       '@ledring/play-providers':
         specifier: workspace:*
         version: link:../play-providers
+      '@ledring/play-sandbox':
+        specifier: workspace:*
+        version: link:../play-sandbox
       zod:
         specifier: ^3.23.8
         version: 3.25.76

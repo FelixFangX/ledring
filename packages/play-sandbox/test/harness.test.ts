@@ -4,9 +4,13 @@ import {
   DEGRADED_JUDGE_NOTICE,
   DEGRADED_JUDGE_NOTICE_ZH,
   IFRAME_SANDBOX,
+  MULTI_FILE_PRESET,
+  bootWebcontainer,
   createNonce,
   harness,
+  normalizeFilePlan,
   readHarnessMessage,
+  resolveSandboxBackend,
   withHarness,
 } from "@ledring/play-sandbox";
 
@@ -32,6 +36,27 @@ describe("artifact sandbox", () => {
     expect(readHarnessMessage({ __lr: "other", t: "err", d: "boom" }, nonce)).toBeNull();
     expect(readHarnessMessage({ __lr: nonce, t: "nope", d: 1 }, nonce)).toBeNull();
     expect(readHarnessMessage(null, nonce)).toBeNull();
+  });
+
+  it("keeps the iframe as the default and describes one multi-file preset", () => {
+    const previous = process.env.LEDRING_WEBCONTAINER;
+    delete process.env.LEDRING_WEBCONTAINER;
+    try {
+      expect(resolveSandboxBackend()).toBe("iframe");
+      expect(resolveSandboxBackend("webcontainer")).toBe("iframe");
+      expect(IFRAME_SANDBOX).toBe("allow-scripts");
+      expect(bootWebcontainer().booted).toBe(false);
+      const names = MULTI_FILE_PRESET.files.map((file) => file.path);
+      expect(names).toEqual(["index.html", "app.js", "app.css"]);
+      expect(MULTI_FILE_PRESET.files[1]?.contents).toContain("ready");
+      expect(normalizeFilePlan(MULTI_FILE_PRESET.files).ok).toBe(true);
+      expect(normalizeFilePlan([{ path: "../secret", contents: "x" }]).ok).toBe(false);
+      expect(normalizeFilePlan([{ path: "app.js", contents: "x" }]).ok).toBe(false);
+      expect(normalizeFilePlan([{ path: "https://example.com/app.js", contents: "x" }]).ok).toBe(false);
+    } finally {
+      if (previous === undefined) delete process.env.LEDRING_WEBCONTAINER;
+      else process.env.LEDRING_WEBCONTAINER = previous;
+    }
   });
 
   it("injects the harness into head, html, doctype, or a fragment", () => {
