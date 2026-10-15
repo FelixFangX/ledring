@@ -7,4 +7,4 @@ compatibility_date = "2026-10-15"
 [[d1_databases]]
 binding = "DB"
 database_name = "ledring-play-strands"
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "6ae9635c-de35-402a-b876-a7da8e6b0303"
