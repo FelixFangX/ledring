@@ -1302,4 +1302,197 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 25_000);
+
+  it("enforces 100% i18n key parity with zero unused keys, zh typography rules, >=44px phone tap targets, and zero horizontal overflow at 1280x800, 820x1180, and 390x844", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    mkdirSync(diffDir, { recursive: true });
+    const htmlSource = readFileSync(join(root, "packages/play-web/index.html"), "utf8");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Verify 100% EN/zh key parity and zero unused keys
+      const parityCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const parityPage = await parityCtx.newPage();
+      await parityPage.goto(`${site.url}?fast=1&rm=1&lang=en`);
+      const dictInfo = await parityPage.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: { dict: { en: Record<string, unknown>; zh: Record<string, unknown> } };
+        };
+        const en = w.__ledring.dict.en;
+        const zh = w.__ledring.dict.zh;
+        const nestedKeys = ["risk", "ends", "badge", "pdesc", "pname", "frag"];
+        const nested = Object.fromEntries(
+          nestedKeys.map((k) => [
+            k,
+            {
+              en: Object.keys((en[k] || {}) as Record<string, unknown>).sort(),
+              zh: Object.keys((zh[k] || {}) as Record<string, unknown>).sort(),
+            },
+          ]),
+        );
+        return {
+          enKeys: Object.keys(en).sort(),
+          zhKeys: Object.keys(zh).sort(),
+          nested,
+        };
+      });
+      expect(dictInfo.enKeys).toEqual(dictInfo.zhKeys);
+      for (const [, pair] of Object.entries(dictInfo.nested)) {
+        expect(pair.en).toEqual(pair.zh);
+      }
+      const unusedKeys = dictInfo.enKeys.filter(
+        (k) => !htmlSource.includes(`T.${k}`) && !htmlSource.includes(`DICT.en.${k}`) && !htmlSource.includes(`"${k}"`),
+      );
+      expect(unusedKeys).toEqual([]);
+      await parityCtx.close();
+
+      // 2. Verify responsive layout, zh typography, >=44px phone tap targets, and visual snapshots across 1280x800, 820x1180, 390x844
+      const viewports = [
+        { width: 1280, height: 800, label: "1280x800" },
+        { width: 820, height: 1180, label: "820x1180" },
+        { width: 390, height: 844, label: "390x844" },
+      ];
+
+      for (const lang of ["en", "zh"] as const) {
+        for (const vp of viewports) {
+          const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+          const page = await ctx.newPage();
+          await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+          await page.locator("#menu").waitFor({ state: "visible" });
+
+          if (lang === "zh") {
+            const zhTypo = await page.evaluate(() => {
+              const bodyLh = parseFloat(getComputedStyle(document.body).lineHeight);
+              const bodyFs = parseFloat(getComputedStyle(document.body).fontSize);
+              const eye = document.querySelector("#m-eye") as HTMLElement;
+              const eyeStyle = getComputedStyle(eye);
+              return {
+                htmlLang: document.documentElement.lang,
+                ratio: bodyLh / bodyFs,
+                textTransform: eyeStyle.textTransform,
+                letterSpacing: eyeStyle.letterSpacing,
+              };
+            });
+            expect(zhTypo.htmlLang).toBe("zh-CN");
+            expect(zhTypo.ratio).toBeCloseTo(1.7, 1);
+            expect(zhTypo.textTransform).toBe("none");
+            expect(["0px", "normal"]).toContain(zhTypo.letterSpacing);
+          }
+
+          const checkScene = async (sceneName: string, selector: string) => {
+            await page.waitForTimeout(160);
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+            expect(overflow, `${sceneName} overflow at ${vp.label} (${lang})`).toBeLessThanOrEqual(1);
+            await page.screenshot({ path: join(diffDir, `responsive-${sceneName}-${vp.label}-${lang}.png`) });
+
+            if (vp.width === 390) {
+              const tooSmall = await page.evaluate((sel) => {
+                const rootEl = document.querySelector(sel);
+                if (!rootEl) return [];
+                const targets = [...rootEl.querySelectorAll<HTMLElement>("button, .btn, .qopt, .mode, .mcard, input, textarea")];
+                return targets
+                  .filter((el) => {
+                    const st = getComputedStyle(el);
+                    if (st.display === "none" || st.visibility === "hidden" || (el as HTMLButtonElement).disabled) return false;
+                    const r = el.getBoundingClientRect();
+                    return r.width > 0 && r.height > 0 && (r.width < 43.5 || r.height < 43.5);
+                  })
+                  .map((el) => `${el.id || el.className}:${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}`);
+              }, selector);
+              expect(tooSmall, `${sceneName} phone tap targets at 390x844 (${lang})`).toEqual([]);
+            }
+          };
+
+          // Menu
+          await checkScene("menu", "#menu");
+
+          // Chapter 0 Inspiration
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { show: (id: string) => void } };
+            w.__ledring.show("insp");
+          });
+          await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+          await page.waitForSelector("#in-opts .qopt");
+          await checkScene("insp", "#insp");
+
+          // Idea / Mission Select
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { paintIdea: () => void; show: (id: string) => void } };
+            w.__ledring.paintIdea();
+            w.__ledring.show("missions");
+          });
+          await checkScene("idea", "#missions");
+
+          // Drawer
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { openDrawer: () => void } };
+            w.__ledring.openDrawer();
+          });
+          await checkScene("drawer", "#drawer");
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { closeDrawer: () => void } };
+            w.__ledring.closeDrawer();
+          });
+
+          // Run
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { show: (id: string) => void; setCode: (h: string) => void } };
+            w.__ledring.show("run");
+            w.__ledring.setCode("<!doctype html><html><body><h1> timer </h1></body></html>");
+          });
+          if (vp.width === 390) {
+            const previewAboveCode = await page.evaluate(() => {
+              const pv = document.querySelector(".previewwrap")!.getBoundingClientRect();
+              const cd = document.querySelector("#code")!.getBoundingClientRect();
+              return pv.top < cd.top;
+            });
+            expect(previewAboveCode).toBe(true);
+          }
+          await checkScene("run", "#run");
+
+          // Ending
+          await page.evaluate(() => {
+            const w = window as unknown as {
+              __ledring: { setRun: (r: unknown) => void; paintEnd: (j: unknown) => void };
+            };
+            w.__ledring.setRun({
+              idea: "Focus timer",
+              mode: "demo",
+              model: "demo",
+              html: "<!doctype html><html><body><h1>Timer</h1></body></html>",
+              plan: "1. timer",
+              v: 1,
+              blocked: new Set(),
+              allowed: new Set(),
+              decs: [],
+              snaps: [{ label: "v1", html: "<h1>Timer</h1>" }],
+              steps: [],
+              startedAt: new Date().toISOString(),
+              endedAt: new Date().toISOString(),
+              end: "POLISHED",
+            });
+            w.__ledring.paintEnd({
+              end: "POLISHED",
+              valid: true,
+              left: [],
+              outside: [],
+              tests: [{ name: "t1", pass: true }],
+              fake: false,
+              tpass: 1,
+              errs: 0,
+              bytes: 128,
+            });
+          });
+          await checkScene("end", "#end");
+
+          await ctx.close();
+        }
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
 });
