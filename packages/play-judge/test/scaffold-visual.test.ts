@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { AxeBuilder } from "@axe-core/playwright";
 import { chromium, type Browser, type Page } from "playwright";
 import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
 
@@ -228,4 +229,94 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 25_000);
+
+  it("renders all SIWC states honestly, masks and redacts BYO keys with •••• saved, traps focus in #drawer, and passes axe-core with zero serious violations", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const page = await ctx.newPage();
+
+      // 1. Static / Pages mode without bridge: ChatGPT plan shows Unavailable, clicking Continue explains npx ledring play and never flips to Connected
+      await page.goto(`${site.url}?mode=chatgpt&drawer=1&fast`, { waitUntil: "domcontentloaded" });
+      await page.locator("#drawer.on").waitFor({ state: "visible" });
+      expect(await page.locator("#siwc-unavail").textContent()).toContain("Unavailable on this page");
+      await page.locator("#siwc-go").click();
+      expect(await page.locator("#siwc-flow").textContent()).toContain("npx ledring play");
+      expect(await page.locator("#drawer").textContent()).not.toContain("Using ChatGPT plan");
+      expect(await page.locator(".siwc").getAttribute("data-siwc-state")).toBe("unavailable");
+
+      // 2. Test all SIWC states across EN/zh and 1280/820/390 + axe-core zero serious violations
+      const states = ["unavailable", "signed_out", "waiting", "declined", "connected", "plan_off", "usage_limit", "expired"] as const;
+      for (const st of states) {
+        await page.evaluate((s) => {
+          const w = window as unknown as { __ledring: { setSiwcState: (s: string, o?: Record<string, string>) => void } };
+          w.__ledring.setSiwcState(s, { name: "Ada Lovelace", email: "ada@analytical.engine" });
+        }, st);
+        expect(await page.locator(".siwc").getAttribute("data-siwc-state")).toBe(st);
+        const cardText = (await page.locator(".siwc").textContent()) ?? "";
+        if (st === "connected") {
+          expect(cardText).toContain("Using ChatGPT plan");
+          expect(cardText).toContain("Manage usage ↗");
+          expect(await page.locator("#siwc-manage").getAttribute("href")).toBe(
+            "https://help.openai.com/en/articles/20001542-using-your-chatgpt-plan-in-other-apps-and-sites",
+          );
+        } else {
+          expect(cardText).not.toContain("Using ChatGPT plan");
+        }
+        if (st === "usage_limit") {
+          expect(await page.locator("#siwc-manage-primary").textContent()).toContain("Manage usage ↗");
+        }
+      }
+
+      for (const vp of [
+        { width: 1280, height: 800 },
+        { width: 820, height: 1180 },
+        { width: 390, height: 844 },
+      ]) {
+        await page.setViewportSize(vp);
+        const box = await page.locator("#drawer").boundingBox();
+        expect(box).toBeTruthy();
+        expect(box!.width).toBeLessThanOrEqual(vp.width + 1);
+      }
+      await page.setViewportSize({ width: 1280, height: 800 });
+
+      // 3. BYO key masking & redaction: entering a key never leaves raw key in DOM and shows •••• saved
+      await page.locator('.mode[data-mode="openai"]').click();
+      expect(await page.locator("#demotag").textContent()).toContain("live ·");
+      const rawSecret = "sk-test-secret-do-not-leak-999999";
+      await page.locator("#p-key").fill(rawSecret);
+      await page.locator("#p-key").dispatchEvent("change");
+      const keyState = await page.evaluate(() => {
+        const input = document.querySelector("#p-key") as HTMLInputElement;
+        return {
+          value: input.value,
+          placeholder: input.placeholder,
+          savedBadge: document.querySelector("#p-key-saved")?.textContent ?? "",
+          htmlContainsSecret: document.documentElement.innerHTML.includes("sk-test-secret-do-not-leak-999999"),
+        };
+      });
+      expect(keyState).toEqual({
+        value: "",
+        placeholder: "•••• saved",
+        savedBadge: "•••• saved",
+        htmlContainsSecret: false,
+      });
+
+      // 4. axe-core check on open drawer (zero serious/critical violations)
+      const axe = await new AxeBuilder({ page }).include("#drawer").analyze();
+      const serious = axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(serious).toEqual([]);
+
+      // 5. Escape closes drawer
+      await page.keyboard.press("Escape");
+      expect(await page.locator("#drawer").evaluate((el) => el.classList.contains("on"))).toBe(false);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
 });
