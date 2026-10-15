@@ -167,6 +167,27 @@ describe("ledring card", () => {
     expect(JSON.parse(io.stdout()).supportedInterfaces).toEqual([]);
     expect(io.stderr()).toMatch(/--url/);
   });
+
+  it("renders a play trace without treating it as agent markdown", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ledring-"));
+    const trace = join(dir, "session.json");
+    writeFileSync(trace, JSON.stringify({
+      schema: "ledring.trace.v1",
+      id: "snake",
+      source: "ledring-play",
+      instruction: "a small snake",
+      steps: [],
+      "x-ledring-play": { ending: "POLISHED" },
+    }));
+    const io = nodeIOForTest();
+    expect(await run(["card", trace, "--svg", join(dir, "card.svg")], io)).toBe(0);
+    const card = JSON.parse(io.stdout());
+    expect(card.name).toBe("LEDRING Play");
+    expect(card.description).toBe("a small snake");
+    expect(card.skills[0].name).toBe("POLISHED");
+    expect(readFileSync(join(dir, "card.svg"), "utf8")).toMatch(/^<svg/);
+    expect(io.stderr()).toBe("");
+  });
 });
 
 describe("ledring redwall", () => {

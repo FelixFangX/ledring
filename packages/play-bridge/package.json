@@ -13,6 +13,7 @@
     "test": "vitest run --root ../.. packages/play-bridge/test"
   },
   "dependencies": {
+    "@ledring/play-core": "workspace:*",
     "@ledring/play-judge": "workspace:*",
     "@ledring/play-providers": "workspace:*",
     "zod": "^3.23.8"

@@ -86,6 +86,32 @@ export function cardFromConfig(src: CardSources): AgentCard {
   };
 }
 
+/** Spec card for a Play trace. Agent markdown cards stay on {@link cardFromConfig}. */
+export function cardFromPlayTrace(input: { instruction?: string; ending?: string }): AgentCard {
+  const ending = input.ending && input.ending.length > 0 ? input.ending : "UNJUDGED";
+  return {
+    name: "LEDRING Play",
+    description: (input.instruction || "Play session").slice(0, 280),
+    version: "0.1.0",
+    supportedInterfaces: [],
+    capabilities: {
+      streaming: false,
+      pushNotifications: false,
+      extensions: [
+        {
+          uri: PERMISSIONS_EXTENSION,
+          description: "Play session. This is not an agent permission card.",
+          required: false,
+          params: { tools: [], permissions: { allow: [], ask: [], deny: [] }, mcpServers: [] },
+        },
+      ],
+    },
+    defaultInputModes: ["text"],
+    defaultOutputModes: ["text/html"],
+    skills: [{ id: "ending", name: ending, description: `Ending ${ending}`, tags: ["play"] }],
+  };
+}
+
 function firstParagraph(body: string): string {
   return body.split(/\n\s*\n/).map((p) => p.trim()).find((p) => p && !p.startsWith("#")) ?? "";
 }

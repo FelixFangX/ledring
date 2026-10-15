@@ -13,7 +13,7 @@ The page talks to `/api/*`. Provider API keys stay in this process (`~/.ledring/
 | `GET /api/sessions/:id/stream?from=` | token | Replay and follow from an event id. |
 | `POST /api/sessions/:id/stop` | token | Abort the upstream request. |
 | `POST /api/judge` | token | Headless judge. Body `{ html, wantTests?, wantPolish?, leakedDespiteBlock?, checks? }`. `checks` is model-proposed JSON. Hostile checks are rejected and do not run. `400` when the body is invalid, `503` when Chromium cannot launch. |
-| `GET /api/sessions/:id/trace` | token | `501` until session export lands. |
+| `GET /api/sessions/:id/trace` | token | `ledring.trace.v1` for the session. `x-ledring-play` is attached after schema validation. |
 
 A bad `Host` is **421**. A foreign `Origin` is **403**. A missing token is **403**. `GET /` sets an HttpOnly `ledring_token` cookie for the local page and does not print the token in the HTML.
 

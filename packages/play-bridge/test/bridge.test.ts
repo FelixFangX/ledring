@@ -264,3 +264,42 @@ describe("provider config", () => {
     expect(readProviderHome(dir).warning).toBeUndefined();
   });
 });
+
+describe("session resume", () => {
+  it("reloads events and a trace after the bridge process stops", async () => {
+    const home = mkdtempSync(join(tmpdir(), "ledring-play-"));
+    const first = await startBridge({ token: TOKEN, home });
+    let id = "";
+    try {
+      const created = await fetch(new URL("/api/sessions", first.url), {
+        method: "POST",
+        headers: { "x-ledring-token": TOKEN },
+      });
+      id = ((await created.json()) as { id: string }).id;
+      const text = await sseText(await fetch(new URL(`/api/sessions/${id}/steps`, first.url), {
+        method: "POST",
+        headers: { "x-ledring-token": TOKEN, "content-type": "application/json" },
+        body: JSON.stringify({ provider: "demo", system: "s", user: "u" }),
+      }));
+      expect(text).toContain("DEMO · synthetic cassette, not a live model recording");
+      const trace = await fetch(new URL(`/api/sessions/${id}/trace`, first.url), { headers: { "x-ledring-token": TOKEN } });
+      expect(trace.status).toBe(200);
+      const body = (await trace.json()) as { schema: string; "x-ledring-play": { promptVersion: string } };
+      expect(body.schema).toBe("ledring.trace.v1");
+      expect(body["x-ledring-play"].promptVersion).toBeTruthy();
+    } finally {
+      await first.close();
+    }
+
+    const second = await startBridge({ token: TOKEN, home });
+    try {
+      const replay = await fetch(new URL(`/api/sessions/${id}/stream?from=0`, second.url), {
+        headers: { "x-ledring-token": TOKEN },
+      });
+      expect(replay.status).toBe(200);
+      expect(await replay.text()).toContain("DEMO · synthetic cassette, not a live model recording");
+    } finally {
+      await second.close();
+    }
+  });
+});
