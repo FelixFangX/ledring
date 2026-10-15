@@ -26,6 +26,7 @@ export {
   CHOICE_IDS,
   PHASES,
   PlayError,
+  classifyScan,
   createSession,
   factsFor,
   freshFindings,

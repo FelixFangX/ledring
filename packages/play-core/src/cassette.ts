@@ -3,7 +3,6 @@ import {
   PlayError,
   createSession,
   factsFor,
-  freshFindings,
   transition,
   type ChoiceId,
   type PlayState,
@@ -141,9 +140,7 @@ function deliver(
     }
     const fixHtml = fixes.shift() ?? html;
     const findings = options.scanCode?.(fixHtml) ?? [];
-    // A fix that still contains only categories the human already blocked does not open a new wall.
     next = transition(next, { type: "artifact", html: fixHtml, findings });
-    if (freshFindings(next, findings).length === 0 && next.phase !== "codeWall") break;
   }
   return next;
 }
