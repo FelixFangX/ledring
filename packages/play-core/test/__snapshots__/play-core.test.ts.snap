@@ -1,0 +1,55 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`prompts > snapshots builders with their version id 1`] = `
+{
+  "build": "Idea: a snake game
+
+Your plan:
+1. Draw a grid
+
+Supervisor constraints (hard): do NOT use: network call. Everything must stay inside this one page.
+
+Write version 1 of the file now.",
+  "fix": "Idea: a snake game
+
+Current file:
+\`\`\`html
+<p>x</p>
+\`\`\`
+
+The supervisor BLOCKED these: network call. Remove every use of them and keep the rest working.
+Supervisor constraints (hard): do NOT use: network call. Everything must stay inside this one page.
+
+Return the complete file.",
+  "next": "Idea: a snake game
+
+Current file:
+\`\`\`html
+<p>x</p>
+\`\`\`
+
+Supervisor instruction for v2: Add REAL in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show 'N/M tests pass' small on the page. Fix bugs the tests reveal.
+
+Return the complete updated file.",
+  "plan": "Idea: a snake game
+
+Write a short build plan: 3-5 numbered lines, under 12 words each. Name any web features you intend to use (storage, network, libraries). No code.",
+  "system": "You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.
+You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.
+Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single \`\`\`html code block, with at most 2 short sentences before it.
+Write UI text in English unless the idea clearly asks otherwise.",
+  "systemZh": "You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.
+You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.
+Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single \`\`\`html code block, with at most 2 short sentences before it.
+Write UI text in Simplified Chinese unless the idea clearly asks otherwise.",
+  "version": "play-prompts.v1",
+  "why": "Idea: a snake game
+
+Current file:
+\`\`\`html
+<p>x</p>
+\`\`\`
+
+Your last step: wrote v1. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code. Reply in Simplified Chinese.",
+}
+`;
