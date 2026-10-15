@@ -116,7 +116,10 @@ describe.skipIf(!installed && !process.env.CI)("play perf trace", () => {
         // Start a wipe to insp and immediately interrupt it with a wipe to missions
         hook.show("insp", "FIRST WIPE");
         hook.show("missions", "SECOND WIPE");
-        await new Promise((r) => setTimeout(r, 900));
+        const t0 = Date.now();
+        while (document.querySelector("#wipe")?.classList.contains("on") && Date.now() - t0 < 2500) {
+          await new Promise((r) => setTimeout(r, 25));
+        }
         const wipeOn = document.querySelector("#wipe")?.classList.contains("on") ?? false;
         const missionsOn = document.querySelector("#missions")?.classList.contains("on") ?? false;
 

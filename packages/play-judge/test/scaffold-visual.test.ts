@@ -781,15 +781,20 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         const nudgedVal = await page.locator("#in-free").inputValue();
         expect(nudgedVal.length).toBeGreaterThan(0);
         await page.keyboard.press("Enter");
-        await page.waitForTimeout(40);
+        await page.waitForFunction(() => {
+          const free = document.querySelector("#in-free");
+          return document.querySelectorAll("#in-frags .frag").length === 1 && document.activeElement !== free;
+        });
 
         // Q2: press "1"
         await page.keyboard.press("1");
-        await page.waitForTimeout(40);
+        await page.waitForFunction(() => document.querySelectorAll("#in-frags .frag").length === 2);
 
         // Q3: press "2"
         await page.keyboard.press("2");
-        await page.waitForTimeout(60);
+        await page.waitForFunction(
+          () => document.querySelectorAll("#in-frags .frag").length === 3 && document.querySelectorAll("#in-opts .dir").length === 3,
+        );
 
         expect(await page.locator("#in-frags .frag").count()).toBe(3);
         const rrLabels = await page.locator("#in-frags .rr").evaluateAll((els) =>
