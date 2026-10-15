@@ -16,7 +16,13 @@ describe("play page", () => {
     expect(html).not.toContain("ledring-siwc-mock");
     expect(html).not.toContain("connected:true");
     expect(html).not.toMatch(/Quantic|Konami|\bSony\b|Detroit|Persona/);
-    expect(html).toContain("available:()=>!!TB");
+    expect(html).toContain("available:()=>!!TB&&!usesRecorded()");
+    expect(html).toContain("available:()=>!usesRecorded(),");
+    expect(html).toContain("if(INSP.live)scan();else askQ();");
+    expect(html).toContain(
+      'function cassetteLabel(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "recorded from "+p.model+" on "+p.recordedAt;return "DEMO · synthetic cassette, not a live model recording";}',
+    );
+    expect(html.match(/recorded from /g)).toEqual(["recorded from "]);
     expect(html).toContain(DEGRADED_JUDGE_NOTICE);
     expect(html).toContain(DEGRADED_JUDGE_NOTICE_ZH);
     expect(html).toContain("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:");

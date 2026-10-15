@@ -17,6 +17,16 @@ export interface CassetteProvenance {
   recordedAt?: string;
 }
 
+const SYNTHETIC_LABEL = "DEMO · synthetic cassette, not a live model recording";
+
+/** UI caption. "recorded from …" only when a real model and timestamp are present. */
+export function cassetteLabel(provenance: CassetteProvenance | undefined): string {
+  if (provenance?.kind === "recorded" && provenance.model && provenance.recordedAt) {
+    return `recorded from ${provenance.model} on ${provenance.recordedAt}`;
+  }
+  return SYNTHETIC_LABEL;
+}
+
 export interface CassetteArtifact {
   html: string;
 }

@@ -40,7 +40,7 @@ export {
   type RiskFinding,
   type WallRecord,
 } from "./machine.js";
-export { loadCassette, playCassette, type Cassette, type CassetteArtifact, type CassetteOptions, type CassetteProvenance, type CassetteWall } from "./cassette.js";
+export { cassetteLabel, loadCassette, playCassette, type Cassette, type CassetteArtifact, type CassetteOptions, type CassetteProvenance, type CassetteWall } from "./cassette.js";
 export { playTrace, streamTrace, type PlayRun, type PlayTraceExtension, type StreamLogEvent } from "./trace.js";
 export {
   OFFLINE_QUESTIONS,
