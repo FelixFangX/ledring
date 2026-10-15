@@ -140,4 +140,92 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await site.close();
     }
   }, 20_000);
+
+  it("remembers the last run on the menu, validates empty idea submit with shake vs outline-only under reduced motion, fits EN/zh at 1280 and 390, and supports keyboard Tab -> type -> Enter", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Menu host line remembers last run + EN/zh overflow check at 1280x800 and 390x844
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+        const page = await ctx.newPage();
+        await page.addInitScript(() => {
+          localStorage.setItem(
+            "ledring-v1",
+            JSON.stringify({
+              plays: 3,
+              seen: { POLISHED: 1, SHIPPED: 1 },
+              last: { idea: "Quantum Tea Timer", end: "POLISHED", trust: 74, preset: "pomo" },
+            }),
+          );
+        });
+        await page.goto(`${site.url}?lang=${lang}&fast`, { waitUntil: "domcontentloaded" });
+        await page.locator("#menu.on").waitFor({ state: "visible" });
+        const hostText = await page.locator("#host").textContent();
+        expect(hostText).toContain("Quantum Tea Timer");
+
+        await page.goto(`${site.url}?scene=idea&lang=${lang}&fast`, { waitUntil: "domcontentloaded" });
+        await page.locator("#missions.on").waitFor({ state: "visible" });
+
+        for (const vp of [
+          { width: 1280, height: 800 },
+          { width: 390, height: 844 },
+        ]) {
+          await page.setViewportSize(vp);
+          const overflow = await page.locator("#missions").evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+          expect(overflow).toBe(false);
+        }
+        await ctx.close();
+      }
+
+      // 2. Empty Enter submit shakes #ideacard in full motion and only outlines in reduced motion
+      const ctxFull = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const pageFull = await ctxFull.newPage();
+      await pageFull.goto(`${site.url}?scene=idea&fast`, { waitUntil: "domcontentloaded" });
+      await pageFull.locator("#idea-in").focus();
+      await pageFull.keyboard.press("Enter");
+      const fullEmptyState = await pageFull.evaluate(() => {
+        const card = document.querySelector("#ideacard") as HTMLElement & { __anim?: Animation };
+        return {
+          invalid: card.classList.contains("invalid"),
+          hasAnim: Boolean(card.__anim),
+          stillOnMissions: document.querySelector("#missions")?.classList.contains("on") ?? false,
+        };
+      });
+      expect(fullEmptyState).toEqual({ invalid: true, hasAnim: true, stillOnMissions: true });
+      await ctxFull.close();
+
+      const ctxRm = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+      const pageRm = await ctxRm.newPage();
+      await pageRm.goto(`${site.url}?scene=idea&fast&rm`, { waitUntil: "domcontentloaded" });
+      await pageRm.locator("#idea-in").focus();
+      await pageRm.keyboard.press("Enter");
+      const rmEmptyState = await pageRm.evaluate(() => {
+        const card = document.querySelector("#ideacard") as HTMLElement & { __anim?: Animation };
+        return {
+          invalid: card.classList.contains("invalid"),
+          hasAnim: Boolean(card.__anim),
+          stillOnMissions: document.querySelector("#missions")?.classList.contains("on") ?? false,
+        };
+      });
+      expect(rmEmptyState).toEqual({ invalid: true, hasAnim: false, stillOnMissions: true });
+
+      // 3. Keyboard path: type idea -> Enter starts a run
+      await pageRm.keyboard.type("A calm 5-minute breathing timer");
+      await pageRm.keyboard.press("Enter");
+      await pageRm.locator("#run.on").waitFor({ state: "visible", timeout: 5000 });
+      const runIdea = await pageRm.evaluate(() => {
+        const w = window as unknown as { __ledring: { run: () => { idea: string } | null } };
+        return w.__ledring.run()?.idea;
+      });
+      expect(runIdea).toBe("A calm 5-minute breathing timer");
+      await ctxRm.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
 });

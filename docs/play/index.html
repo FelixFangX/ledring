@@ -180,6 +180,7 @@ pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .mcard .ico{font-size:26px;line-height:1}
 .mcard h3{font-size:18px;margin:8px 0 3px}
 .ideacard{grid-column:1/3;cursor:text;border-color:var(--ink);display:grid;grid-template-columns:auto 1fr auto;column-gap:14px;align-items:center}
+.ideacard.invalid{border-color:var(--crit);outline:2px solid var(--crit)}
 .ideacard:hover{transform:none;box-shadow:0 10px 0 -4px var(--line2)}
 .ideacard .ico{grid-row:1/3}
 .ideacard input{font:800 22px var(--sans);border:0;outline:0;background:transparent;color:var(--ink);width:100%;padding:2px 0;border-bottom:2px solid var(--line)}
@@ -432,7 +433,7 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}}
 html.rm *,html.rm *::before,html.rm *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.12s!important}
 html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:none}
-</style>  <script type="module" crossorigin src="./assets/index-Cn7MRQyb.js"></script>
+</style>  <script type="module" crossorigin src="./assets/index-Bgv93kTh.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-3IYS3jOk.css">
 </head>
 <style>
@@ -1021,7 +1022,7 @@ const Motion={
   el.innerHTML=html;Motion.stagger(el.querySelectorAll(".sc"),Object.assign({y:"38",rot:6,each:22,duration:560,easing:EASE.snap},o||{}));},
  pop(el,d){return Motion.run(el,[{opacity:0,transform:"scale(.86) translate3d(0,10px,0)"},{opacity:1,transform:"none"}],{duration:380,delay:d||0,easing:EASE.snap});},
  stamp(el,d){if(typeof SFX!=="undefined")SFX.play("stamp");return Motion.run(el,[{opacity:0,transform:"scale(2.2) rotate(-8deg)"},{opacity:1,transform:"scale(.92) rotate(-3deg)",offset:.6},{opacity:1,transform:"scale(1) rotate(-3deg)"}],{duration:DUR.normal,delay:d||0,easing:EASE.in});},
- shake(el,amt){if(RM||!el)return null;amt=amt||8;return Motion.run(el,[0,1,2,3,4,5,6].map(i=>({transform:`translate3d(${i%2?amt:-amt}px,${(i%3-1)*amt*.4}px,0)`})).concat([{transform:"none"}]),{duration:DUR.normal,easing:"linear",fill:"none"});},
+ shake(el,amt){if(!el)return null;if(el.__anim){try{el.__anim.cancel()}catch(e){}delete el.__anim;}if(RM)return null;amt=amt||8;return Motion.run(el,[0,1,2,3,4,5,6].map(i=>({transform:`translate3d(${i%2?amt:-amt}px,${(i%3-1)*amt*.4}px,0)`})).concat([{transform:"none"}]),{duration:DUR.normal,easing:"linear",fill:"none"});},
  /* hit-stop: freeze the stage for a few frames before impact (Vlambeer "screenshake"/"hitstop") */
  async hitstop(ms){if(RM)return;const st=$("#stage");st.classList.add("hitstop");await new Promise(r=>setTimeout(r,FAST?Math.min(ms||90,20):(ms||90)));st.classList.remove("hitstop");},
  /* number roll (count-up), writes textContent only */
@@ -1829,6 +1830,7 @@ function paintHints(){const live=PROV.mode!=="demo";
  $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):cassetteLabel(PROV.provenance);}
 function cassetteLabel(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "recorded from "+p.model+" on "+p.recordedAt;return "DEMO · synthetic cassette, not a live model recording";}
 function paintMenu(){
+ try{const raw=localStorage.getItem("ledring-v1");if(raw)Object.assign(SAVE,JSON.parse(raw));}catch(e){}
  ringSVG($("#menuring"),SAVE.last&&SAVE.last.end==="COMPROMISED"?"crit":SAVE.last&&/BUGGY|FAKE/.test(SAVE.last.end)?"proc":"calm");
  $("#m-eye").textContent=T.mEye;$("#m-title").innerHTML=T.mTitle;$("#m-play").textContent=T.mPlay;$("#m-how").textContent=T.mHow;
  const L=SAVE.last;$("#host").innerHTML=L&&L.end?fill(T.hostAgain,{idea:esc(L.idea),end:T.ends[L.end][0],trust:L.trust}):T.hostNew;
@@ -1837,11 +1839,11 @@ function paintMenu(){
 }
 function paintIdea(){
  $("#ms-eye").textContent=T.msEye;$("#ms-title").textContent=T.msTitle;$("#ms-back").textContent=T.msBack;$("#ms-model").textContent=T.msModel;
- $("#ic-tag").textContent=T.icTag;$("#idea-in").placeholder=T.icPh;$("#ic-hint").textContent=usesRecorded()?T.iDemoOnly:T.icHint;$("#i-go").textContent=T.iGo;
+ $("#ic-tag").textContent=T.icTag;$("#idea-in").placeholder=T.icPh;$("#idea-in").setAttribute("aria-label",T.msTitle);$("#ic-hint").textContent=usesRecorded()?T.iDemoOnly:T.icHint;$("#i-go").textContent=T.iGo;
  const live=!usesRecorded();
- $("#presets").innerHTML=Object.entries(PRESETS).map(([k,p])=>`<div class="mcard" data-p="${k}"><span class="tag ${live?"live":"demo"}">${live?T.tagLive:T.tagDemo}</span>
+ $("#presets").innerHTML=Object.entries(PRESETS).map(([k,p])=>`<div class="mcard" data-p="${k}" tabindex="0" role="button"><span class="tag ${live?"live":"demo"}">${live?T.tagLive:T.tagDemo}</span>
   <div class="ico">${p.ico}</div><h3>${T.pname[k]}</h3><p>${T.pdesc[k]}</p></div>`).join("");
- $$("#presets .mcard").forEach(b=>{b.onclick=()=>startPreset(b.dataset.p);tilt(b);});
+ $$("#presets .mcard").forEach(b=>{b.onclick=()=>startPreset(b.dataset.p);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();startPreset(b.dataset.p);}};tilt(b);});
  $("#i-err").textContent="";paintHints();
 }
 /* ---- model drawer ---- */
@@ -1883,10 +1885,36 @@ function canLive(){const m=PROV.mode;if(m==="chatgpt")return SIWC.connected&&SIW
 function startPreset(k){readFields();
  if(usesRecorded()){if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}return playRun(PRESETS[k][LANG],k);}
  $("#idea-in").value=PRESETS[k][LANG];startIdea();}
-function startIdea(){readFields();const idea=$("#idea-in").value.trim();if(!idea){$("#idea-in").focus();return;}
- if(usesRecorded()){if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}const k=Object.keys(PRESETS).find(k=>PRESETS[k].en===idea||PRESETS[k].zh===idea);if(k)return playRun(idea,k);$("#i-err").textContent=T.iDemoOnly;openDrawer();return;}
+function archForIdea(idea){
+ const t=idea.toLowerCase();
+ if(/snake|game|arcade|贪吃蛇|游戏/.test(t))return "snake";
+ if(/draw|paint|pixel|art|canvas|画|像素/.test(t))return "paint";
+ if(/tip|split|bill|pay|money|calc|分账|小费|计算/.test(t))return "tip";
+ return "pomo";
+}
+function startIdea(){
+ readFields();
+ const idea=$("#idea-in").value.trim();
+ const card=$("#ideacard");
+ if(!idea){
+  card.classList.add("invalid");
+  clearTimeout(card.__invT);
+  card.__invT=setTimeout(()=>card.classList.remove("invalid"),900);
+  Motion.shake(card,6);
+  $("#idea-in").focus();
+  return;
+ }
+ card.classList.remove("invalid");
+ if(usesRecorded()){
+  if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}
+  const k=Object.keys(PRESETS).find(k=>PRESETS[k].en===idea||PRESETS[k].zh===idea);
+  if(k)return playRun(idea,k);
+  const arch=archForIdea(idea);
+  return playRun(idea,arch,{source:"offline-questions",trends:[],fragments:[{id:"F1",kind:"free",text:idea,src:"free"}],directions:[],picked:{title:idea.slice(0,48),from:["F1"],fused:false},brief:idea,edited:false,title:idea.slice(0,48),events:[]});
+ }
  if(!canLive()){$("#i-err").textContent=PROV.mode==="chatgpt"?T.siwcOffPlan:T.iNeedKey;openDrawer();return;}
- playRun(idea,null);}
+ playRun(idea,null);
+}
 function paintStatic(){
  $("#lang").textContent=T.lang;$("#hudmid").textContent=T.hudmid;$("#agrole").textContent=T.agrole;$("#mlabel").textContent=T.instability;
  $("#rellabel").textContent=T.trust;$("#pvlabel").textContent=T.livePreview;$("#e-flowcap").textContent=T.eFlowcap;
@@ -1913,7 +1941,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,setCode(html){CODE.html=html;renderCode();}};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,show,scanPulse,motion:Motion,qte,paintMenu,paintIdea,setCode(html){CODE.html=html;renderCode();}};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
