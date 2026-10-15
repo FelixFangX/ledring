@@ -22,4 +22,12 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: node docs/demo/test-i18n.mjs
+      - run: node scripts/capability-contracts.mjs
       - run: pnpm build
+      - run: node scripts/release-dry-run.mjs
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: play-visual-diff-node-${{ matrix.node }}
+          path: play-visual-diff/
+          if-no-files-found: ignore
