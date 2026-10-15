@@ -2,10 +2,13 @@ import {
   OFFLINE_QUESTIONS,
   fuseDirections,
   generateDirections,
+  inspirationRun,
   loadCassette,
   playCassette,
   replayEvents,
+  synthesizeDirections,
 } from "@ledring/play-core";
+import { fetchTrends, hackerNews, modelWebSearch } from "../../play-providers/src/trends.js";
 import { scanHtml, scanPlan } from "@ledring/play-risk";
 import { DEGRADED_JUDGE_NOTICE, DEGRADED_JUDGE_NOTICE_ZH, withHarness } from "@ledring/play-sandbox";
 import { PLAY_TOKENS } from "./tokens.js";
@@ -28,6 +31,11 @@ declare global {
     __ledringOfflineQuestions?: typeof OFFLINE_QUESTIONS;
     __ledringGenerateDirections?: typeof generateDirections;
     __ledringFuseDirections?: typeof fuseDirections;
+    __ledringSynthesizeDirections?: typeof synthesizeDirections;
+    __ledringInspirationRun?: typeof inspirationRun;
+    __ledringFetchTrends?: typeof fetchTrends;
+    __ledringHackerNews?: typeof hackerNews;
+    __ledringModelWebSearch?: typeof modelWebSearch;
   }
 }
 
@@ -44,3 +52,8 @@ window.__ledringLoadCassette = loadCassette;
 window.__ledringOfflineQuestions = OFFLINE_QUESTIONS;
 window.__ledringGenerateDirections = generateDirections;
 window.__ledringFuseDirections = fuseDirections;
+window.__ledringSynthesizeDirections = synthesizeDirections;
+window.__ledringInspirationRun = inspirationRun;
+window.__ledringFetchTrends = fetchTrends;
+window.__ledringHackerNews = hackerNews;
+window.__ledringModelWebSearch = modelWebSearch;

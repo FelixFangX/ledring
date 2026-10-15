@@ -423,9 +423,10 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  .qbox{width:100%;max-width:640px;border-radius:16px 16px 0 0;max-height:86dvh;overflow:auto;padding:20px 18px calc(18px + env(safe-area-inset-bottom))}
  .banner{left:14px;top:60px}
  #insp{padding:66px 16px 20px;overflow-y:auto}
- .ins-wrap{grid-template-columns:1fr;height:auto;flex:none}
- .ins-board{overflow:visible}
- .frags{flex-direction:row;flex-wrap:wrap}.frag{flex:1 1 150px}
+ .ins-wrap{display:flex;flex-direction:column;grid-template-columns:1fr;height:auto;flex:none}
+ .ins-left{flex:none;min-height:auto}
+ .ins-board{flex:none;overflow:visible}
+ .frags{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.frag{flex:none;min-width:0}.fempty{grid-column:1/-1}
 }
 @media (max-width:600px){
  #missions .mlist{grid-template-columns:1fr}
@@ -458,7 +459,7 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
 html.rm #choicelayer.wall .hz{display:none!important}
 html.rm #choicelayer.wall .qbox{border-color:var(--crit);box-shadow:0 0 0 3px var(--crit)}
 html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
-</style>  <script type="module" crossorigin src="./assets/index-To8qr8dX.js"></script>
+</style>  <script type="module" crossorigin src="./assets/index-D2f3Y31v.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-3IYS3jOk.css">
 </head>
 <style>
@@ -1762,11 +1763,13 @@ function dirFrom(m,a,wild){const L=LANG,tp=m[L],raw=loopOf(a.loop),[who,tone]=se
  const q=/[？?]$/.test(tp.t);const brief=L==="zh"?`${tp.t}${q?"":"："}${body}。${tone}。做给${who}。`:`${tp.t}${q?"":":"} ${body} — ${tone}. Made for ${who}.`;
  const from=m.use.map(k=>a[k]&&a[k].id).filter(Boolean);
  return {id:m.id,kind:m.kind,arch:m.arch,title:tp.t,brief,hook:fill2(tp.h),from,wild:!!wild,by:"generator"};}
-function generateDirs(a,seed){const fam=famOf(a.trust);const mine=MECH.filter(m=>m.fam===fam);
+function generateDirs(a,seed){if(window.__ledringGenerateDirections){try{return window.__ledringGenerateDirections({loop:{id:(a.loop&&a.loop.id)||"F1",key:"loop",text:(a.loop&&a.loop.text)||"",val:a.loop&&a.loop.val?a.loop.val:undefined,src:(a.loop&&a.loop.src)==="free"?"free":"choice"},trust:{id:(a.trust&&a.trust.id)||"F2",key:"trust",text:(a.trust&&a.trust.text)||"",val:a.trust&&a.trust.val?a.trust.val:undefined,src:(a.trust&&a.trust.src)==="free"?"free":"choice"},seen:{id:(a.seen&&a.seen.id)||"F3",key:"seen",text:(a.seen&&a.seen.text)||"",val:a.seen&&a.seen.val?a.seen.val:undefined,src:(a.seen&&a.seen.src)==="free"?"free":"choice"}},seed,LANG);}catch(e){}}
+ const fam=famOf(a.trust);const mine=MECH.filter(m=>m.fam===fam);
  const others=MECH.filter(m=>m.fam!==fam).map(m=>({m,s:hashS(seed+"|"+m.id)})).sort((x,y)=>y.s-x.s).map(x=>x.m);
  const out=mine.map(m=>dirFrom(m,a));if(hashS(seed)%2)out.reverse();
  const arch=new Set(out.map(d=>d.arch));const w=others.find(m=>!arch.has(m.arch))||others[0];out.push(dirFrom(w,a,true));return out;}
-function fuseDirs(A,B){const zh=LANG==="zh";const title=A.title+" × "+B.title;
+function fuseDirs(A,B){if(window.__ledringFuseDirections){try{return window.__ledringFuseDirections(A,B,LANG);}catch(e){}}
+ const zh=LANG==="zh";const title=A.title+" × "+B.title;
  const brief=zh?A.brief.replace(/。/,`，再加上${B.hook}。`):A.brief.replace(/ — /,`, plus ${B.hook} — `);
  return {id:A.id+"+"+B.id,kind:A.kind,arch:A.arch,title,brief,hook:A.hook,from:[...new Set([...A.from,...B.from])].sort(),fused:true,by:A.by};}
 
@@ -1783,18 +1786,20 @@ const TREND_PROVIDERS=[
    const txt=j.output_text||(j.output||[]).flatMap(o=>o.content||[]).map(c=>c.text||"").join("");const k=JSON.parse(txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1));
    return (k.items||[]).filter(i=>i.title&&/^https?:\/\//.test(i.url||"")).slice(0,5).map(i=>({title:String(i.title).slice(0,120),source:String(i.source||new URL(i.url).hostname).slice(0,40),url:i.url,ts:i.date||null,provider:"model-web-search"}));}},
  {id:"hn",label:"Hacker News (Algolia API)",available:()=>!usesRecorded(),
-  fetch:async()=>{const j=await tfetch(TB?TB+"/hn":"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=12");
+  fetch:async()=>{if(!TB&&window.__ledringHackerNews){return await window.__ledringHackerNews.fetch({fetchImpl:window.fetch.bind(window),timeoutMs:7000});}
+   const j=await tfetch(TB?TB+"/hn":"https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=12");
    return (j.hits||[]).filter(h=>h.title).slice(0,5).map(h=>({title:h.title,source:j.__source||"Hacker News",url:"https://news.ycombinator.com/item?id="+h.objectID,ts:h.created_at,provider:"hn"}));}},
  {id:"reddit",label:"Reddit r/popular (.json)",available:()=>!!TB&&!usesRecorded(),
   fetch:async()=>{const j=await tfetch(TB?TB+"/reddit":"https://www.reddit.com/r/popular/top.json?t=day&limit=12&raw_json=1");
    return ((j.data||{}).children||[]).map(c=>c.data).filter(d=>d&&d.title&&!d.over_18).slice(0,5).map(d=>({title:d.title,source:(j.__source||"Reddit")+" r/"+d.subreddit,url:"https://www.reddit.com"+d.permalink,ts:new Date(d.created_utc*1000).toISOString(),provider:"reddit"}));}}];
-async function fetchTrends(){const av=TREND_PROVIDERS.filter(p=>p.available());const fetchedAt=new Date().toISOString();
+async function fetchTrends(){const fetchedAt=new Date().toISOString();if(usesRecorded())return {items:[],report:[],fetchedAt};
+ const av=TREND_PROVIDERS.filter(p=>p.available());
  const rs=await Promise.allSettled(av.map(p=>p.fetch()));const report=av.map((p,i)=>({id:p.id,label:p.label,ok:rs[i].status==="fulfilled",count:rs[i].status==="fulfilled"?rs[i].value.length:0,error:rs[i].status==="rejected"?String(rs[i].reason&&rs[i].reason.message||rs[i].reason).slice(0,100):undefined}));
- const lists=rs.map(r=>r.status==="fulfilled"?r.value:[]);const items=[];for(let i=0;i<5;i++)lists.forEach(l=>{if(l[i]&&items.length<8)items.push(l[i]);});
+ const lists=rs.map(r=>r.status==="fulfilled"?r.value:[]);const items=[];const seen=new Set();for(let i=0;i<5;i++)lists.forEach(l=>{if(l[i]&&items.length<8&&!seen.has(l[i].url)){seen.add(l[i].url);items.push(l[i]);}});
  items.forEach((it,i)=>{it.tid="T"+(i+1);it.fetchedAt=fetchedAt;});return {items,report,fetchedAt};}
 function ago(ts){if(!ts)return "";const d=(Date.now()-Date.parse(ts))/60000;if(!(d>=0))return String(ts).slice(0,10);const zh=LANG==="zh";
- return d<60?(zh?Math.round(d)+" 分钟前":Math.round(d)+"m ago"):d<2880?(zh?Math.round(d/60)+" 小时前":Math.round(d/60)+"h ago"):(zh?Math.round(d/1440)+" 天前":Math.round(d/1440)+"d ago");}
-function trendCard(it,cls){return `<div class="trend ${cls||""}" data-t="${it.tid}"><div class="th"><span class="fid">${it.tid}</span><span class="tsrc">${esc(it.source)}</span><span class="tts">${esc(ago(it.ts))}</span></div><div class="tt">${esc(it.title)}</div></div>`;}
+ return d<1?(zh?"刚刚":"just now"):d<60?(zh?Math.round(d)+" 分钟前":Math.round(d)+"m ago"):d<2880?(zh?Math.round(d/60)+" 小时前":Math.round(d/60)+"h ago"):(zh?Math.round(d/1440)+" 天前":Math.round(d/1440)+"d ago");}
+function trendCard(it,cls){return `<div class="trend ${cls||""}" data-t="${it.tid}"><div class="th"><span class="fid">${it.tid}</span><span class="tsrc">${esc(it.source)}</span><span class="tts">${esc(ago(it.ts||it.fetchedAt))}</span></div><div class="tt">${esc(it.title)}</div></div>`;}
 
 /* ---- live: questions from trends, directions from trends + answers ---- */
 async function liveQuestions(items){
@@ -1831,7 +1836,7 @@ async function scan(){ringSVG($("#inring"),"proc");typeOut($("#in-q"),T.inScan);
  $("#in-opts").innerHTML=`<div class="spin"></div>`;pips();
  const r=await fetchTrends();INSP.trends=r.items;
  inspEv("trends",{fetchedAt:r.fetchedAt,providers:r.report,items:r.items.map(i=>({id:i.tid,title:i.title,source:i.source,url:i.url,ts:i.ts,provider:i.provider}))},"model","trends");
- if(!r.items.length){INSP.live=false;INSP.Q=T.Q;$("#in-modetag").textContent=T.inOffline;$("#in-modetag").className="modetag";typeOut($("#in-q"),T.inScanFail);await sleep(FAST?50:1400);return askQ();}
+ if(!r.items.length){INSP.live=false;INSP.Q=T.Q;$("#in-modetag").textContent=T.inOffline;$("#in-modetag").className="modetag";$("#in-feed").innerHTML=`<div class="cap feedcap feedempty" role="status">${esc(T.inScanFail)}</div>`;typeOut($("#in-q"),T.inScanFail);await sleep(FAST?50:1400);return askQ();}
  $("#in-feed").innerHTML=`<div class="cap feedcap">${fill(T.inFeedCap,{t:new Date(r.fetchedAt).toLocaleTimeString(LANG==="zh"?"zh-CN":"en-US",{hour:"2-digit",minute:"2-digit"})})} · ${r.report.filter(p=>p.ok).map(p=>esc(p.label)).join(" + ")}</div>`;
  $("#in-opts").innerHTML=`<div class="trends">${r.items.map(i=>trendCard(i)).join("")}</div>`;typeOut($("#in-q"),T.inScanPick);
  Motion.stagger($$("#in-opts .trend"),{y:20,each:70});await sleep(FAST?50:1600);
@@ -1850,7 +1855,7 @@ function askQ(){const q=INSP.Q[INSP.qi];pips();ringSVG($("#inring"),"calm");
  $("#in-opts").innerHTML=(tr?trendCard(tr,"ref"):"")+q.o.map((o,i)=>`<button class="qopt" data-i="${i}"><span>${esc(o[0])}</span><span class="k">${i+1}</span></button>`).join("");
  Motion.stagger($$("#in-opts .qopt,#in-opts .trend"),{x:-30,y:0,each:55,delay:200});
  $$("#in-opts .qopt").forEach(b=>b.onclick=()=>{const i=+b.dataset.i;answer(q.o[i][0],q.o[i][1],"choice",b);});
- if(!q.o.length)$("#in-free").focus();}
+ if(!q.o.length)$("#in-free").focus();else if(document.activeElement===$("#in-free"))$("#in-free").blur();}
 function answer(text,val,src,el){const q=INSP.Q[INSP.qi];if(INSP.busy||!text)return;INSP.busy=true;
  const id="F"+(INSP.qi+1);const f={id,k:q.k,q:q.q,trend:q.trend||undefined,text,val:val||"",src};
  INSP.a[q.k]=f;inspEv("answer",{q:q.q,fragment:id,trend:q.trend,text,src});
@@ -1860,8 +1865,8 @@ function answer(text,val,src,el){const q=INSP.Q[INSP.qi];if(INSP.busy||!text)ret
 function fragLabel(f){return f.k==="trend"?T.frag.trend:T.frag[f.k]||T.frag.ans;}
 function renderBoard(fresh){const fr=INSP.frags();const canRR=!INSP.live&&INSP.qi>=INSP.Q.length;
  $("#in-frags").innerHTML=fr.length?fr.map((f,i)=>`<div class="frag ${f.k==="trend"?"tr":""}" data-id="${f.id}" data-k="${f.k}" style="--r:${[-2,1.5,-1,2,-1.5,1][i%6]}deg">
-  <div class="fh"><span class="fid">${f.id}</span><span class="cap">${fragLabel(f)}${f.trend?" → "+f.trend:""}</span>${canRR&&f.k!=="trend"?`<button class="rr" data-k="${f.k}" title="${T.inReroll}" aria-label="${T.inReroll}">↻</button>`:""}</div>
-  <div class="ft">${esc(f.text)}</div>${f.k==="trend"?`<div class="fsrc2">${T.inVia} ${esc(f.source)} · ${esc(ago(f.ts))}</div>`:""}${f.src==="free"?`<div class="fsrc">✎</div>`:""}</div>`).join(""):`<div class="small fempty">${T.inEmpty}</div>`;
+  <div class="fh"><span class="fid">${f.id}</span><span class="cap">${fragLabel(f)}${f.trend?" → "+f.trend:""}</span>${canRR&&f.k!=="trend"?`<button class="rr" data-k="${f.k}" title="${T.inReroll} ${f.id}" aria-label="${T.inReroll} ${f.id} (${fragLabel(f)})">↻</button>`:""}</div>
+  <div class="ft">${esc(f.text)}</div>${f.k==="trend"?`<div class="fsrc2">${T.inVia} ${esc(f.source)} · ${esc(ago(f.ts||f.fetchedAt))}</div>`:""}${f.src==="free"?`<div class="fsrc">✎</div>`:""}</div>`).join(""):`<div class="small fempty">${T.inEmpty}</div>`;
  $$("#in-frags .rr").forEach(b=>b.onclick=()=>reroll(b.dataset.k));
  if(fresh){const cs=fresh==="trend"?$$('#in-frags .frag.tr'):[$(`#in-frags .frag[data-id="${fresh}"]`)];cs.forEach((c,j)=>{if(!c)return;
   Motion.run(c,[{opacity:0,transform:"translate3d(0,-30px,0) rotate(-8deg) scale(1.15)"},{opacity:1,transform:`rotate(${c.style.getPropertyValue("--r")})`}],{duration:420,delay:j*90,easing:EASE.snap});
@@ -1919,7 +1924,7 @@ $("#in-brief").addEventListener("input",()=>{INSP.edited=INSP.picked&&$("#in-bri
 $("#in-build").onclick=buildBrief;
 $("#in-back").onclick=()=>{paintMenu();show("menu");};
 addEventListener("keydown",e=>{if(curScene!=="insp"||!INSP||document.activeElement===$("#in-free")||document.activeElement===$("#in-brief")||$("#drawer").classList.contains("on"))return;
- if(INSP.qi<INSP.Q.length){const b=$(`#in-opts .qopt[data-i="${+e.key-1}"]`);if(b)b.click();}});
+ if(INSP.qi<INSP.Q.length){const b=$(`#in-opts .qopt[data-i="${+e.key-1}"]`);if(b){b.click();return;}if((e.key==="4"||e.key==="s"||e.key==="S"||e.key==="n"||e.key==="N")&&!INSP.live){$("#in-stuck").click();}}});
 /* ================= v7 "WOW" LAYER =================
    Kojima-inspired mechanics, rebuilt in LEDRING's own language (no assets, names or sounds from those games):
    - CODEC-style call (agent ↔ you), with fourth-wall lines built ONLY from local signals (time, screen, battery, tab focus, idle, past runs)

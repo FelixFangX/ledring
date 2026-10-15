@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { extname, join, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -746,6 +746,159 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         expect(replayed.trace.instruction).toBe(played.idea);
         expect(await page.locator("#end").evaluate((el) => el.classList.contains("on"))).toBe(true);
 
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it.skipIf(!installed)("supports Chapter 0 keyboard 1-4/nudge, reroll/fuse/rewrite, 2-column phone board, live trend cards with source+time, and empty-feed fallback with zero Demo trend requests", async () => {
+    mkdirSync(diffDir, { recursive: true });
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Offline Chapter 0 in EN and zh at 1280x800 and 390x844; verify zero Demo trend requests
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        const trendHits: string[] = [];
+        await page.route(/hn\.algolia\.com|reddit\.com|api\.x\.com/, async (route) => {
+          trendHits.push(route.request().url());
+          await route.abort();
+        });
+
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+        expect(trendHits).toHaveLength(0);
+        expect(await page.locator("#in-opts .trend").count()).toBe(0);
+
+        // Q1: press "4" to trigger nudge, then Enter to submit free text
+        await page.keyboard.press("4");
+        const nudgedVal = await page.locator("#in-free").inputValue();
+        expect(nudgedVal.length).toBeGreaterThan(0);
+        await page.keyboard.press("Enter");
+        await page.waitForTimeout(40);
+
+        // Q2: press "1"
+        await page.keyboard.press("1");
+        await page.waitForTimeout(40);
+
+        // Q3: press "2"
+        await page.keyboard.press("2");
+        await page.waitForTimeout(60);
+
+        expect(await page.locator("#in-frags .frag").count()).toBe(3);
+        const rrLabels = await page.locator("#in-frags .rr").evaluateAll((els) =>
+          els.map((el) => el.getAttribute("aria-label") || ""),
+        );
+        expect(rrLabels).toHaveLength(3);
+        for (const label of rrLabels) {
+          expect(label).toContain(lang === "zh" ? "重抽这块碎片" : "Reroll this fragment");
+        }
+
+        expect(await page.locator("#in-opts .dir").count()).toBe(3);
+
+        // Reroll F2, fuse two directions, and edit the brief
+        await page.locator('#in-frags .rr[data-k="trust"]').click();
+        await page.waitForTimeout(40);
+        await page.locator('#in-opts .fz input[data-i="0"]').check();
+        await page.locator('#in-opts .fz input[data-i="1"]').check();
+        await page.locator("#in-fuse").click();
+        await page.waitForTimeout(40);
+        expect(await page.locator("#in-opts .dir.fused").count()).toBe(1);
+
+        await page.locator("#in-brief").fill(lang === "zh" ? "自定义简报内容" : "Custom rewritten brief");
+        expect(await page.locator("#in-edited").textContent()).toContain(
+          lang === "zh" ? "你改写过" : "rewritten by you",
+        );
+
+        await page.screenshot({ path: join(diffDir, `insp-offline-1280-${lang}.png`) });
+
+        // Resize to 390x844 and check board is below questions and fragments are in 2 columns
+        await page.setViewportSize({ width: 390, height: 844 });
+        const layout = await page.evaluate(() => {
+          const modeRect = document.querySelector("#in-mode")!.getBoundingClientRect();
+          const boardRect = document.querySelector("#in-board")!.getBoundingClientRect();
+          const cols = getComputedStyle(document.querySelector("#in-frags")!)
+            .gridTemplateColumns.split(" ")
+            .filter(Boolean).length;
+          return {
+            below: boardRect.top >= modeRect.bottom - 4,
+            cols,
+          };
+        });
+        expect(layout).toEqual({
+          below: true,
+          cols: 2,
+        });
+        await page.screenshot({ path: join(diffDir, `insp-offline-390-${lang}.png`) });
+        expect(trendHits).toHaveLength(0);
+        await ctx.close();
+      }
+
+      // 2. Live trends with source + relative time, and empty-feed fallback ("No live feed reachable")
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        await page.addInitScript(() => {
+          localStorage.setItem(
+            "ledring-provider",
+            JSON.stringify({
+              mode: "openai",
+              openai: { base: "http://127.0.0.1:59999/v1", key: "sk-test-12345678", model: "gpt-4o-mini" },
+            }),
+          );
+        });
+        await page.route("http://127.0.0.1:59999/**", async (route) => {
+          await route.fulfill({ status: 503, body: "offline" });
+        });
+        let failTrends = false;
+        await page.route("https://hn.algolia.com/**", async (route) => {
+          if (failTrends) {
+            await route.fulfill({ status: 503, body: "unavailable" });
+            return;
+          }
+          const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+              hits: [
+                { objectID: "101", title: "Local-first tools on small screens", created_at: tenMinAgo },
+                { objectID: "102", title: "Why deterministic replay matters", created_at: tenMinAgo },
+                { objectID: "103", title: "Synthesizing audio in 2KB of WebAudio", created_at: tenMinAgo },
+              ],
+            }),
+          });
+        });
+
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+        await page.waitForSelector("#in-frags .frag.tr", { timeout: 5000 });
+        const trendCards = await page.locator("#in-opts .trend, #in-frags .frag.tr").count();
+        expect(trendCards).toBeGreaterThanOrEqual(3);
+        const refCard = await page.evaluate(() => {
+          const src = document.querySelector("#in-opts .trend .tsrc")?.textContent?.trim() || "";
+          const ts = document.querySelector("#in-opts .trend .tts")?.textContent?.trim() || "";
+          return { src, ts };
+        });
+        expect(refCard.src).toBe("Hacker News");
+        expect(refCard.ts).toContain(lang === "zh" ? "分钟前" : "m ago");
+        await page.screenshot({ path: join(diffDir, `insp-live-1280-${lang}.png`) });
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.screenshot({ path: join(diffDir, `insp-live-390-${lang}.png`) });
+
+        // Empty-feed fallback when all trend providers fail
+        failTrends = true;
+        await page.setViewportSize({ width: 1280, height: 800 });
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+        await page.waitForSelector("#in-feed .feedempty", { timeout: 5000 });
+        expect(await page.locator("#in-feed .feedempty").textContent()).toContain(
+          lang === "zh" ? "连不上实时信息流" : "No live feed reachable",
+        );
+        expect(await page.locator("#in-opts .trend").count()).toBe(0);
         await ctx.close();
       }
     } finally {
