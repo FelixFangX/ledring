@@ -1576,7 +1576,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           w.__ledring.selectObChoice("chatgpt", true);
         });
         expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
-          lang === "zh" ? "席位已启" : "SIWC READY",
+          lang === "zh" ? "可用" : "READY",
         );
         expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("true");
 
