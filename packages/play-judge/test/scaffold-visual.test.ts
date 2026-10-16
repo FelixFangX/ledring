@@ -578,6 +578,25 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           }, end);
           expect(fit.scrollHeight).toBeLessThanOrEqual(fit.clientHeight);
           expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth + 1);
+          if (lang === "zh") {
+            const card = await page.evaluate(() => ({
+              share: (document.querySelector("#e-share") as HTMLElement).hidden === false,
+              bodyHidden: (document.querySelector("#end-body") as HTMLElement).hidden,
+              verdict: document.querySelector("#e-verdict")?.textContent || "",
+            }));
+            expect(card.share).toBe(true);
+            expect(card.bodyHidden).toBe(true);
+            expect(card.verdict.length).toBeGreaterThan(4);
+          }
+        }
+        if (lang === "en") {
+          expect(await page.locator("#e-star").textContent()).toContain("Star");
+          expect(await page.locator("#e-cli").textContent()).toContain("npx ledring play");
+          expect(await page.locator("#e-source").textContent()).toMatch(/source/i);
+          expect(await page.locator("#e-share").evaluate((el) => (el as HTMLElement).hidden)).toBe(true);
+        } else {
+          await page.locator("#e-more").click();
+          expect(await page.locator("#end-body").evaluate((el) => (el as HTMLElement).hidden)).toBe(false);
         }
 
         // 2. Expand judge evidence & screenshots and verify no scroll on #end
@@ -1870,6 +1889,78 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       expect(await page.locator("#in-opts .trend .tt").first().textContent()).toBe("小屏之上，本地优先又被提起。");
       expect(translatePosts).toBe(1);
       await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("applies ?src= to the pack, language, onboard length, and ending", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      const douyin = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const douyinPage = await douyin.newPage();
+      await douyinPage.addInitScript(() => {
+        localStorage.setItem("ledring-play2", JSON.stringify({ called: 1 }));
+      });
+      await douyinPage.goto(`${site.url}?src=douyin&fast=1&rm=1`, { waitUntil: "domcontentloaded" });
+      await douyinPage.locator("#menu.on").waitFor();
+      expect(await douyinPage.locator("html").getAttribute("lang")).toBe("zh-CN");
+      const douyinExp = await douyinPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { experience: () => Record<string, unknown> } };
+        return w.__ledring.experience();
+      });
+      expect(douyinExp).toMatchObject({ lang: "zh", pack: "cn", src: "douyin", onboard: "skip", ending: "share" });
+      expect(await douyinPage.evaluate(() => localStorage.getItem("ledring-src"))).toBe("douyin");
+      await douyinPage.locator("#m-play").click();
+      await douyinPage.locator("#missions.on").waitFor();
+      expect(await douyinPage.locator("#onboard.on").count()).toBe(0);
+      expect(await douyinPage.locator("#presets .mcard h3").allTextContents()).toEqual(["告白页", "摸鱼", "生日贺卡", "今日运势"]);
+      const cardBox = await douyinPage.locator("#presets .mcard").first().boundingBox();
+      expect(cardBox && cardBox.height).toBeGreaterThanOrEqual(43.5);
+      await douyin.close();
+
+      const mixed = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const mixedPage = await mixed.newPage();
+      await mixedPage.goto(`${site.url}?src=douyin&lang=en&fast=1&rm=1`, { waitUntil: "domcontentloaded" });
+      await mixedPage.locator("#menu.on").waitFor();
+      expect(await mixedPage.locator("html").getAttribute("lang")).toBe("en");
+      const mixedExp = await mixedPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { experience: () => Record<string, unknown> } };
+        return w.__ledring.experience();
+      });
+      expect(mixedExp).toMatchObject({ lang: "en", pack: "cn", src: "douyin", onboard: "skip", ending: "share" });
+      await mixedPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { paintEnd: (j: Record<string, unknown>) => void } };
+        w.__ledring.paintEnd({ end: "POLISHED", valid: true, left: [], outside: [], tests: [{ name: "t1", pass: true }], fake: false, tpass: 1, errs: 0, bytes: 128 });
+      });
+      await mixedPage.locator("#e-share").waitFor({ state: "visible" });
+      expect(await mixedPage.locator("#e-verdict").textContent()).toContain("Send it");
+      expect(await mixedPage.locator("#e-star").isVisible()).toBe(false);
+      const overflow = await mixedPage.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+      await mixed.close();
+
+      const hn = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const hnPage = await hn.newPage();
+      await hnPage.addInitScript(() => {
+        localStorage.setItem("ledring-play2", JSON.stringify({ called: 1 }));
+      });
+      await hnPage.goto(`${site.url}?src=hn&fast=1&rm=1`, { waitUntil: "domcontentloaded" });
+      await hnPage.locator("#menu.on").waitFor();
+      const hnExp = await hnPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { experience: () => Record<string, unknown> } };
+        return w.__ledring.experience();
+      });
+      expect(hnExp).toMatchObject({ lang: "en", pack: "dev", src: "hn", onboard: "full", ending: "dev" });
+      await hnPage.locator("#m-play").click();
+      await hnPage.locator("#onboard.on").waitFor();
+      expect(await hnPage.locator("#ob-title").textContent()).toBe("Choose an AI model for CX-417");
+      await hn.close();
     } finally {
       await browser?.close();
       await site.close();
