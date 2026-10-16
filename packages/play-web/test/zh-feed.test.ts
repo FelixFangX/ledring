@@ -56,7 +56,7 @@ describe("zh feed copy", () => {
     expect(api.latinOnlyProblem("Anthropic")).toBeNull();
     expect(api.latinOnlyProblem("Hacker News")).toBeNull();
     expect(api.latinOnlyProblem("index.html")).toBeNull();
-    expect(api.latinOnlyProblem("npx ledring play")).toBeNull();
+    expect(api.latinOnlyProblem("node packages/cli/dist/bin.js play")).toBeNull();
     expect(api.latinOnlyProblem("risk.network.1")).toBeNull();
     expect(api.latinOnlyProblem("--bg · #EEF1F3")).toBeNull();
     expect(api.latinOnlyProblem("LEDRING 免费 AI")).toBeNull();

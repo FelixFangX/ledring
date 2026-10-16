@@ -28,7 +28,7 @@ You watch **CX-417**, an AI builder, turn your idea into one self-contained web 
 | **LEDRING Free AI** (default) | Nothing. No key, no sign-up. It runs on a shared daily quota. |
 | Built-in demo | Nothing. Scripted examples, with no AI calls. |
 | Anthropic | Your own API key. The browser calls api.anthropic.com directly. |
-| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (`npx ledring play`) or a custom `/v1` URL |
+| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [Quickstart](#quickstart), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
 
 **Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://felixfangx.github.io/ledring/play/?lang=zh).
 

@@ -249,12 +249,12 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
       const page = await ctx.newPage();
 
-      // 1. Static / Pages mode without bridge: ChatGPT plan shows Unavailable, clicking Continue explains npx ledring play and never flips to Connected
+      // 1. Static / Pages mode without bridge: ChatGPT plan shows Unavailable, clicking Continue explains node packages/cli/dist/bin.js play and never flips to Connected
       await page.goto(`${site.url}?mode=chatgpt&drawer=1&fast`, { waitUntil: "domcontentloaded" });
       await page.locator("#drawer.on").waitFor({ state: "visible" });
       expect(await page.locator("#siwc-unavail").textContent()).toContain("Unavailable on this page");
       await page.locator("#siwc-go").click();
-      expect(await page.locator("#siwc-flow").textContent()).toContain("npx ledring play");
+      expect(await page.locator("#siwc-flow").textContent()).toContain("node packages/cli/dist/bin.js play");
       expect(await page.locator("#drawer").textContent()).not.toContain("Using ChatGPT plan");
       expect(await page.locator(".siwc").getAttribute("data-siwc-state")).toBe("unavailable");
 
@@ -1606,7 +1606,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         );
         expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("true");
 
-        // 3. OpenAI BYOK via local bridge: shows copyable `npx ledring play` command and polls 127.0.0.1 until connected
+        // 3. OpenAI BYOK via local bridge: shows copyable `node packages/cli/dist/bin.js play` command and polls 127.0.0.1 until connected
         let bridgeReady = false;
         await page.route("**/api/status", async (route) => {
           if (!bridgeReady) {
@@ -1623,7 +1623,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
 
         await page.locator('.ob-card[data-choice="openai-bridge"]').click();
         expect(await page.locator("#ob-bridge-box").isVisible()).toBe(true);
-        expect(await page.locator("#ob-cmd").inputValue()).toBe("npx ledring play");
+        expect(await page.locator("#ob-cmd").inputValue()).toBe("node packages/cli/dist/bin.js play");
         await page.locator("#ob-copy").click();
         expect(await page.locator("#ob-copy").textContent()).toContain("✓");
         expect(await page.locator("#ob-bridge-st").getAttribute("class")).toContain("wait");
