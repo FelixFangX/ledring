@@ -20,9 +20,9 @@ describe("artifact sandbox", () => {
     expect(ARTIFACT_CSP).toBe(
       "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:",
     );
-    expect(DEGRADED_JUDGE_NOTICE).toContain("In-iframe harness");
-    expect(DEGRADED_JUDGE_NOTICE).toContain("Playwright");
-    expect(DEGRADED_JUDGE_NOTICE_ZH).toContain("Playwright");
+    expect(DEGRADED_JUDGE_NOTICE).toContain("self-tests");
+    expect(DEGRADED_JUDGE_NOTICE).toContain("No separate browser tests ran");
+    expect(DEGRADED_JUDGE_NOTICE_ZH).toContain("未运行独立浏览器测试");
   });
 
   it("binds the harness to one nonce and rejects every other message", () => {

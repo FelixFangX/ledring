@@ -9,10 +9,10 @@ export const ARTIFACT_CSP =
   "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:";
 
 /** Shown when the page cannot run the headless judge and falls back to the in-iframe harness. */
-export const DEGRADED_JUDGE_NOTICE = "In-iframe harness only. Playwright is not running on this page.";
+export const DEGRADED_JUDGE_NOTICE = "Checks cover preview errors and self-tests. No separate browser tests ran.";
 
 /** Chinese copy for the same degraded-judge notice. */
-export const DEGRADED_JUDGE_NOTICE_ZH = "仅页内框架。此页面没有运行 Playwright。";
+export const DEGRADED_JUDGE_NOTICE_ZH = "仅在预览中检查报错与自测；未运行独立浏览器测试。";
 
 export type HarnessKind = "err" | "csp" | "done";
 

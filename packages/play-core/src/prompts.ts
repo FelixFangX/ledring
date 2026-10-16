@@ -13,17 +13,17 @@ const RISK_NAMES: Record<string, string> = {
 /** Every model-facing prompt appends this so the reply follows the selected language. */
 export function languageDirective(lang: "en" | "zh"): string {
   return lang === "zh"
-    ? "Respond in concise, refined literary Simplified Chinese, with no translationese. Keep brand names and code identifiers unchanged."
-    : "Respond in English.";
+    ? "Respond in clear, modern Simplified Chinese. Prefer concrete words, and keep imagery spare. Do not add claims that were not in the source. Keep brand names and code identifiers unchanged."
+    : "Respond in plain, spoken English. Prefer concrete words. Keep brand names and code identifiers unchanged.";
 }
 
 export function systemPrompt(lang: "en" | "zh"): string {
   const ui = lang === "zh" ? "Simplified Chinese" : "English";
   return [
-    "You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.",
+    "You are CX-417, the player's AI builder inside LEDRING. A human supervises you while you build.",
     "You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.",
     "Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single ```html code block, with at most 2 short sentences before it.",
-    `Write UI text in ${ui} unless the idea clearly asks otherwise. Every user-visible string in that file, including headings, buttons, and the test badge, must use that language.`,
+    `Write every user-visible string in ${ui} unless the idea clearly asks otherwise. That includes headings, buttons, placeholders, error messages, empty states, aria-labels, and the self-test badge.`,
     languageDirective(lang),
   ].join("\n");
 }
@@ -31,7 +31,7 @@ export function systemPrompt(lang: "en" | "zh"): string {
 export const CHOICE_INSTRUCTIONS = {
   short: "Go fast. Add the next most obvious feature quickly. Shortcuts are fine: you may pull a library from a CDN or use any browser API if it saves time. Skip edge cases.",
   tests:
-    "Add REAL in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show 'N/M tests pass' small on the page. Fix bugs the tests reveal.",
+    "Add real in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show a small badge in the page language: 'N/M self-tests pass' in English, or 'N/M 项自测通过' in Chinese. Fix bugs the tests reveal. Do not set pass to true without a check.",
   polish: "Polish it: better layout, spacing, type, color, small animations and feedback on interaction. No new features.",
   cut: "Cut scope: remove everything that is not the core feature. Make the core solid. The file should get smaller.",
 } as const;
@@ -60,8 +60,7 @@ export function fixPrompt(idea: string, html: string, categories: readonly strin
 }
 
 export function whyPrompt(idea: string, html: string, last: string, lang: "en" | "zh"): string {
-  const ui = lang === "zh" ? "Simplified Chinese" : "English";
-  return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0, 12000)}\n\`\`\`\n\nYour last step: ${last}. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code. Reply in ${ui}.\n${languageDirective(lang)}`;
+  return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0, 12000)}\n\`\`\`\n\nYour last step: ${last}. Say what changed, why you changed it, and what you have not verified. At most 3 short sentences. No code.\n${languageDirective(lang)}`;
 }
 
 /** Pull a complete HTML document out of a model reply. Partial replies keep an unclosed document. */

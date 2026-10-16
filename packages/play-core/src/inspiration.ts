@@ -212,6 +212,7 @@ export function directionPrompt(fragments: readonly Fragment[], lang: "en" | "zh
   const lines = fragments.map((fragment) => `${fragment.id} (${fragment.key}): ${fragment.text}`);
   return [
     "Write exactly 3 different directions for a single-file HTML toy.",
+    "Each brief must name one concrete action the user takes and the result they see.",
     "Each direction must cite at least 2 fragment ids from the list in `from`.",
     "Reply with JSON only: {\"directions\":[{\"title\":\"\",\"brief\":\"\",\"from\":[\"F1\",\"F2\"],\"kind\":\"tool\",\"arch\":\"pomo\"}]}",
     `Write title and brief in ${lang === "zh" ? "Simplified Chinese" : "English"}.`,
@@ -313,12 +314,12 @@ export function inspirationRun(input: {
 export const OFFLINE_QUESTIONS = [
   {
     key: "loop" as const,
-    en: { q: "What do you do on autopilot?", options: [
+    en: { q: "What do you often do without thinking?", options: [
       { label: "Scroll past midnight", val: "scrolling past midnight" },
       { label: "Refresh for replies", val: "refreshing for replies" },
       { label: "Stare at a progress bar", val: "staring at a progress bar" },
     ] },
-    zh: { q: "你每天在什么事上“自动驾驶”？", options: [
+    zh: { q: "你常不知不觉重复做什么？", options: [
       { label: "刷手机到半夜", val: "刷手机到半夜" },
       { label: "一遍遍刷新等回复", val: "刷新等回复" },
       { label: "盯着进度条发呆", val: "盯着进度条" },

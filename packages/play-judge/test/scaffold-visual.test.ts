@@ -715,7 +715,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         );
 
         await page.locator("#m-lib").waitFor({ state: "visible" });
-        expect(await page.locator("#lib-cap").textContent()).toContain(lang === "zh" ? "会话记录" : "SESSION LIBRARY");
+        expect(await page.locator("#lib-cap").textContent()).toContain(lang === "zh" ? "已保存的构建" : "SAVED BUILDS");
         expect(await page.locator('.lib-row[data-session-id="sess-snake-1"] .lib-idea').textContent()).toBe(played.idea);
 
         // Keyboard reachability: focus .lib-replay and press Enter
@@ -805,7 +805,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         );
         expect(rrLabels).toHaveLength(3);
         for (const label of rrLabels) {
-          expect(label).toContain(lang === "zh" ? "重抽这块碎片" : "Reroll this fragment");
+          expect(label).toContain(lang === "zh" ? "换一条灵感素材" : "Replace this note");
         }
 
         expect(await page.locator("#in-opts .dir").count()).toBe(3);
@@ -897,8 +897,8 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         expect(refCard.ts).toContain(lang === "zh" ? "分钟前" : "m ago");
         if (lang === "zh") {
           const title = (await page.locator("#in-opts .trend .tt").first().textContent()) || "";
-          expect(title).toMatch(/[\u4e00-\u9fff]/);
-          expect(title).not.toContain("Local-first");
+          expect(title).toContain("暂无中文译文。以下为原标题：");
+          expect(title).toContain("Local-first tools on small screens");
         }
         await page.screenshot({ path: join(diffDir, `insp-live-1280-${lang}.png`) });
         await page.setViewportSize({ width: 390, height: 844 });
@@ -910,7 +910,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
         await page.waitForSelector("#in-feed .feedempty", { timeout: 5000 });
         expect(await page.locator("#in-feed .feedempty").textContent()).toContain(
-          lang === "zh" ? "连不上实时信息流" : "No live feed reachable",
+          lang === "zh" ? "没有取到条目" : "No items came back",
         );
         expect(await page.locator("#in-opts .trend").count()).toBe(0);
         await ctx.close();
@@ -1549,13 +1549,13 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         expect(externalBeforeAction.some((url) => url.includes("/ai/chat"))).toBe(false);
 
         if (lang === "zh") {
-          expect(await page.locator("#ob-eye").textContent()).toBe("临阵校准 · 心智接引");
-          expect(await page.locator("#ob-title").textContent()).toBe("为 CX-417 择定心智之源。");
-          expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 无偿心智");
-          expect(await page.locator("#ob-priv").textContent()).toContain("无须密钥");
+          expect(await page.locator("#ob-eye").textContent()).toBe("连接方式");
+          expect(await page.locator("#ob-title").textContent()).toBe("选择 CX-417 使用的 AI 模型");
+          expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 免费 AI");
+          expect(await page.locator("#ob-priv").textContent()).toContain("不保存密钥");
         } else {
-          expect(await page.locator("#ob-eye").textContent()).toBe("PRE-FLIGHT · UPLINK CALIBRATION");
-          expect(await page.locator("#ob-title").textContent()).toBe("Choose how CX-417 thinks.");
+          expect(await page.locator("#ob-eye").textContent()).toBe("CONNECTION");
+          expect(await page.locator("#ob-title").textContent()).toBe("Choose an AI model for CX-417");
           expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING Free AI");
           expect(await page.locator("#ob-priv").textContent()).toContain("localStorage");
         }
@@ -1576,7 +1576,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
           w.__ledring.selectObChoice("chatgpt", true);
         });
         expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
-          lang === "zh" ? "席位已启" : "SIWC READY",
+          lang === "zh" ? "可用" : "READY",
         );
         expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("true");
 
@@ -1798,8 +1798,8 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=zh`);
       await page.waitForSelector("#onboard.on");
       expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
-      expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 无偿心智");
-      expect(await page.locator("#ob-priv").textContent()).toContain("一万神经元");
+      expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 免费 AI");
+      expect(await page.locator("#ob-priv").textContent()).toContain("共享每日额度");
 
       await ctx.close();
     } finally {

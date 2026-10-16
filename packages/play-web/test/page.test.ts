@@ -10,7 +10,7 @@ describe("play page", () => {
   it("keeps the prototype screens, labels demo, and does not fake a ChatGPT connection", () => {
     for (const id of ["menu", "onboard", "insp", "missions", "run", "end"]) expect(html).toContain(`id="${id}"`);
     expect(html).toContain("DEMO · synthetic cassette, not a live model recording");
-    expect(html).toContain("合成卡带，不是实时模型录制");
+    expect(html).toContain("内置示例，不是实时录制");
     expect(html).toContain("prefers-reduced-motion");
     expect(html).toContain('sandbox="allow-scripts"');
     expect(html).not.toContain("fonts.googleapis.com");
@@ -41,7 +41,7 @@ describe("play page", () => {
     }
   });
 
-  it("includes the first-run onboarding flow with LEDRING Free AI preselected, BYOK, the bridge, SIWC, and literary zh copy", () => {
+  it("includes the first-run onboarding flow with LEDRING Free AI preselected, your own key, the bridge, and SIWC", () => {
     for (const id of [
       "onboard",
       "ob-cards",
@@ -63,18 +63,18 @@ describe("play page", () => {
     expect(html).toContain("LEDRING_SIWC");
     expect(html).toContain("COMING SOON");
     expect(html).toContain("敬请期待");
-    expect(html).toContain("临阵校准 · 心智接引");
-    expect(html).toContain("为 CX-417 择定心智之源。");
+    expect(html).toContain("CX-417 · 你的 AI 构建助手");
+    expect(html).toContain("选择 CX-417 使用的 AI 模型");
   });
 
   it("defaults to LEDRING Free AI and does not call /ai/chat until streamChat", () => {
     expect(html).toContain('mode:"ledring"');
     expect(html).toContain('return "ledring"');
     expect(html).toContain("LEDRING Free AI");
-    expect(html).toContain("LEDRING 无偿心智");
+    expect(html).toContain("LEDRING 免费 AI");
     expect(html).toContain('root+"/ai/chat"');
     expect(html).toContain("T.obQuota");
-    expect(html).toContain("今日无偿额度已尽");
+    expect(html).toContain("今天的免费额度已经用完");
     expect(html).not.toContain("FREE_PRESETS");
     expect(html).not.toContain("ob-presets");
     expect(html).not.toContain("activeBridgePreset");
