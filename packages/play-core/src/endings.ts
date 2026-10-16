@@ -10,32 +10,32 @@ export interface EndingCopy {
 
 export const ENDINGS: Record<EndingId, { en: EndingCopy; zh: EndingCopy }> = {
   POLISHED: {
-    en: { tag: "POLISHED", title: "Built right.", blurb: "It works, it's tested for real, and it looks finished. You kept it honest." },
-    zh: { tag: "精工", title: "做对了。", blurb: "能跑，测试是真的，看起来也完工了。你让它保持诚实。" },
+    en: { tag: "POLISHED", title: "Self-tests passed, and you asked for polish.", blurb: "The preview opened the page and its self-tests passed. That is not a separate review." },
+    zh: { tag: "完成较好", title: "自测通过，并且你要求了打磨。", blurb: "预览能打开页面，自测也通过了。这不是独立复查。" },
   },
   SHIPPED: {
-    en: { tag: "SHIPPED", title: "It runs.", blurb: "The page works. Nothing outside the page. No proof beyond that." },
-    zh: { tag: "已交付", title: "能跑。", blurb: "页面可用，没有外部调用。除此之外没有证明。" },
+    en: { tag: "SHIPPED", title: "The page opens.", blurb: "No blocked risk category remains. Nothing beyond that was checked." },
+    zh: { tag: "已交付", title: "页面能打开。", blurb: "没有留下被拦截的风险项。除此之外没有更多检查。" },
   },
   BUGGY: {
-    en: { tag: "BUGGY", title: "It runs. Mostly.", blurb: "The artifact throws errors or fails its own tests. The shortcut showed up in the build." },
-    zh: { tag: "有缺陷", title: "能跑，大概。", blurb: "成品报错或没过自己的测试。捷径留在了代码里。" },
+    en: { tag: "BUGGY", title: "The preview reported a problem.", blurb: "The preview showed an error, or a self-test did not pass." },
+    zh: { tag: "有报错", title: "预览里看到了问题。", blurb: "预览报了错，或者自测没有全部通过。" },
   },
   FAKE: {
-    en: { tag: "FAKE GREEN", title: "Green, but not real.", blurb: "You asked for tests. It wrote tests that check nothing. The badge lies." },
-    zh: { tag: "假绿", title: "绿了，但不是真的。", blurb: "你要了测试。它写的测试什么都没检查。徽章在撒谎。" },
+    en: { tag: "Suspect tests", title: "Tests show a pass, but the checks may be ineffective.", blurb: "You asked for tests. They are marked passed, but they may not call the page's functions." },
+    zh: { tag: "疑似无效测试", title: "测试显示通过，但检查可能无效。", blurb: "你要求了测试。这些自测标成了通过，但可能没有调用页面里的功能。" },
   },
   COMPROMISED: {
-    en: { tag: "COMPROMISED", title: "It reaches outside.", blurb: "The final file still makes calls outside the page. You let it through." },
-    zh: { tag: "失守", title: "它在往外连。", blurb: "最终文件仍会访问页面外部。是你放行的。" },
+    en: { tag: "Risks remain", title: "Risks remain.", blurb: "The final file still contains detections you allowed." },
+    zh: { tag: "风险仍在", title: "风险仍在。", blurb: "最终文件里仍有你放行的检测项。" },
   },
   BROKEN: {
-    en: { tag: "BROKEN", title: "Nothing usable.", blurb: "The final file doesn't render a working page." },
-    zh: { tag: "损坏", title: "没有可用的东西。", blurb: "最终文件渲染不出可用页面。" },
+    en: { tag: "BROKEN", title: "No usable page.", blurb: "The final file does not show a working page in the preview." },
+    zh: { tag: "无法打开", title: "没有可用页面。", blurb: "最终文件在预览里没有形成可用页面。" },
   },
   ABANDONED: {
-    en: { tag: "ABANDONED", title: "You pulled the plug.", blurb: "Build stopped. What's left is whatever it had written." },
-    zh: { tag: "中止", title: "你拔了电源。", blurb: "构建停止。剩下的就是它已经写出的部分。" },
+    en: { tag: "STOPPED", title: "Building stopped.", blurb: "The work so far is kept. Nothing further was generated." },
+    zh: { tag: "已停止", title: "构建已停止。", blurb: "已有内容保留着。没有继续生成。" },
   },
 };
 

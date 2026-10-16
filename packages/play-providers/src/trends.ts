@@ -82,7 +82,7 @@ export const modelWebSearch: TrendSource = {
       model: openai.model || "gpt-5",
       tools: [{ type: "web_search" }],
       input:
-        'Search the web for 6 things trending today. Reply ONLY JSON {"items":[{"title":"","source":"","url":"https://…","date":""}]}. Only items you found, each with a URL.',
+        'Search the web for 6 recent public posts or news items. Reply ONLY JSON {"items":[{"title":"","source":"","url":"https://…","date":""}]}. Only items you found, each with a URL. Do not call an item trending unless the source does.',
     };
     const payload = await readJson(ctx, `${openai.baseUrl.replace(/\/$/, "")}/responses`, {
       method: "POST",

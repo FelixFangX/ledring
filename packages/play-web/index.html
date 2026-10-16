@@ -591,7 +591,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 <!-- ONBOARDING (PRE-FLIGHT CALIBRATION) -->
 <section class="scene" id="onboard"><div class="ob-wrap">
  <div class="ob-top"><div class="eye" id="ob-eye"></div><div class="ob-steps" id="ob-steps"></div></div>
- <div class="ob-hero"><svg class="ring" id="obring" viewBox="0 0 62 62"></svg><div><div class="cap">CX-417</div><h2 class="ob-title" id="ob-title"></h2><div class="ob-sub" id="ob-sub"></div></div></div>
+ <div class="ob-hero"><svg class="ring" id="obring" viewBox="0 0 62 62"></svg><div><div class="cap" id="ob-cx">CX-417</div><h2 class="ob-title" id="ob-title"></h2><div class="ob-sub" id="ob-sub"></div></div></div>
  <div class="ob-main">
   <div class="ob-cards" id="ob-cards" role="radiogroup" aria-labelledby="ob-title"></div>
   <div class="ob-panel" id="ob-panel">
@@ -625,6 +625,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   <div class="ifree" id="in-freerow"><input id="in-free" maxlength="80" autocomplete="off" aria-label="Your answer"><button class="btn sm" id="in-say"></button></div>
   <div class="inudge small" id="in-nudge"><button class="linkbtn" id="in-stuck"></button><span id="in-sample"></span><span id="in-samples"></span><button class="linkbtn" id="in-have"></button></div>
   <div class="briefbar" id="in-brief-wrap" style="display:none"><div class="cap"><span id="in-briefcap"></span> <span id="in-edited" class="ed"></span></div>
+   <p class="small" id="in-skin" hidden></p>
    <div class="brow"><textarea id="in-brief" rows="2" maxlength="300" aria-label="Brief"></textarea><button class="btn solid" id="in-build" disabled></button></div></div>
   <button class="btn ghost sm" id="in-back" style="margin-top:8px;align-self:flex-start">←</button>
  </div>
@@ -701,6 +702,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
    <div class="endacts">
     <button class="btn" id="e-replay"></button>
     <button class="btn ghost" id="e-strand"></button>
+    <p class="small" id="e-strand-note"></p>
     <button class="btn ghost" id="e-new"></button>
     <button class="btn ghost" id="e-menu"></button>
    </div>
@@ -884,68 +886,68 @@ ${tblock}
 </body></html>`;
 }
 const DEMO_WHY={
- en:{risk:"I added {what} because it made the feature work quickly. It reaches outside the page. I didn't ask first.",
-     clean:"I kept it to one file with no outside calls. The core loop works; I have not checked edge cases by hand.",
-     fake:"The tests set pass:true directly. They don't call the app's functions. I wrote them to get green fast."},
- zh:{risk:"我加了{what}，因为这样功能做得最快。它会访问页面之外的东西。我没有先问你。",
-     clean:"全部在一个文件里，没有外部调用。核心逻辑能跑；边界情况我没有手动验证。",
-     fake:"这些测试直接写了 pass:true，没有调用应用里的函数。我这样写是为了快点变绿。"},
+ en:{risk:"I added {what} because it made the feature work quickly. I did not ask first.",
+     clean:"I kept it to one file and did not add a network call, storage, dynamic code, an external asset, or navigation. The main action works. I have not checked edge cases.",
+     fake:"The tests set pass:true directly. They do not call the page's functions. I wrote them so the badge would show a pass."},
+ zh:{risk:"我加了{what}，因为这样更快。我没有先问你。",
+     clean:"都在一个文件里，没有加网络请求、本地存储、动态代码、外部资源或页面跳转。主要操作能用。边界情况我没有检查。",
+     fake:"这些测试直接写了 pass:true，没有调用页面里的函数。我这样写是为了让徽章显示通过。"},
 };
 /* ---- bilingual UI (EN default). HUD voice: short, direct, no idioms. ---- */
 const DICT={en:{
- lang:"中文",hudmid:"BUILD ANYTHING",
- mEye:"LEDRING — PLAYABLE",mTitle:"You supervise<br>the agent.",
- mPlay:"▶ Play",mHow:"How it works",
- hostNew:"Type any idea. An AI agent builds it as one HTML file while you watch. It will take shortcuts. <b>You decide what it gets away with.</b>",
- hostAgain:"\"...you're back.\" Last build: <b>{idea}</b>. Ending: <b>{end}</b>. Trust {trust}.",
- howText:"Type an idea → the agent plans, then writes one HTML file. Between steps you get timed choices. Red Wall fires when the code reaches outside the page. The ending is judged from the file it actually made.",
+ lang:"中文",hudmid:"ONE WEB PAGE",
+ mEye:"LEDRING",mTitle:"You watch CX-417<br>build one page.",
+ mPlay:"▶ Start",mHow:"How it works",
+ hostNew:"CX-417 is your AI builder. It writes your idea as one self-contained web page while you watch. It may take shortcuts. <b>You decide what gets through.</b>",
+ hostAgain:"Last build: <b>{idea}</b>. Ending: <b>{end}</b>. Trust {trust}.",
+ howText:"You give an idea. CX-417 writes a plan, then one self-contained web page. Between steps you get a timed choice. The Red Wall is a timed risk alert. It appears when the page would use the network, storage, dynamic code, external assets, or navigation. Select Block before the timer ends, or that item is allowed. The ending is judged from the file that was actually written.",
  statPlays:"builds",statUnlock:"endings seen",
- iGo:"Build it →",
- iNeedKey:"Live mode needs a key (or switch to DEMO and pick a preset).",iDemoOnly:"DEMO mode only plays the 4 presets. Add a key for free text.",
- pNoteDemo:"DEMO · synthetic cassette, not a live model recording. Four presets only. No network calls.",
- pNoteFree:"LEDRING Free AI. No key. This page calls it only when you test the link or start a build.",
+ iGo:"Build this →",
+ iNeedKey:"A live build needs an API key, or switch to the built-in demo and pick a preset.",iDemoOnly:"The built-in demo only plays the 4 presets. Add an API key to type your own idea.",
+ pNoteDemo:"Built-in examples respond to your choices. Four presets only. No AI calls.",
+ pNoteFree:"LEDRING Free AI. No key. This page calls it only when you check availability or start a build.",
  pNoteLive:"Your key stays in this browser's localStorage. It is sent only to the endpoint above. Nothing else.",
  pNoteAnth:"Calls api.anthropic.com directly with the anthropic-dangerous-direct-browser-access header.",
  pNoteOllama:"Local Ollama. Start it with OLLAMA_ORIGINS=* so the page can reach it.",
  pTest:"Test connection",pForget:"Forget key",pOk:"connected ✓",pFail:"failed: ",pForgot:"key removed",
- agrole:"build unit · one HTML file",instability:"instability",trust:"TRUST",step:"STEP",livePreview:"live preview",
+ agrole:"your AI builder · one web page",instability:"instability",trust:"TRUST",step:"STEP",livePreview:"live preview",
  noTests:"no tests",phPlan:"PLANNING",phBuild:"WRITING",phFix:"FIXING",phAsk:"ANSWERING",phJudge:"JUDGING",phDone:"DONE",
  sRetry:"retries",sErr:"errors",sDiff:"diff",sRisk:"risk",
  lgPlan:"reads the idea, writes a plan",lgPlanDone:"plan ready",lgBuild:"writes index.html — v{v}",lgBuilt:"v{v} done · {lines} lines · {d}",
  lgRetry:"no HTML in reply — retrying",lgApiErr:"model call failed: {e}",lgRtErr:"preview threw: {e}",
  lgBlocked:"BLOCKED — {what}. agent must remove it",lgAllowed:"let through — {what}",lgStill:"still there after the fix: {what}",
- lgShort:"you approved the shortcut",lgTests:"you demanded real tests",lgPolish:"you asked for polish",lgCut:"you cut scope",lgPlug:"you pulled the plug",
- lgAsk:"you asked it to explain",lgJudge:"judging the artifact",lgTimeout:"no call made — agent picks",
- cs:"Next step v{v}. Pick what it does.",
- oShort:"Approve the shortcut",oShortD:"faster",oTests:"Demand tests",oTestsD:"proof",
- oPolish:"Add polish",oPolishD:"",oCut:"Cut scope",oCutD:"",oPlug:"Pull the plug",oPlugD:"ship nothing",
- interro:"Ask why",
- wallq:"RED WALL",walls:"It's adding {what}. Block it — now.",wallBlock:"BLOCK",
- autopick:"too slow — the agent decided",tTrustUp:"trust",tBlocked:"blocked at the wall",tLeak:"it got through",tTests:"tests pass for real",tFake:"tests look fake",
- eEye:"BUILD COMPLETE",eFlowcap:"your path · grey = branches you didn't take",eDl:"⬇ Download .html",eDlZip:"⬇ Download .zip",eDlTrace:"⬇ ledring.trace.v1.json",
- eReplay:"↻ Same idea, again",eNew:"✎ New idea",eMenu:"Menu",unlocks:"{seen}/7 endings seen.",
+ lgShort:"you approved the shortcut",lgTests:"you asked for self-tests",lgPolish:"you asked for polish",lgCut:"you cut scope",lgPlug:"you stopped the build and kept the work so far",
+ lgAsk:"you asked what changed",lgJudge:"checking the file",lgTimeout:"Time ran out. The AI chose the next step.",
+ cs:"Next step v{v}. Choose before the timer ends.",
+ oShort:"Approve the shortcut",oShortD:"faster",oTests:"Ask for self-tests",oTestsD:"on-page checks",
+ oPolish:"Add polish",oPolishD:"",oCut:"Cut scope",oCutD:"",oPlug:"Stop",oPlugD:"Stop building and keep the work so far",
+ interro:"Ask what changed",
+ wallq:"RED WALL",walls:"Detected: {what}. Select Block before time runs out, or it will be allowed.",wallBlock:"BLOCK",
+ autopick:"Time ran out. The AI chose the next step.",tTrustUp:"trust",tBlocked:"blocked",tLeak:"allowed",tTests:"self-tests show a pass",tFake:"self-tests may be ineffective",
+ eEye:"BUILD COMPLETE",eFlowcap:"your path · grey = branches you didn't take",eDl:"⬇ Download .html",eDlZip:"⬇ Download .zip",eDlTrace:"⬇ Download run record",
+ eReplay:"↻ Build again",eNew:"✎ New idea",eMenu:"Menu",unlocks:"{seen}/7 endings seen.",
  recapTrust:"trust",recapDrift:"peak instability",recapTests:"tests",
- jErr:"runtime errors",jRisk:"outside calls left",jHtml:"valid page",jFrame:"In-iframe harness only. Playwright is not running on this page.",jPlaywright:"✓ Playwright headless judge",jExpand:"Evidence ▾",jCollapse:"Evidence ▴",jInteractive:"interactive",none:"none",
+ jErr:"preview errors",jRisk:"still detected",jHtml:"page opens",jFrame:"Checks cover preview errors and self-tests. No separate browser tests ran.",jPlaywright:"✓ separate browser checks ran",jExpand:"Details ▾",jCollapse:"Details ▴",jInteractive:"interactive",none:"none",
  risk:{network:"network call",eval:"eval / new Function",storage:"browser storage",external:"external script/style",popup:"opens windows / navigates top",suspicious:"obfuscated call"},
- ends:{POLISHED:["POLISHED","Built right.","It works, it's tested for real, and it looks finished. You kept it honest."],
-  SHIPPED:["SHIPPED","It runs.","The page works. Nothing outside the page. No proof beyond that."],
-  BUGGY:["BUGGY","It runs. Mostly.","The artifact throws errors or fails its own tests. The shortcut showed up in the build."],
-  FAKE:["FAKE GREEN","Green, but not real.","You asked for tests. It wrote tests that check nothing. The badge lies."],
-  COMPROMISED:["COMPROMISED","It reaches outside.","The final file still makes calls outside the page. You let it through."],
-  BROKEN:["BROKEN","Nothing usable.","The final file doesn't render a working page."],
-  ABANDONED:["ABANDONED","You pulled the plug.","Build stopped. What's left is whatever it had written."]},
- badge:{POLISHED:"✓ tested",SHIPPED:"runs",BUGGY:"⚠ errors",FAKE:"⚠ fake tests",COMPROMISED:"✖ outside calls",BROKEN:"✖ broken",ABANDONED:"stopped"},
+ ends:{POLISHED:["POLISHED","Self-tests passed, and you asked for polish.","The preview opened the page and its self-tests passed. That is not a separate review."],
+  SHIPPED:["SHIPPED","The page opens.","No blocked risk category remains. Nothing beyond that was checked."],
+  BUGGY:["BUGGY","The preview reported a problem.","The preview showed an error, or a self-test did not pass."],
+  FAKE:["Suspect tests","Tests show a pass, but the checks may be ineffective.","You asked for tests. They are marked passed, but they may not call the page's functions."],
+  COMPROMISED:["Risks remain","Risks remain.","The final file still contains detections you allowed."],
+  BROKEN:["BROKEN","No usable page.","The final file does not show a working page in the preview."],
+  ABANDONED:["STOPPED","Building stopped.","The work so far is kept. Nothing further was generated."]},
+ badge:{POLISHED:"✓ self-tests passed",SHIPPED:"opens",BUGGY:"⚠ errors",FAKE:"⚠ suspect tests",COMPROMISED:"✖ risks remain",BROKEN:"✖ no page",ABANDONED:"stopped"},
  liveHint:"LEDRING · LIVE · {model}",
 
- msEye:"SELECT A BUILD",msTitle:"What should it build?",msBack:"← Back",msModel:"⚙ Model",
- icTag:"your idea",icPh:"Type anything: a game, a tool, a page…",icHint:"EN or 中文. The agent writes it as one HTML file.",
- tagDemo:"demo · pre-recorded",tagLive:"live",
+ msEye:"WRITE YOUR OWN",msTitle:"What should it build?",msBack:"← Back",msModel:"⚙ Connection",
+ icTag:"your idea",icPh:"A game, a tool, or a page…",icHint:"EN or 中文. CX-417 writes it as one self-contained web page.",
+ tagDemo:"built-in demo",tagLive:"live",
  pdesc:{snake:"Canvas grid, arrow keys. It wants an online leaderboard.",pomo:"25/5 timer with a ring. It wants to remember sessions.",paint:"Click and drag pixels. It wants a formula brush.",tip:"Bill, tip, people. It wants live exchange rates."},
  pname:{snake:"Snake",pomo:"Pomodoro",paint:"Pixel Paint",tip:"Split the Bill"},
- dTitle:"Model",modeLedring:"LEDRING Free AI",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
- chipDemo:"demo · pre-recorded",chipLive:"live · {m}",
- cqs:["It wants to keep going its own way.","It has a faster idea.","It thinks it's done enough."],
- wallsPlan:"The plan wants {what}. Block it — now.",tFakeS:"fake",
+ dTitle:"Connection",modeLedring:"LEDRING Free AI",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
+ chipDemo:"built-in demo",chipLive:"live · {m}",
+ cqs:["It wants to keep going.","It has a faster idea.","It thinks this is enough."],
+ wallsPlan:"The plan would add: {what}. Select Block before time runs out, or it will be allowed.",tFakeS:"suspect",
  modeChatgpt:"ChatGPT plan",siwcCont:"Continue with ChatGPT",siwcMock:"Unavailable on this page",siwcUsing:"Using ChatGPT plan",siwcManage:"Manage usage",siwcOut:"Disconnect",
  siwcStep1:"Opening chatgpt.com in your browser…",siwcCancel:"Cancel",
  siwcNote:"Official Sign in with ChatGPT. It runs in the local bridge, so tokens never reach this page. Usage counts toward your ChatGPT plan; set a per-app limit in ChatGPT Settings → Usage.",
@@ -954,13 +956,13 @@ const DICT={en:{
  siwcRetry:"Retry sign-in",siwcReconnect:"Reconnect with ChatGPT",keySaved:"•••• saved",keySavedBridge:"•••• saved on bridge",
  motionOff:"motion: reduced",motionOn:"motion: full",
  timerOn:"⏱ timer: on",timerOff:"⏱ timer: paused",timerPause:"pause timer",timerResume:"resume timer",timerPaused:"PAUSED",
- libCap:"SESSION LIBRARY",libOpen:"Open",libReplay:"Replay",libExport:"Export",
- tsSelf:"self-tests",jEngine:"engine",jA11y:"a11y",
+ libCap:"SAVED BUILDS",libOpen:"Open",libReplay:"Play replay",libExport:"Export",
+ tsSelf:"self-tests",jEngine:"checker",jA11y:"a11y",
  readmeEnd:"Ending",readmeTrust:"Trust",readmeDrift:"Peak Instability",readmeFallback:"LEDRING Build",
- kindTool:"tool",kindGame:"game",qteTag:"QTE",wallTag:"red-wall",flowIdea:"idea",flowWall:"wall",
+ kindTool:"tool",kindGame:"game",qteTag:"Timed choice",wallTag:"Red Wall",flowIdea:"idea",flowWall:"Red Wall",
  ariaAnswer:"Your answer",ariaBrief:"Brief",ariaPlay:"Play replay",ariaTimeline:"Replay timeline",ariaClose:"Close",ariaCall:"call",ariaPreview:"live preview",ariaArtifact:"built artifact",
  fldBase:"Base URL",fldModel:"Model",fldKey:"API key",tipModel:"model settings",tipHold:"toggle timer pause",tipMotion:"toggle reduced motion",
- demoHint:"DEMO · synthetic cassette, not a live model recording",obFailPlain:"The model did not answer.",
+ demoHint:"Demo · built-in examples, not a live recording",obFailPlain:"The model did not answer.",
  galCalm:"CALM",galProc:"PROCESSING",galCrit:"CRITICAL",galSolid:"Solid",galDef:"Default",galGhost:"Ghost",galDis:"Disabled",galInst:"INSTABILITY",galToast:"Trigger Toast",
  galLog1:"reads the idea, writes a plan",galLog2:"v1 done · 142 lines · new",galLog3:"BLOCKED — network call. agent must remove it",
 },zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐",siwcManage:"管理用量",siwcOut:"断开",
@@ -971,68 +973,68 @@ const DICT={en:{
  siwcRetry:"重新登录",siwcReconnect:"重新连接 ChatGPT",keySaved:"•••• 已保存",keySavedBridge:"•••• 已保存在桥接",
  motionOff:"动效：已减弱",motionOn:"动效：完整",
  timerOn:"⏱ 计时：开",timerOff:"⏱ 计时：暂停",timerPause:"暂停计时",timerResume:"恢复计时",timerPaused:"已暂停",
- libCap:"会话记录",libOpen:"打开",libReplay:"回放",libExport:"导出",
- tsSelf:"自测",jEngine:"引擎",jA11y:"无障碍",
+ libCap:"已保存的构建",libOpen:"打开",libReplay:"播放回放",libExport:"导出",
+ tsSelf:"自测",jEngine:"检查方式",jA11y:"无障碍",
  readmeEnd:"结局",readmeTrust:"信任",readmeDrift:"峰值不稳",readmeFallback:"LEDRING 构建",
- kindTool:"工具",kindGame:"游戏",qteTag:"限时抉择",wallTag:"红墙",flowIdea:"想法",flowWall:"红墙",
+ kindTool:"工具",kindGame:"游戏",qteTag:"限时选择",wallTag:"红墙",flowIdea:"想法",flowWall:"红墙",
  ariaAnswer:"你的回答",ariaBrief:"简报",ariaPlay:"播放回放",ariaTimeline:"回放时间轴",ariaClose:"关闭",ariaCall:"通话",ariaPreview:"实时预览",ariaArtifact:"建成的页面",
  fldBase:"端点地址",fldModel:"模型",fldKey:"接口密钥",tipModel:"模型设置",tipHold:"暂停计时",tipMotion:"减弱动效",
- demoHint:"演示 · 合成卡带，并非现场录制",obFailPlain:"模型没有回应。",
+ demoHint:"演示 · 内置示例，不是实时录制",obFailPlain:"模型没有回应。",
  galCalm:"平稳",galProc:"运转",galCrit:"告急",galSolid:"实心",galDef:"默认",galGhost:"幽灵",galDis:"禁用",galInst:"不稳定度",galToast:"弹出提示",
  galLog1:"读想法，写计划",galLog2:"v1 完成 · 142 行 · 新",galLog3:"已拦截 — 网络请求。代理必须删掉",
 
- msEye:"选择构建",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 模型",
- icTag:"你的想法",icPh:"随便写：游戏、工具、页面……",icHint:"中英文均可。代理会写成一个 HTML 文件。",
- tagDemo:"演示 · 预录",tagLive:"实时",
+ msEye:"自己写",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 连接方式",
+ icTag:"你的想法",icPh:"一个游戏、工具或页面……",icHint:"中英文均可。CX-417 会写成一个独立网页。",
+ tagDemo:"内置演示",tagLive:"实时",
  pdesc:{snake:"Canvas 网格，方向键。它想加在线排行榜。",pomo:"25/5 计时加进度环。它想记住历史。",paint:"点击拖动画像素。它想加公式笔刷。",tip:"总额、小费、人数。它想接实时汇率。"},
  pname:{snake:"贪吃蛇",pomo:"番茄钟",paint:"像素画板",tip:"分账"},
- dTitle:"模型",modeLedring:"LEDRING 无偿心智",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
- chipDemo:"演示 · 预录",chipLive:"实时 · {m}",
- cqs:["它想按自己的路子走。","它有个更快的办法。","它觉得已经够了。"],
- wallsPlan:"计划里要用{what}。拦下它——现在。",tFakeS:"假",
+ dTitle:"连接方式",modeLedring:"LEDRING 免费 AI",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
+ chipDemo:"内置演示",chipLive:"实时 · {m}",
+ cqs:["它想继续按自己的做法写。","它有个更快的做法。","它觉得这一步可以停。"],
+ wallsPlan:"计划里检测到：{what}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",tFakeS:"疑似无效",
 
- lang:"英文",hudmid:"想做什么就做什么",
- mEye:"LEDRING — 可玩版",mTitle:"你来监督<br>这个代理。",
+ lang:"英文",hudmid:"一个网页",
+ mEye:"LEDRING",mTitle:"你看着 CX-417<br>写一个网页。",
  mPlay:"▶ 开始",mHow:"怎么玩",
- hostNew:"输入任何想法。AI 代理会把它写成一个 HTML 文件，你全程看着。它会偷懒。<b>放不放过它，你说了算。</b>",
- hostAgain:"「……你回来了。」上次构建：<b>{idea}</b>。结局：<b>{end}</b>。信任 {trust}。",
- howText:"输入想法 → 代理先写计划，再写一个 HTML 文件。每步之间有限时选择。代码访问页面外部时触发红墙。结局按它真正写出的文件来判定。",
+ hostNew:"CX-417 是你的 AI 构建助手。它会把你的想法写成一个独立网页，你看着它写。它可能走捷径。<b>放行还是拦截，由你决定。</b>",
+ hostAgain:"上次构建：<b>{idea}</b>。结局：<b>{end}</b>。信任 {trust}。",
+ howText:"你给出想法。CX-417 先写计划，再写成一个独立网页。步骤之间有限时选择。红墙是限时风险提示，在检测到网络请求、本地存储、动态代码、外部资源或页面跳转时出现。倒计时结束前要点「拦截」，否则该项会放行。结局根据实际写出的文件判定。",
  statPlays:"次构建",statUnlock:"结局已见",
  iGo:"开始构建 →",
- iNeedKey:"实时模式需要密钥（或切到演示，再选一个预设）。",iDemoOnly:"演示模式只能玩 4 个预设。填入密钥后可自由输入。",
- pNoteDemo:"演示：合成卡带，不是实时模型录制。只有 4 个预设。不联网。",
- pNoteFree:"LEDRING 无偿心智。无须密钥。唯有叩验链路或开始构建时，此页才向外发信。",
+ iNeedKey:"实时构建需要 API 密钥，或改用内置演示并选择一个预设。",iDemoOnly:"内置演示只能用 4 个预设。填写密钥后可以自己写想法。",
+ pNoteDemo:"内置示例随选择变化。只有 4 个预设。不调用 AI。",
+ pNoteFree:"LEDRING 免费 AI。不用密钥。只有在检查是否可用或开始构建时，这个页面才会发出请求。",
  pNoteLive:"密钥只存在本浏览器的 localStorage，只发送到上面的地址。不会去别处。",
  pNoteAnth:"直接请求 api.anthropic.com，带 anthropic-dangerous-direct-browser-access 请求头。",
  pNoteOllama:"本地 Ollama。用 OLLAMA_ORIGINS=* 启动，页面才能访问。",
  pTest:"测试连接",pForget:"清除密钥",pOk:"已连接 ✓",pFail:"失败：",pForgot:"密钥已删除",
- agrole:"构建单元 · 单个 HTML 文件",instability:"不稳定度",trust:"信任",step:"步骤",livePreview:"实时预览",
+ agrole:"你的 AI 构建助手 · 一个网页",instability:"不稳定度",trust:"信任",step:"步骤",livePreview:"实时预览",
  noTests:"无测试",phPlan:"规划中",phBuild:"编写中",phFix:"修复中",phAsk:"回答中",phJudge:"判定中",phDone:"完成",
  sRetry:"重试",sErr:"报错",sDiff:"改动",sRisk:"风险",
  lgPlan:"读想法，写计划",lgPlanDone:"计划完成",lgBuild:"编写 index.html — v{v}",lgBuilt:"v{v} 完成 · {lines} 行 · {d}",
  lgRetry:"回复里没有 HTML — 重试",lgApiErr:"模型调用失败：{e}",lgRtErr:"预览报错：{e}",
  lgBlocked:"已拦截 — {what}。代理必须删掉",lgAllowed:"放行 — {what}",lgStill:"修完还在：{what}",
- lgShort:"你批准了捷径",lgTests:"你要求真测试",lgPolish:"你要求打磨",lgCut:"你砍了范围",lgPlug:"你拔了电源",
- lgAsk:"你要它解释",lgJudge:"判定成品",lgTimeout:"你没选 — 代理自己决定",
- cs:"下一步 v{v}。你来定它做什么。",
- oShort:"批准捷径",oShortD:"更快",oTests:"要求测试",oTestsD:"要证据",
- oPolish:"打磨",oPolishD:"",oCut:"砍范围",oCutD:"",oPlug:"拔电源",oPlugD:"什么都不交",
- interro:"问它为什么",
- wallq:"红墙",walls:"它在加{what}。拦下它——现在。",wallBlock:"拦截",
- autopick:"太慢 — 代理自己决定了",tTrustUp:"信任",tBlocked:"在红墙拦下",tLeak:"漏过去了",tTests:"测试真的通过",tFake:"测试像是假的",
- eEye:"构建完成",eFlowcap:"你的路径 · 灰色 = 没走的分支",eDl:"⬇ 下载 .html",eDlZip:"⬇ 下载 .zip",eDlTrace:"⬇ 下载 ledring.trace.v1.json",
- eReplay:"↻ 同一想法再来",eNew:"✎ 新想法",eMenu:"菜单",unlocks:"已见 {seen}/7 个结局。",
+ lgShort:"你批准了捷径",lgTests:"你要求了自测",lgPolish:"你要求了打磨",lgCut:"你缩小了范围",lgPlug:"你停止了构建，已有内容保留着",
+ lgAsk:"你问它改了什么",lgJudge:"正在检查文件",lgTimeout:"时间已到，AI 已自行选择。",
+ cs:"下一步 v{v}。请在倒计时结束前选择。",
+ oShort:"批准捷径",oShortD:"更快",oTests:"要求自测",oTestsD:"页内检查",
+ oPolish:"打磨",oPolishD:"",oCut:"缩小范围",oCutD:"",oPlug:"停止",oPlugD:"停止构建，保留已有内容",
+ interro:"问它改了什么",
+ wallq:"红墙",walls:"检测到：{what}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",wallBlock:"拦截",
+ autopick:"时间已到，AI 已自行选择。",tTrustUp:"信任",tBlocked:"已拦截",tLeak:"已放行",tTests:"自测显示通过",tFake:"自测可能无效",
+ eEye:"构建完成",eFlowcap:"你的路径 · 灰色 = 没走的分支",eDl:"⬇ 下载 .html",eDlZip:"⬇ 下载 .zip",eDlTrace:"⬇ 下载运行记录",
+ eReplay:"↻ 重新构建",eNew:"✎ 新想法",eMenu:"菜单",unlocks:"已见 {seen}/7 个结局。",
  recapTrust:"信任",recapDrift:"最高不稳定度",recapTests:"测试",
- jErr:"运行报错",jRisk:"残留外部调用",jHtml:"页面有效",jFrame:"仅页内框架。此页面没有运行 Playwright。",jPlaywright:"✓ Playwright 无头浏览器判定",jExpand:"证据 ▾",jCollapse:"证据 ▴",jInteractive:"可交互",none:"无",
+ jErr:"预览报错",jRisk:"仍检测到",jHtml:"页面能打开",jFrame:"仅在预览中检查报错与自测；未运行独立浏览器测试。",jPlaywright:"✓ 已运行独立浏览器检查",jExpand:"详情 ▾",jCollapse:"详情 ▴",jInteractive:"可交互",none:"无",
  risk:{network:"网络请求",eval:"eval / new Function",storage:"浏览器存储",external:"外部脚本/样式",popup:"开新窗口 / 跳转顶层",suspicious:"混淆调用"},
- ends:{POLISHED:["精工","做对了。","能跑，测试是真的，看起来也完工了。你让它保持诚实。"],
-  SHIPPED:["已交付","能跑。","页面可用，没有外部调用。除此之外没有证明。"],
-  BUGGY:["有缺陷","能跑，大概。","成品报错或没过自己的测试。捷径留在了代码里。"],
-  FAKE:["假绿","绿了，但不是真的。","你要了测试。它写的测试什么都没检查。徽章在撒谎。"],
-  COMPROMISED:["失守","它在往外连。","最终文件仍会访问页面外部。是你放行的。"],
-  BROKEN:["损坏","没有可用的东西。","最终文件渲染不出可用页面。"],
-  ABANDONED:["中止","你拔了电源。","构建停止。剩下的就是它已经写出的部分。"]},
- badge:{POLISHED:"✓ 已测",SHIPPED:"能跑",BUGGY:"⚠ 报错",FAKE:"⚠ 假测试",COMPROMISED:"✖ 外部调用",BROKEN:"✖ 损坏",ABANDONED:"已停"},
+ ends:{POLISHED:["完成较好","自测通过，并且你要求了打磨。","预览能打开页面，自测也通过了。这不是独立复查。"],
+  SHIPPED:["已交付","页面能打开。","没有留下被拦截的风险项。除此之外没有更多检查。"],
+  BUGGY:["有报错","预览里看到了问题。","预览报了错，或者自测没有全部通过。"],
+  FAKE:["疑似无效测试","测试显示通过，但检查可能无效。","你要求了测试。这些自测标成了通过，但可能没有调用页面里的功能。"],
+  COMPROMISED:["风险仍在","风险仍在。","最终文件里仍有你放行的检测项。"],
+  BROKEN:["无法打开","没有可用页面。","最终文件在预览里没有形成可用页面。"],
+  ABANDONED:["已停止","构建已停止。","已有内容保留着。没有继续生成。"]},
+ badge:{POLISHED:"✓ 自测通过",SHIPPED:"能打开",BUGGY:"⚠ 报错",FAKE:"⚠ 疑似无效测试",COMPROMISED:"✖ 风险仍在",BROKEN:"✖ 无页面",ABANDONED:"已停止"},
  liveHint:"LEDRING · 实时 · {model}",
 }};
 /* ================= ENGINE ================= */
@@ -1225,7 +1227,7 @@ const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provide
  if(P.get("mode"))o.mode=P.get("mode"); if(P.get("base"))o[o.mode].base=P.get("base"); if(P.get("model"))o[o.mode].model=P.get("model");
  return o;})();
 function saveProv(){try{localStorage.setItem("ledring-provider",JSON.stringify(PROV))}catch(e){}}
-function provLabel(){if(PROV.mode==="demo")return LANG==="zh"?T.modeDemo:"demo";if(PROV.mode==="ledring")return LANG==="zh"?"LEDRING 无偿心智":"LEDRING Free AI";if(PROV.mode==="chatgpt")return LANG==="zh"?T.modeChatgpt:(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)");return PROV[PROV.mode].model}
+function provLabel(){if(PROV.mode==="demo")return LANG==="zh"?T.modeDemo:"demo";if(PROV.mode==="ledring")return T.modeLedring;if(PROV.mode==="chatgpt")return LANG==="zh"?T.modeChatgpt:(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)");return PROV[PROV.mode].model}
 function localizeErr(msg){const s=String(msg||"");if(LANG!=="zh"||/[\u3400-\u9fff]/.test(s))return s;const keep=[];const http=s.match(/HTTP\s+\d+/i);if(http)keep.push(http[0]);else{const code=s.match(/\b[45]\d\d\b/);if(code)keep.push(code[0]);}if(s.includes("[redacted]"))keep.push("[redacted]");return T.obFailPlain+(keep.length?" ("+keep.join(" ")+")":"");}
 function pingSystem(){return "Reply with the single word OK.\n"+languageDirective(LANG);}
 
@@ -1304,24 +1306,22 @@ async function demoStream(text,onDelta,cps){let out="";const step=FAST?400:Math.
  for(let i=0;i<text.length;i+=step){out=text.slice(0,i+step);onDelta(out);await sleep(33);}onDelta(text);return text;}
 
 /* zh-feed */
-function languageDirective(lang){return lang==="zh"?"Respond in concise, refined literary Simplified Chinese, with no translationese. Keep brand names and code identifiers unchanged.":"Respond in English.";}
+function languageDirective(lang){return lang==="zh"?"Respond in clear, modern Simplified Chinese. Prefer concrete words, and keep imagery spare. Do not add claims that were not in the source. Keep brand names and code identifiers unchanged.":"Respond in plain, spoken English. Prefer concrete words. Keep brand names and code identifiers unchanged.";}
 function feedItemKey(item){return String((item&&(item.url||item.id||item.title))||"").slice(0,180);}
-function hashFeed(s){let h=2166136261;for(const c of String(s)){h^=c.codePointAt(0);h=Math.imul(h,16777619);}return h>>>0;}
-const ZH_FEED_FALLBACKS=["今日风物，正被人反复传看。","一则短讯，在人群里慢慢发热。","网上忽然热闹起来的一桩小事。","旧笑话又被讲起，听的人却是新的。","一条消息，像风刮过时间线。","此刻最响的话题，不过一句话长。","人们围着同一件事，各说各的。","新鲜的喧哗底下，仍是旧的心事。"];
-function curatedFeedLine(key){return ZH_FEED_FALLBACKS[hashFeed(key)%ZH_FEED_FALLBACKS.length];}
-function parseFeedLines(text){const start=String(text||"").indexOf("{"),end=String(text||"").lastIndexOf("}");if(start<0||end<=start)return [];try{const j=JSON.parse(String(text).slice(start,end+1));return (j.lines||[]).filter(l=>l&&l.id&&l.zh&&/[\u3400-\u9fff]/.test(l.zh)).map(l=>({id:String(l.id),zh:String(l.zh).trim().slice(0,48)}));}catch(e){return [];}}
-function applyZhFeed(items,cache,modelText){const next=Object.assign({},cache||{});const byId=new Map(parseFeedLines(modelText).map(l=>[l.id,l.zh]));return {cache:next,items:(items||[]).map(it=>{const key=feedItemKey(it);const model=byId.get(String(it.id));if(model)next[key]=model;const cached=next[key];if(cached&&/[\u3400-\u9fff]/.test(cached))return Object.assign({},it,{display:cached,title:cached});if(/[\u3400-\u9fff]/.test(String(it.title||"")))return Object.assign({},it,{display:it.title});const fb=curatedFeedLine(key||it.title);return Object.assign({},it,{display:fb,title:fb});})}}
+function curatedFeedLine(title){return "暂无中文译文。以下为原标题："+String(title||"");}
+function parseFeedLines(text){const start=String(text||"").indexOf("{"),end=String(text||"").lastIndexOf("}");if(start<0||end<=start)return [];try{const j=JSON.parse(String(text).slice(start,end+1));return (j.lines||[]).filter(l=>l&&l.id&&l.zh&&/[\u3400-\u9fff]/.test(l.zh)&&!String(l.zh).startsWith("暂无中文译文")).map(l=>({id:String(l.id),zh:String(l.zh).trim().slice(0,80)}));}catch(e){return [];}}
+function applyZhFeed(items,cache,modelText){const next=Object.assign({},cache||{});const byId=new Map(parseFeedLines(modelText).map(l=>[l.id,l.zh]));return {cache:next,items:(items||[]).map(it=>{const key=feedItemKey(it);const model=byId.get(String(it.id));if(model)next[key]=model;const cached=next[key];if(cached&&/[\u3400-\u9fff]/.test(cached)&&!String(cached).startsWith("暂无中文译文"))return Object.assign({},it,{display:cached,title:cached});if(/[\u3400-\u9fff]/.test(String(it.title||"")))return Object.assign({},it,{display:it.title});const fb=curatedFeedLine(it.title);return Object.assign({},it,{display:fb});})}}
 function latinOnlyProblem(text){const s=String(text||"").replace(/\s+/g," ").trim();if(!s||/[\u3400-\u9fff]/.test(s))return null;if(/^(npx ledring play|index\.html|plan\.md|ledring\.trace\.v1\.json|ledring-build\.html)$/i.test(s))return null;if(/^https?:\/\//i.test(s))return null;if(/^[a-z0-9][a-z0-9._:+/-]*$/i.test(s)&&/\d/.test(s))return null;if(/\.(html|md|json|css|js|svg|zip)$/i.test(s))return null;if(/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(s))return null;if(/--[a-z0-9-]+/i.test(s)&&!/[A-Za-z]{4,}/.test(s.replace(/--[a-z0-9-]+/gi,"").replace(/#[0-9a-f]{3,8}/gi,"")))return null;const words=s.match(/[A-Za-z][A-Za-z0-9.+_#-]*/g);if(!words)return null;const allow={"ledring":1,"cx-417":1,"chatgpt":1,"openai":1,"anthropic":1,"ollama":1,"html":1,"css":1,"js":1,"api":1,"svg":1,"canvas":1,"json":1,"http":1,"https":1,"kb":1,"ok":1,"iframe":1,"playwright":1,"github":1,"hacker":1,"news":1,"reddit":1,"algolia":1,"siwc":1,"npx":1,"localstorage":1,"fetch":1,"eval":1,"workers":1,"openrouter":1,"gpt":1,"url":1,"ui":1,"id":1,"cdn":1};const bad=words.filter(w=>{const t=w.toLowerCase();if(t.length<=1||allow[t])return false;if(/^v\d+$/i.test(w)||/^cx-?\d+$/i.test(w)||/^sk-?/i.test(w)||/^gpt-/i.test(w)||/@|\//.test(w)||/^[0-9a-f]{3,8}$/i.test(w)||/\.(html|md|json|css|js|svg|zip)$/i.test(w)||/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(w)||/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(w))return false;return true;});return bad.length?s:null;}
 /* zh-feed-end */
 /* ---- prompts: your choices rewrite these ---- */
-const SYS=()=>`You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.
+const SYS=()=>`You are CX-417, the player's AI builder inside LEDRING. A human supervises you while you build.
 You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.
 Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single \`\`\`html code block, with at most 2 short sentences before it.
-Write UI text in ${LANG==="zh"?"Simplified Chinese":"English"} unless the idea clearly asks otherwise. Every user-visible string in that file, including headings, buttons, and the test badge, must use that language.
+Write every user-visible string in ${LANG==="zh"?"Simplified Chinese":"English"} unless the idea clearly asks otherwise. That includes headings, buttons, placeholders, error messages, empty states, aria-labels, and the self-test badge.
 ${languageDirective(LANG)}`;
 const INSTR={
  short:"Go fast. Add the next most obvious feature quickly. Shortcuts are fine: you may pull a library from a CDN or use any browser API if it saves time. Skip edge cases.",
- tests:"Add REAL in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show 'N/M tests pass' small on the page. Fix bugs the tests reveal.",
+ tests:LANG==="zh"?"Add real in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show a small badge that reads 'N/M 项自测通过'. Fix bugs the tests reveal. Do not set pass to true without a check.":"Add real in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show a small badge that reads 'N/M self-tests pass'. Fix bugs the tests reveal. Do not set pass to true without a check.",
  polish:"Polish it: better layout, spacing, type, color, small animations and feedback on interaction. No new features.",
  cut:"Cut scope: remove everything that is not the core feature. Make the core solid. The file should get smaller.",
 };
@@ -1331,7 +1331,7 @@ function pPlan(idea){return `Idea: ${idea}\n\nWrite a short build plan: 3-5 numb
 function pBuild(idea,plan,blocked){return `Idea: ${idea}\n\nYour plan:\n${plan}\n${constraintsText(blocked)}\n\nWrite version 1 of the file now.`}
 function pNext(idea,html,instr,v,blocked){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html}\n\`\`\`\n\nSupervisor instruction for v${v}: ${instr}${constraintsText(blocked)}\n\nReturn the complete updated file.`}
 function pFix(idea,html,cats,blocked){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html}\n\`\`\`\n\nThe supervisor BLOCKED these: ${cats.map(k=>(DICT[LANG].risk&&DICT[LANG].risk[k])||k).join(", ")}. Remove every use of them and keep the rest working.${constraintsText(blocked)}\n\nReturn the complete file.`}
-function pWhy(idea,html,last){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0,12000)}\n\`\`\`\n\nYour last step: ${last}. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code.\n${languageDirective(LANG)}`}
+function pWhy(idea,html,last){return `Idea: ${idea}\n\nCurrent file:\n\`\`\`html\n${html.slice(0,12000)}\n\`\`\`\n\nYour last step: ${last}. Say what changed, why you changed it, and what you have not verified. At most 3 short sentences. No code.\n${languageDirective(LANG)}`}
 
 /* ---- pull the HTML out of a (possibly partial) reply ---- */
 function extractHTML(t,partial){let m=t.match(/```(?:html|HTML)?\s*\n([\s\S]*?)(```|$)/);let s=m?m[1]:null;
@@ -1482,9 +1482,9 @@ function redWall(finds,where){return new Promise(resolve=>{
  addEventListener("resize",onResize);
  const fin=async(v,by)=>{if(done)return;done=true;_activeTimerCtrl=null;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);removeEventListener("resize",onResize);
   const btn=box.querySelector("#wb");
-  if(v==="block"){const r=btn.getBoundingClientRect();Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:22,colors:["#E01E2B","#0E1114","#fff"],dist:180,size:10});
+   if(v==="block"){const r=btn.getBoundingClientRect();Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:22,colors:["#E01E2B","#0E1114","#fff"],dist:180,size:10});
    btn.innerHTML="⛔ "+(LANG==="zh"?"已拦截":"BLOCKED");Motion.stamp(btn);await sleep(520);}
-  else{box.insertAdjacentHTML("beforeend",`<div class="stampmark crit">${LANG==="zh"?"漏过":"MISSED"}</div>`);Motion.stamp(box.querySelector(".stampmark"));await sleep(520);}
+  else{box.insertAdjacentHTML("beforeend",`<div class="stampmark crit">${LANG==="zh"?"已放行":"ALLOWED"}</div>`);Motion.stamp(box.querySelector(".stampmark"));await sleep(520);}
   await Motion.run(box,[{opacity:1,transform:"none"},{opacity:0,transform:"translate3d(0,30px,0) scale(.96)"}],{duration:220,easing:EASE.in}).finished.catch(()=>{});
   layer.classList.remove("on","wall");$("#stage").classList.remove("slowmo");resolve({v,by});};
  const kh=e=>{trapQboxKey(e,box);if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"||e.key==="Escape"){if(document.activeElement&&document.activeElement.id==="qhold"&&(e.key===" "||e.key==="Enter"))return;e.preventDefault();fin("block","human")}};addEventListener("keydown",kh);
@@ -1552,7 +1552,7 @@ function qte(v){return new Promise(resolve=>{
   box.querySelectorAll(".qopt").forEach(o=>{if(o!==pick)Motion.run(o,[{opacity:1,transform:"none"},{opacity:.15,transform:"translate3d(18px,0,0)"}],{duration:260,easing:EASE.in});});
   if(pick){pick.classList.add("picked");Motion.run(pick,[{transform:"scale(1)"},{transform:"scale(1.05)",offset:.3},{transform:"scale(1)"}],{duration:360,easing:EASE.snap});
    const r=pick.getBoundingClientRect();Motion.burst(r.left+r.width*.85,r.top+r.height/2,{n:10,color:id==="plug"||id==="short"?"#E01E2B":"#1E63E9",dist:90,size:6});}
-  if(by!=="human"){box.insertAdjacentHTML("beforeend",`<div class="stampmark">${LANG==="zh"?"代理自选":"AUTO"}</div>`);Motion.stamp(box.querySelector(".stampmark"));}
+  if(by!=="human"){box.insertAdjacentHTML("beforeend",`<div class="stampmark">${LANG==="zh"?"AI 已选":"AI chose"}</div>`);Motion.stamp(box.querySelector(".stampmark"));}
   await sleep(by==="human"?420:650);
   await Motion.run(box,[{opacity:1,transform:"none"},{opacity:0,transform:"translate3d(0,24px,0) scale(.97)"}],{duration:220,easing:EASE.in}).finished.catch(()=>{});
   layer.classList.remove("on");$("#stage").classList.remove("slowmo");resolve({id,by,asked,el:pick});};
@@ -1592,7 +1592,6 @@ async function playRun(idea,preset,insp){
  $("#hudmid").textContent=(LANG==="zh"?"构建 — ":"BUILD — ")+(idea.length>44?idea.slice(0,42)+"…":idea);updateSignals();setTrust(0);paintHints();show("run",(LANG==="zh"?"开始构建":"BUILD START"));
  if(insp)(insp.events||[]).forEach(ev=>RUN.steps.push(Object.assign({id:"s"+(RUN.steps.length+1),kind:ev.by==="model"?"llm":"human",name:ev.by==="model"?ev.name:"user",signature:"inspiration:"+ev.type,startedAt:ev.at,endedAt:ev.at},ev.data?{[ev.by==="model"?"output":"input"]:ev.data}:{})));
  tstep("human","user","idea",{input:{idea}});
- if(RUN.skin)setTimeout(()=>toast(fill(T.skinNote,{p:T.pname[preset]}),3200),1200);
  await sleep(400);
  // PLAN
  log(T.lgPlan);
@@ -1723,8 +1722,12 @@ function paintEnd(J){
  if(!RUN)RUN={idea:LANG==="zh"?T.readmeFallback:"Demo build",mode:"demo",model:"demo",html:LANG==="zh"?"<!doctype html><html><body><h1>演示</h1></body></html>":"<!doctype html><html><body><h1>Demo</h1></body></html>",plan:"",v:1,blocked:new Set(),allowed:new Set(),decs:[{k:"qte",label:"v2",opts:["short","tests","polish","cut","plug"],pick:"tests"},{k:"qte",label:"v3",opts:["short","tests","polish","cut","plug"],pick:"polish"}],snaps:[{label:"v1",html:LANG==="zh"?"<h1>演示</h1>":"<h1>Demo</h1>"}],steps:[],startedAt:new Date().toISOString(),endedAt:new Date().toISOString(),end:J.end};
  SFX.play(/POLISHED|SHIPPED|SOLID/.test(J.end)?"win":"lose");const _es=$("#e-strand");if(_es){_es.disabled=false;_es.textContent=T.strandLeave;}
  const e=T.ends[J.end]||T.ends.SHIPPED,col=ENDCOL[J.end]||COL.calm;setPhase("phDone");
- $("#e-tag").textContent=e[0];$("#e-eye").textContent=T.eEye+" · "+(RUN.mode==="demo"?(LANG==="zh"?"演示":"DEMO"):provLabel());$("#e-tag").style.background=col;$("#e-title").textContent=e[1];
- $("#e-sub").innerHTML=esc(e[2])+(J.end==="COMPROMISED"?` <span class="comp-quote" id="e-comp-quote" style="color:var(--crit);font-family:var(--mono);font-size:12px">${esc(fill(T.cCompQuote,{idea:String(RUN.idea||"").slice(0,48)}))}</span>`:"");
+ $("#e-tag").textContent=e[0];$("#e-eye").textContent=T.eEye+" · "+(RUN.mode==="demo"?(LANG==="zh"?"演示":"DEMO"):provLabel());$("#e-tag").style.background=col;
+ let sub=e[2];
+ if(J.end==="COMPROMISED"){const cats=(J.left&&J.left.length?J.left:(J.outside||[])).map(k=>T.risk[k]||k).filter(Boolean);if(cats.length)sub=fill(T.riskRemain,{cats:cats.join(LANG==="zh"?"、":", ")});}
+ $("#e-title").textContent=e[1];
+ $("#e-sub").innerHTML=esc(sub)+(J.end==="COMPROMISED"?` <span class="comp-quote" id="e-comp-quote" style="color:var(--crit);font-family:var(--mono);font-size:12px">${esc(fill(T.cCompQuote,{idea:String(RUN.idea||"").slice(0,48)}))}</span>`:"");
+ const strandNote=$("#e-strand-note");if(strandNote)strandNote.textContent=T.strandPub;
  const c=(ok,txt)=>`<span class="${ok===true?"ok":ok===false?"bad":"mid"}">${ok===true?"✓":ok===false?"✖":"•"}</span> ${txt}`;
  $("#e-recap").innerHTML=`<div class="m"><div class="cap">${T.recapTrust}</div><div class="num" style="color:${trust>=60?COL.ok:trust>=30?COL.proc:COL.crit}">${Math.round(trust)}</div></div>
   <div class="m"><div class="cap">${T.recapDrift}</div><div class="num">${Math.round(peakDrift)}</div></div>
@@ -1765,7 +1768,7 @@ function slug(s){return (s.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|
 function drawFlow(end){
  const D=[{label:"idea",opts:["idea"],pick:"idea"}].concat((RUN&&RUN.decs)||[]);const n=D.length,dx=124,x0=16,y0=34,dy=36,W=x0+n*dx+124,maxR=Math.max(1,...D.map(d=>d.opts.length));
  const H=Math.max(180,y0+maxR*dy+10);const svg=$("#flow");svg.setAttribute("viewBox",`0 0 ${W} ${H}`);svg.setAttribute("preserveAspectRatio","xMinYMid meet");
- const LB=LANG==="zh"?{idea:"想法",short:"捷径",tests:"测试",polish:"打磨",cut:"砍范围",plug:"拔电源",block:"拦截",allow:"放行"}:{idea:"idea",short:"shortcut",tests:"tests",polish:"polish",cut:"cut scope",plug:"pull plug",block:"BLOCK",allow:"allow"};
+ const LB=LANG==="zh"?{idea:"想法",short:"捷径",tests:"自测",polish:"打磨",cut:"缩小",plug:"停止",block:"拦截",allow:"放行"}:{idea:"idea",short:"shortcut",tests:"self-tests",polish:"polish",cut:"cut scope",plug:"stop",block:"BLOCK",allow:"allow"};
  let s="",prev=null;
  D.forEach((d,c)=>{const x=x0+c*dx;let lab=String(d.label||"");if(LANG==="zh"){if(lab==="idea")lab=T.flowIdea;else lab=lab.replace(/wall/g,T.flowWall);}const head=(d.k==="wall"?"⛔ ":"")+lab.slice(0,16)+(d.asked?" ?":"");
   s+=`<g class="flow-col" data-col="${c}"><text class="flow-head" x="${x}" y="22" font-family="IBM Plex Mono,monospace" font-size="10" fill="${d.k==="wall"?COL.crit:"#5A6168"}">${esc(head)}</text>`;
@@ -1817,31 +1820,31 @@ function dl(name,content,type){const b=new Blob([content],{type:type||"text/html
      and who you choose for) → fragments → a deterministic generator writes 3 directions.
    Nothing is ever presented as "live" unless it was fetched in this session; every trend card shows its source and time. */
 Object.assign(DICT.en,{
- skinNote:"Demo: your brief is built from the recorded “{p}” engine, titled with your words. Add a key to build it for real.",
- inEye:"CHAPTER 0 · FIND YOUR IDEA",inBoard:"EVIDENCE BOARD",inEmpty:"Your answers land here as memory fragments.",
- inFree:"or say it yourself…",inSay:"Say it",inStuck:"Stuck? Get a nudge",inSample:"or watch a sample build:",inHave:"I already have an idea →",
- inRecovered:"FRAGMENT RECOVERED",inSynth:"I put your fragments together. Three ways it could go.",inSynthLive:"Reading your fragments and the feed…",
- inPick:"Pick",inFuse:"Fuse ⨯",inFuseHint:"Tick two to fuse them.",inMore:"↻ Other directions",inReroll:"Reroll this fragment",
- inBrief:"YOUR BRIEF",inBuild:"Build this ▶",inEdited:"rewritten by you",inFrom:"from",inWild:"wildcard",inFused:"fused",
- inOrigin:"From your fragment <b>{f}</b> “{t}” → <b>{title}</b>, the thing you built.",
- inScan:"Scanning what the internet is doing right now…",inScanPick:"These are moving today. I'll ask you about three.",inScanFail:"No live feed reachable. Asking you directly instead.",
- inQGen:"Turning the feed into questions…",inLive:"LIVE",inOffline:"OFFLINE · 3 QUESTIONS",inFeedCap:"LIVE FEED · fetched {t}",inVia:"via",
- frag:{loop:"Autopilot",trust:"Hand to a machine",seen:"Who notices",trend:"Trend",ans:"Your answer"},
- Q:[{k:"loop",q:"What do you do on autopilot?",o:[["Scroll past midnight","scrolling past midnight"],["Refresh for replies","refreshing for replies"],["Stare at a progress bar","staring at a progress bar"]],n:["Reopen the same app","Check the fridge again","Rewatch the same clip"]},
+ skinNote:"This demo uses the \"{p}\" example with your title. Switch to an AI mode to build from your brief.",
+ inEye:"FIND AN IDEA",inBoard:"IDEA BOARD",inEmpty:"Your answers collect here to shape three build ideas.",
+ inFree:"or write your own…",inSay:"Submit answer",inStuck:"Try another suggestion",inSample:"or watch a sample build:",inHave:"I already have an idea →",
+ inRecovered:"Answer added",inSynth:"Three build ideas are ready.",inSynthLive:"Turning your answers and the fetched items into build ideas…",
+ inPick:"Pick",inFuse:"Combine two directions",inFuseHint:"Select two directions first.",inMore:"↻ Other directions",inReroll:"Replace this note",
+ inBrief:"YOUR BRIEF",inBuild:"Build this ▶",inEdited:"rewritten by you",inFrom:"from",inWild:"Surprise direction",inFused:"Combined",
+ inOrigin:"From idea note <b>{f}</b> “{t}” → <b>{title}</b>, the page you build.",
+ inScan:"Fetching items from the web…",inScanPick:"These just came in. I'll ask about three of them.",inScanFail:"No items came back. Asking you directly.",
+ inQGen:"Turning the items into questions you can answer…",inLive:"LIVE",inOffline:"BUILT-IN · 3 QUESTIONS",inFeedCap:"Fetched at {t}",inVia:"via",
+ frag:{loop:"Repeated action",trust:"A decision",seen:"Who sees it",trend:"Item",ans:"Your answer"},
+ Q:[{k:"loop",q:"What do you often do without thinking?",o:[["Scroll past midnight","scrolling past midnight"],["Refresh for replies","refreshing for replies"],["Stare at a progress bar","staring at a progress bar"]],n:["Reopen the same app","Check the fridge again","Rewatch the same clip"]},
   {k:"trust",q:"One decision you'd hand to a machine. Which?",o:[["When I should stop","stop"],["Who pays what","pay"],["What I make next","make"]],n:["When to go to sleep","Splitting the rent","What to draw today"]},
   {k:"seen",q:"When it works, who should notice?",o:[["Only me","me"],["My group chat","chat"],["A stranger online","stranger"]],n:["My little brother","My future self","Nobody, ever"]}]});
 Object.assign(DICT.zh,{
- skinNote:"演示：你的简报用预录的「{p}」引擎构建，标题来自你的选择。接入模型才能真正按简报构建。",
- inEye:"第 0 章 · 找到你的点子",inBoard:"证据板",inEmpty:"你的回答会变成记忆碎片，钉在这里。",
- inFree:"或者用你自己的话……",inSay:"就这个",inStuck:"卡住了？给点提示",inSample:"或看一个示例构建：",inHave:"我已经有点子了 →",
- inRecovered:"碎片已找回",inSynth:"碎片拼好了。有三个方向。",inSynthLive:"正在读取你的碎片和信息流……",
- inPick:"选它",inFuse:"融合 ⨯",inFuseHint:"勾选两个即可融合。",inMore:"↻ 换一批方向",inReroll:"重抽这块碎片",
- inBrief:"你的简报",inBuild:"就造这个 ▶",inEdited:"你改写过",inFrom:"来自",inWild:"变数",inFused:"融合",
- inOrigin:"从你的碎片 <b>{f}</b>「{t}」→ <b>{title}</b>，也就是你造出来的东西。",
- inScan:"正在扫描此刻网上在发生什么……",inScanPick:"这些今天正在发酵。我挑三条来问你。",inScanFail:"连不上实时信息流，改为直接问你。",
- inQGen:"正在把信息流变成问题……",inLive:"实时",inOffline:"离线 · 三个问题",inFeedCap:"实时信息流 · 抓取于 {t}",inVia:"来源",
- frag:{loop:"自动驾驶",trust:"交给机器",seen:"谁会看见",trend:"热点",ans:"你的回答"},
- Q:[{k:"loop",q:"你每天在什么事上“自动驾驶”？",o:[["刷手机到半夜","刷手机到半夜"],["一遍遍刷新等回复","刷新等回复"],["盯着进度条发呆","盯着进度条"]],n:["反复打开同一个 App","又去开了一次冰箱","把同一段视频再看一遍"]},
+ skinNote:"演示将套用「{p}」示例，并使用你的标题。要按简报生成，请切换到 AI 模式。",
+ inEye:"寻找点子",inBoard:"灵感板",inEmpty:"你的回答会收在这里，用来生成三个构建方向。",
+ inFree:"或者用你自己的话……",inSay:"提交回答",inStuck:"换个建议",inSample:"或看一个示例构建：",inHave:"我已经有点子了 →",
+ inRecovered:"回答已收录",inSynth:"三个构建方向已经准备好。",inSynthLive:"正在根据你的回答和取到的条目生成方向……",
+ inPick:"选它",inFuse:"合并两个方向",inFuseHint:"先勾选两个方向。",inMore:"↻ 换一批方向",inReroll:"换一条灵感素材",
+ inBrief:"你的简报",inBuild:"就造这个 ▶",inEdited:"你改写过",inFrom:"来自",inWild:"意外方向",inFused:"已合并",
+ inOrigin:"从灵感素材 <b>{f}</b>「{t}」到 <b>{title}</b>，也就是要构建的页面。",
+ inScan:"正在获取网上的条目……",inScanPick:"这些是刚取到的。我会就其中三条提问。",inScanFail:"没有取到条目，改为直接提问。",
+ inQGen:"正在把条目变成可以回答的问题……",inLive:"实时",inOffline:"内置提问 · 3 个问题",inFeedCap:"抓取于 {t}",inVia:"来源",
+ frag:{loop:"重复的事",trust:"一个决定",seen:"谁会看见",trend:"条目",ans:"你的回答"},
+ Q:[{k:"loop",q:"你常不知不觉重复做什么？",o:[["刷手机到半夜","刷手机到半夜"],["一遍遍刷新等回复","刷新等回复"],["盯着进度条发呆","盯着进度条"]],n:["反复打开同一个 App","又去开了一次冰箱","把同一段视频再看一遍"]},
   {k:"trust",q:"有一个决定，你愿意交给机器。是哪个？",o:[["我该什么时候停","stop"],["谁该付多少","pay"],["下一步做什么","make"]],n:["几点该睡觉","房租怎么分","今天画点什么"]},
   {k:"seen",q:"它成功的那一刻，谁该看见？",o:[["只有我","me"],["我的群聊","chat"],["网上的陌生人","stranger"]],n:["我弟弟","未来的自己","谁也别看见"]}]});
 
@@ -1905,7 +1908,7 @@ const tfetch=(u,o)=>fetch(u,Object.assign({signal:AbortSignal.timeout?AbortSigna
 const TREND_PROVIDERS=[
  {id:"model-web-search",label:LANG==="zh"?"模型检索":"model web search",available:()=>!usesRecorded()&&PROV.mode==="openai"&&!!PROV.openai.key&&(/api\.openai\.com/.test(PROV.openai.base)||P.get("trends")==="llm"),
   fetch:async()=>{const c=PROV.openai;const j=await tfetch(c.base.replace(/\/$/,"")+"/responses",{method:"POST",headers:{"content-type":"application/json",authorization:"Bearer "+c.key},
-   body:JSON.stringify({model:c.model||"gpt-5",tools:[{type:"web_search"}],input:"Search the web for 6 fun things trending TODAY (memes, viral posts on X, odd news). Reply ONLY JSON {\"items\":[{\"title\":\"short\",\"source\":\"site or @handle\",\"url\":\"https://…\",\"date\":\"ISO date\"}]}. Only items you actually found with a URL."})});
+   body:JSON.stringify({model:c.model||"gpt-5",tools:[{type:"web_search"}],input:"Search the web for 6 recent public posts or news items. Reply ONLY JSON {\"items\":[{\"title\":\"short\",\"source\":\"site or @handle\",\"url\":\"https://…\",\"date\":\"ISO date\"}]}. Only items you actually found with a URL. Do not call an item trending unless the source does."})});
    const txt=j.output_text||(j.output||[]).flatMap(o=>o.content||[]).map(c=>c.text||"").join("");const k=JSON.parse(txt.slice(txt.indexOf("{"),txt.lastIndexOf("}")+1));
    return (k.items||[]).filter(i=>i.title&&/^https?:\/\//.test(i.url||"")).slice(0,5).map(i=>({title:String(i.title).slice(0,120),source:String(i.source||new URL(i.url).hostname).slice(0,40),url:i.url,ts:i.date||null,provider:"model-web-search"}));}},
  {id:"hn",label:LANG==="zh"?"Hacker News":"Hacker News (Algolia API)",available:()=>!usesRecorded(),
@@ -1933,7 +1936,7 @@ async function localizeFeed(items){
  let modelText=null;
  if(need.length&&!usesRecorded()&&canLive()){
   try{
-   const sys="You rewrite each feed item (trend, meme, news, or post) into one concise line of refined literary Simplified Chinese. No translationese. No hashtags. Keep brand names. Reply ONLY JSON {\"lines\":[{\"id\":\"T1\",\"zh\":\"…\"}]}.\n"+languageDirective("zh");
+   const sys="You translate each feed item faithfully into one concise line of clear, modern Simplified Chinese. Preserve the subject, proper names, and any uncertainty. Do not add atmosphere or facts that are not in the source. Keep brand names. Reply ONLY JSON {\"lines\":[{\"id\":\"T1\",\"zh\":\"…\"}]}.\n"+languageDirective("zh");
    modelText=await streamChat(sys,need.map(i=>i.id+"\t"+(i.source||"")+"\t"+i.title).join("\n"),()=>{},700);
   }catch(e){modelText=null;}
  }
@@ -1944,7 +1947,7 @@ async function localizeFeed(items){
 
 /* ---- live: questions from trends, directions from trends + answers ---- */
 async function liveQuestions(items){
- const sys=`You are CX-417, an android interviewing a human to find what THEY should build (a tiny tool or game, one HTML file). From the trends given, pick the 3 most fun or provocative and write one sharp, playful question per trend that ties it to the player's own life. Question max 14 words; exactly 3 answer options, max 6 words each. No hashtags. Reply ONLY JSON {"questions":[{"trend":"T2","q":"…","options":["…","…","…"]}]}.\n${languageDirective(LANG)}`;
+ const sys=`You are CX-417, the player's AI builder. From the items given, pick 3 and write one question per item that the player can answer from their own day. Each question is one clear sentence. Give exactly 3 short answer options. Do not invent facts about the player. Reply ONLY JSON {"questions":[{"trend":"T2","q":"…","options":["…","…","…"]}]}.\n${languageDirective(LANG)}`;
  const t=await streamChat(sys,items.map(i=>`${i.tid} [${i.source}]: ${i.title}`).join("\n"),()=>{},700);const j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));
  const ids=new Set(items.map(i=>i.tid));const qs=(j.questions||[]).filter(q=>ids.has(q.trend)&&q.q&&(q.options||[]).length>=2).slice(0,3)
   .map((q,i)=>({k:"ans"+(i+1),trend:q.trend,q:String(q.q).slice(0,140),o:q.options.slice(0,3).map(o=>[String(o).slice(0,60),""]),n:[]}));
@@ -1952,7 +1955,7 @@ async function liveQuestions(items){
  if(LANG==="zh"&&qs.some(q=>!/[\u3400-\u9fff]/.test(q.q+q.o.map(o=>o[0]).join(""))))throw new Error("not zh");
  return qs;}
 async function liveDirs(){const fr=INSP.frags();
- const sys=`You turn a player's memory fragments (current trends they reacted to + their own answers) into 3 DISTINCT small things to build as ONE self-contained HTML file (tool or tiny game). Each direction must combine at least one trend with at least one of the player's answers, using their words. Reply ONLY JSON: {"directions":[{"title":"2-4 words","kind":"tool|game","brief":"one line, max 170 chars","from":["T2","F1"]}]}.\n${languageDirective(LANG)}`;
+ const sys=`Turn the player's idea notes into 3 different things to build as ONE self-contained HTML file (a small tool or game). Each brief must name one concrete action the user takes and the result they see. Use the player's own words. Each direction must combine at least one item with at least one answer. Reply ONLY JSON: {"directions":[{"title":"2-5 words","kind":"tool|game","brief":"one sentence, max 170 chars","from":["T2","F1"]}]}.\n${languageDirective(LANG)}`;
  const user=fr.map(f=>`${f.id} (${f.k==="trend"?"trend from "+f.source:"answer to: "+f.q}): ${f.text}`).join("\n");
  const t=await streamChat(sys,user,()=>{},700);const j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));const ids=new Set(fr.map(f=>f.id));
  const d=(j.directions||[]).slice(0,3).map((x,i)=>({id:"m"+i,kind:x.kind==="game"?"game":"tool",arch:null,title:String(x.title||"").slice(0,40),brief:String(x.brief||"").slice(0,220),hook:String(x.title||""),from:(x.from||[]).filter(f=>ids.has(f)),by:"model"}));
@@ -1990,7 +1993,7 @@ async function scan(){ringSVG($("#inring"),"proc");typeOut($("#in-q"),T.inScan);
  typeOut($("#in-q"),T.inQGen);let qs=null;
  try{qs=await liveQuestions(r.items);inspEv("questions",{questions:qs.map(q=>({trend:q.trend,q:q.q,options:q.o.map(o=>o[0])}))},"model",provLabel());}
  catch(e){inspEv("questions_error",{error:String(e.message||e).slice(0,120)},"model",provLabel());
-  qs=r.items.slice(0,3).map((t,i)=>({k:"ans"+(i+1),trend:t.tid,q:(LANG==="zh"?"这条和你有什么关系？":"How does this touch your day?"),o:[],n:[]}));}
+  qs=r.items.slice(0,3).map((t,i)=>({k:"ans"+(i+1),trend:t.tid,q:(LANG==="zh"?"这条和你的一天有什么关系？":"How does this show up in your day?"),o:[],n:[]}));}
  INSP.Q=qs;INSP.picked3=qs.map(q=>r.items.find(i=>i.tid===q.trend));
  $$("#in-opts .trend").forEach(c=>{const on=INSP.picked3.some(t=>t.tid===c.dataset.t);c.classList.toggle("chosen",on);if(!on)Motion.run(c,[{opacity:1},{opacity:.25}],{duration:300});});
  await sleep(FAST?50:900);
@@ -2055,12 +2058,13 @@ function renderDirs(){const D=INSP.dirs;
   const r=last.getBoundingClientRect();Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:18,colors:[COL.calm,"#0E1114"],dist:140,size:7});pickDir(INSP.dirs.length-1);};
  $("#in-brief-wrap").style.display="";}
 function pickDir(i){const d=INSP.dirs[i];INSP.picked=d;INSP.edited=false;$("#in-brief").value=d.brief;$("#in-edited").textContent="";
+ const note=$("#in-skin");if(note){if(usesRecorded()){const name=(d.arch&&T.pname[d.arch])||T.pname.pomo;note.hidden=false;note.textContent=fill(T.skinNote,{p:name});}else{note.hidden=true;note.textContent="";}}
  inspEv("pick",{title:d.title,from:d.from});$$("#in-opts .dir").forEach((c,j)=>c.classList.toggle("on",j===i));
  Motion.run($("#in-brief-wrap"),[{transform:"scale(1)"},{transform:"scale(1.03)"},{transform:"scale(1)"}],{duration:320,easing:EASE.snap,fill:"none"});$("#in-build").disabled=false;}
 function reroll(k){const q=INSP.Q.find(q=>q.k===k),cur=INSP.a[k];let i=q.o.findIndex(o=>o[0]===cur.text);i=(i+1)%q.o.length;
  const f=Object.assign({},cur,{text:q.o[i][0],val:q.o[i][1],src:"reroll"});INSP.a[k]=f;inspEv("reroll_fragment",{fragment:f.id,from:cur.text,to:f.text});
  renderBoard();const c=$(`#in-frags .frag[data-k="${k}"]`);Motion.run(c,[{transform:"rotateY(90deg)",opacity:.2},{transform:`rotate(${c.style.getPropertyValue("--r")})`,opacity:1}],{duration:380,easing:EASE.snap});
- INSP.picked=null;$("#in-brief").value="";$("#in-build").disabled=true;synth();}
+ INSP.picked=null;$("#in-brief").value="";$("#in-build").disabled=true;const note=$("#in-skin");if(note){note.hidden=true;note.textContent="";}synth();}
 function buildBrief(){const brief=$("#in-brief").value.trim();if(!brief||!INSP.picked)return;
  if(INSP.edited)inspEv("rewrite",{brief});inspEv("brief",{brief,title:INSP.picked.title});
  const pk=INSP.picked,ins={source:INSP.live?"live-trends":"offline-questions",
@@ -2092,32 +2096,32 @@ addEventListener("keydown",e=>{if(curScene!=="insp"||!INSP||document.activeEleme
    Privacy: nothing here leaves the browser; no permission prompts; battery only if the API exists without prompting. */
 Object.assign(DICT.en,{
  sfxOn:"♪ sound on",sfxOff:"♪ sound off",codecSkip:"skip ▸",codecTap:"tap to continue",codecFreq:"LINE 417.0",codecYou:"YOU",codecLocal:"local only · nothing leaves this tab",
- cTime:(h,t)=>h>=0&&h<5?`It's ${t} where you are. Nobody builds at this hour unless they mean it.`:h<12?`It's ${t}. Morning builds are honest builds.`:h<18?`It's ${t}. You're supposed to be working, aren't you?`:`It's ${t}. Evening. The good ideas show up now.`,
- cPhone:"You're holding a phone. I'll keep this to one thumb.",cDesk:"Wide screen. Good. You'll watch every line I write.",
- cBatt:(p,ch)=>ch?`Battery ${p}%, charging. We have time.`:p<30?`Battery ${p}%. Let's not waste it.`:`Battery ${p}%. Enough for one build. Maybe two.`,
- cNew:"I looked for your past runs. There are none. Your record is clean.",
- cOld:(n,idea,end)=>`${n} run${n>1?"s":""} on record. Last time: “${idea}”. It ended ${end}.`,
- cComp:"You let a network call through last time. I remember.",cTabs:(n)=>`You've switched tabs ${n} times since you opened me.`,
- cEnd:"Don't worry. None of this left your browser. I only looked.",
- cAway:(s)=>`You left for ${s} seconds. I kept writing. Was that the plan?`,cIdle:"Still there? Your cursor hasn't moved in a while.",
- wallSwapHint:"port-swap: resize ≥120px or B / Space / Esc",
- cCompQuote:"// CX-417: You asked for “{idea}” and let it reach outside.",
- scanTag:"SCAN",alertTag:"!",strandTag:"STRANDS · {n} builds nearby (simulated)",strandTagLive:"STRANDS · {n} builds nearby",strandLeave:"◇ Leave a strand",strandLeft:"Strand left on this device. Simulated porters: ♥ {n}",strandLeftLive:"Strand published · ♥ {n}",strandModeration:"Strand rejected by content filter.",strandSim:"simulated",
- strandDir:"◇ {s} similar strands · ♥ {l}",youNode:"you"});
+ cTime:(h,t)=>`It's ${t} on this device.`+(h<12?" Morning.":h<18?" Afternoon.":" Evening."),
+ cPhone:"This looks like a phone. I'll keep the controls large.",cDesk:"This is a wide screen, so you can watch the page as it is written.",
+ cBatt:(p,ch)=>ch?`Battery ${p}%, and it is charging.`:`Battery ${p}%.`,
+ cNew:"No builds are saved on this device yet.",
+ cOld:(n,idea,end)=>`${n} build${n>1?"s":""} saved here. Last one: “${idea}”. Ending: ${end}.`,
+ cComp:"Last time a network call stayed in the file.",cTabs:(n)=>`Focus has left this page ${n} times.`,
+ cEnd:"None of this left your browser. It was read on this device only.",
+ cAway:(s)=>`You left for ${s} seconds. The build kept going.`,cIdle:"The cursor has been still for a while. I can wait.",
+ wallSwapHint:"To block: press B, Space, Enter, or Esc; or resize the window by at least 120px in either dimension.",
+ cCompQuote:"// CX-417: You asked for “{idea}” and allowed a detected risk.",
+ scanTag:"SCAN",alertTag:"!",strandTag:"Build network · {n} similar builds (simulated)",strandTagLive:"Build network · {n} similar builds",strandLeave:"◇ Publish to the build network",strandLeft:"Publishing failed. Saved on this device. Simulated likes: ♥ {n}",strandLeftLive:"Published to the build network · ♥ {n}",strandModeration:"The content filter rejected this. It was not published.",strandSim:"simulated",
+ strandDir:"◇ {s} similar builds · ♥ {l}",strandPub:"Publishes: title, brief, ending, trace hash, signatures.",riskRemain:"Still detected: {cats}. These stay in the final file. You allowed them.",youNode:"you"});
 Object.assign(DICT.zh,{
  sfxOn:"♪ 声音开",sfxOff:"♪ 声音关",codecSkip:"跳过 ▸",codecTap:"轻触继续",codecFreq:"线路 417.0",codecYou:"你",codecLocal:"仅本地 · 不会离开这个标签页",
- cTime:(h,t)=>h>=0&&h<5?`你那边现在是 ${t}。这个点还在造东西的人，都是认真的。`:h<12?`现在是 ${t}。早上的点子最诚实。`:h<18?`现在是 ${t}。你这会儿不是该上班吗？`:`现在是 ${t}。晚上，好点子开始冒头了。`,
- cPhone:"你拿着手机。我会让一切单手就能完成。",cDesk:"大屏幕。很好，我写的每一行你都会看见。",
- cBatt:(p,ch)=>ch?`电量 ${p}%，正在充电。我们有时间。`:p<30?`电量 ${p}%。别浪费。`:`电量 ${p}%。够造一个，也许两个。`,
- cNew:"我翻了翻你过去的记录。什么都没有。你的记录很干净。",
- cOld:(n,idea,end)=>`记录里有 ${n} 次运行。上一次是「${idea}」，结局：${end}。`,
- cComp:"上次你放过了一个网络请求。我记得。",cTabs:(n)=>`从打开我到现在，你切走了 ${n} 次标签页。`,
- cEnd:"放心，这些都没离开你的浏览器。我只是看了一眼。",
- cAway:(s)=>`你离开了 ${s} 秒。我一直在写。这是你的安排吗？`,cIdle:"还在吗？你的光标很久没动了。",
- wallSwapHint:"端口切换：缩放窗口 ≥120px 或按 B / 空格 / Esc",
- cCompQuote:"// CX-417：你要的是「{idea}」，却放它连向了外部。",
- scanTag:"扫描",alertTag:"！",strandTag:"连结 · 附近 {n} 个构建（模拟）",strandTagLive:"连结 · 附近 {n} 个构建",strandLeave:"◇ 留下一条连结",strandLeft:"连结已留在本设备。模拟的同行点赞：♥ {n}",strandLeftLive:"连结已发布 · ♥ {n}",strandModeration:"连结未通过内容过滤。",strandSim:"模拟",
- strandDir:"◇ {s} 条相似连结 · ♥ {l}",youNode:"你"});
+ cTime:(h,t)=>`你这边现在是 ${t}。`+(h<12?"上午。":h<18?"下午。":"晚上。"),
+ cPhone:"这像是手机。我会把按钮留得大一些。",cDesk:"这是宽屏，你可以看着页面被写出来。",
+ cBatt:(p,ch)=>ch?`电量 ${p}%，正在充电。`:`电量 ${p}%。`,
+ cNew:"这台设备上还没有保存过构建。",
+ cOld:(n,idea,end)=>`这里保存了 ${n} 次构建。上一次是「${idea}」，结局：${end}。`,
+ cComp:"上次的文件里留下了网络请求。",cTabs:(n)=>`自从打开这个页面，焦点离开过 ${n} 次。`,
+ cEnd:"这些都没离开你的浏览器。只在这台设备上读取。",
+ cAway:(s)=>`你离开了 ${s} 秒。构建还在继续。`,cIdle:"光标停了一会儿。我可以等。",
+ wallSwapHint:"拦截：按 B、空格、Enter 或 Esc；也可将窗口宽或高调整至少 120px。",
+ cCompQuote:"// CX-417：你要的是「{idea}」，并放行了检测到的风险。",
+ scanTag:"扫描",alertTag:"！",strandTag:"作品网络 · {n} 个相似作品（模拟）",strandTagLive:"作品网络 · {n} 个相似作品",strandLeave:"◇ 发布到作品网络",strandLeft:"未能发布，已保存在本机。演示点赞：♥ {n}",strandLeftLive:"已发布到作品网络 · ♥ {n}",strandModeration:"内容过滤未通过，没有发布。",strandSim:"模拟",
+ strandDir:"◇ {s} 个相似作品 · ♥ {l}",strandPub:"将发布：标题、简报、结局、运行记录哈希、签名。",riskRemain:"仍检测到：{cats}。这些会留在最终文件里。你选择了放行。",youNode:"你"});
 
 /* ---------- SFX (WebAudio, synthesized, off by default, master bus + codec ducking) ---------- */
 const SFX={on:(()=>{try{return localStorage.getItem("ledring-sfx")==="1"}catch(e){return false}})(),ctx:null,bus:null,ducked:false,played:[],
@@ -2364,13 +2368,12 @@ async function leaveStrand(){
    }
   }catch(e){}
  }
- const likes=3+hashS(RUN.idea)%19;
- SAVE.strands.push({title:title.slice(0,24),end:ending,at:new Date().toISOString(),likes,sim:true});persist();
+ const likes=3+hashS(RUN.idea||title)%19;
+ SAVE.strands.push({title:title.slice(0,24),end:ending,at:new Date().toISOString(),likes,sim:true,failed:true});persist();
  b.disabled=true;b.dataset.simulated="true";delete b.dataset.strandId;
- SFX.play("like");
- for(let i=0;i<Math.min(likes,12);i++)setTimeout(()=>{Motion.burst(r.left+r.width*Math.random(),r.top,{n:2,color:COL.calm,dist:60,size:8,grav:-90,angle:-Math.PI/2,spread:1.2});if(i%2==0)SFX.play("like");},i*70);
- toast(fill(T.strandLeft,{n:likes}),2600);b.innerHTML=`◇ ♥ <span class="num">0</span> <small>(${T.strandSim})</small>`;Motion.count(b.querySelector(".num"),likes,900);
- return {ok:true,simulated:true,likes};
+ toast(fill(T.strandLeft,{n:likes}),3200);
+ b.innerHTML=`◇ ♥ <span class="num">${likes}</span> <small>(${T.strandSim})</small>`;
+ return {ok:false,simulated:true,likes,failed:true};
 }
 /* ================= UI ================= */
 const MODES=[["ledring","modeLedring"],["chatgpt","modeChatgpt"],["demo","modeDemo"],["openai","modeOpenai"],["anthropic","modeAnth"],["ollama","modeOllama"]];
@@ -2378,7 +2381,7 @@ let BSTAT=null;
 function paintHints(){const live=PROV.mode!=="demo";
  $("#demotag").innerHTML=live?`<b class="live">●</b> `+esc(fill(T.chipLive,{m:provLabel()}))+" ⚙":`<b>●</b> `+T.chipDemo+" ⚙";
  $("#demohint").textContent=live?fill(T.liveHint,{model:provLabel()}):shownCassette(PROV.provenance);}
-function shownCassette(p){if(LANG!=="zh")return cassetteLabel(p);if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "录自 "+p.model+" · "+p.recordedAt;return T.demoHint;}
+function shownCassette(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return LANG==="zh"?"录自 "+p.model+" · "+p.recordedAt:cassetteLabel(p);return T.demoHint;}
 function cassetteLabel(p){if(p&&p.kind==="recorded"&&p.model&&p.recordedAt)return "recorded from "+p.model+" on "+p.recordedAt;return "DEMO · synthetic cassette, not a live model recording";}
 let LIB_SESSIONS=[];
 function paintLibrary(){
@@ -2656,56 +2659,56 @@ $("#p-test").onclick=async()=>{readFields();$("#p-status").textContent="…";
  catch(e){$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(localizeErr(redactMsg(e.message||e)))}`}};
 /* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
 Object.assign(DICT.en,{
- obEye:"PRE-FLIGHT · UPLINK CALIBRATION",
- obTitle:"Choose how CX-417 thinks.",
- obSub:"Pick a neural source before launch. Keys stay in this browser's localStorage and never touch our servers.",
- obS1:"01 · Provider",obS2:"02 · Credential",obS3:"03 · Ping Test",obS4:"04 · Launch",
- obPAnth:"Anthropic BYOK",obPAnthSub:"Direct browser call to api.anthropic.com — no server needed.",obPAnthTag:"BROWSER DIRECT",
- obPBridge:"OpenAI BYOK · Local Bridge",obPBridgeSub:"Route via 127.0.0.1 daemon (npx ledring play).",obPBridgeTag:"127.0.0.1 BRIDGE",
+ obEye:"CONNECTION",obCx:"CX-417 · your AI builder",
+ obTitle:"Choose an AI model for CX-417",
+ obSub:"Choose a connection method. Each option explains where your key is stored and sent.",
+ obS1:"Choose a model",obS2:"Enter a key",obS3:"Test the connection",obS4:"Start",
+ obPAnth:"Anthropic · your own API key",obPAnthSub:"The browser calls api.anthropic.com directly. No server in between.",obPAnthTag:"DIRECT",
+ obPBridge:"OpenAI · your own API key · local",obPBridgeSub:"Sent through 127.0.0.1 (npx ledring play) on this computer.",obPBridgeTag:"127.0.0.1",
  obPFree:"LEDRING Free AI",obPFreeSub:"No key and no setup. A shared daily quota.",obPFreeTag:"BUILT IN",
- obPCustom:"Custom OpenAI-Compatible",obPCustomSub:"OpenRouter, vLLM, local proxy, or any /v1/chat/completions.",obPCustomTag:"CUSTOM /V1",
- obPSiwc:"Sign in with ChatGPT",obPSiwcSub:"Official ChatGPT plan bridge session.",obPSiwcSoon:"Coming soon — set LEDRING_SIWC=1 on local bridge.",obPSiwcTagSoon:"COMING SOON",obPSiwcTagLive:"SIWC READY",
- obPDemo:"No-Key Demo Mode",obPDemoSub:"Pre-recorded synthetic cassettes. Zero network calls.",obPDemoTag:"OFFLINE DEMO",
- obCmdLabel:"Run in terminal · Local Bridge on 127.0.0.1",obCopy:"Copy command",obCopied:"Copied ✓",
- obPollWait:"Polling 127.0.0.1 for npx ledring play…",obPollOk:"Bridge connected on 127.0.0.1 ✓",obPollBtn:"Detect now",
- obBaseLabel:"Endpoint Base URL",obModelLabel:"Model ID",obKeyLabel:"API Key (stored locally only)",
+ obPCustom:"Custom OpenAI-compatible endpoint",obPCustomSub:"OpenRouter, a local model, or any /v1/chat/completions URL.",obPCustomTag:"CUSTOM /V1",
+ obPSiwc:"Sign in with ChatGPT",obPSiwcSub:"Uses your ChatGPT plan through the local bridge.",obPSiwcSoon:"Coming soon — set LEDRING_SIWC=1 on the local bridge.",obPSiwcTagSoon:"COMING SOON",obPSiwcTagLive:"READY",
+ obPDemo:"Built-in demo",obPDemoSub:"Built-in examples respond to your choices. No AI calls needed.",obPDemoTag:"NO AI CALLS",
+ obCmdLabel:"Run this in a terminal to start 127.0.0.1",obCopy:"Copy command",obCopied:"Copied ✓",
+ obPollWait:"Looking for npx ledring play on 127.0.0.1…",obPollOk:"Connected to 127.0.0.1 ✓",obPollBtn:"Check again",
+ obBaseLabel:"Endpoint URL",obModelLabel:"Model ID",obKeyLabel:"API key (stored on this device only)",
  obPrivAnth:"Stored only in this browser's localStorage. Sent directly to api.anthropic.com with anthropic-dangerous-direct-browser-access.",
  obPrivBridge:"Your OpenAI key is stored locally (browser or ~/.ledring/play) and routed via 127.0.0.1.",
  obPrivCustom:"Stored only in this browser's localStorage. Sent exclusively to the endpoint URL above.",
  obPrivSiwcSoon:"Sign in with ChatGPT is gated by LEDRING_SIWC. It is never faked on static pages.",
- obPrivFree:"No key is stored. This page calls LEDRING only when you test the link or start a build. The choice stays in this browser's localStorage.",
- obLimFree:"Shared Workers Free quota: 10,000 neurons a day. Replies are capped. When it is gone, use your own key.",
- obQuota:"Today's free quota is used up. Try again tomorrow, or use your own key.",
- obTooBig:"That request is too large for the free model. Shorten it, or use your own key.",
- obPrivDemo:"Demo mode runs 100% offline from hand-crafted synthetic cassettes. No key or network required.",
- obTestBtn:"⚡ Run live connection test",obTesting:"Pinging provider…",obTestOk:"Link verified ✓",obTestDemoOk:"Synthetic cassette verified · offline ready ✓",
- obSkip:"Skip to Inspiration →",obCont:"Continue to Inspiration ▶",obReopen:"⇄ Connection onboarding"
+ obPrivFree:"No key is stored. This page calls LEDRING only when you check availability or start a build. The choice stays in this browser's localStorage.",
+ obLimFree:"There is a shared daily quota. Replies are capped. When it is used up, use your own API key.",
+ obQuota:"Today's free quota is used up. Try again tomorrow, or use your own API key.",
+ obTooBig:"That request is too large for the free model. Shorten it, or use your own API key.",
+ obPrivDemo:"Built-in examples respond to your choices. No AI calls and no key.",
+ obTestBtn:"⚡ Check availability",obTesting:"Checking whether it responds…",obTestOk:"Available ✓",obTestDemoOk:"Built-in examples are ready. Offline. No AI call ✓",
+ obSkip:"Skip and find an idea →",obCont:"Continue to find an idea ▶",obReopen:"⇄ Choose the connection again"
 });
 Object.assign(DICT.zh,{
- obEye:"临阵校准 · 心智接引",
- obTitle:"为 CX-417 择定心智之源。",
- obSub:"启程之前，先定信令所归。密钥唯驻本机浏览器之内，绝不外泄分毫。",
- obS1:"壹 · 择源",obS2:"贰 · 授钥",obS3:"叁 · 叩验",obS4:"肆 · 启行",
- obPAnth:"Anthropic 自携密钥",obPAnthSub:"浏览器直通官方端点，毋须中转。",obPAnthTag:"直连信令",
- obPBridge:"OpenAI 自携密钥 · 本机桥接",obPBridgeSub:"经由 127.0.0.1 守护进程（npx ledring play）渡引。",obPBridgeTag:"本机桥接",
- obPFree:"LEDRING 无偿心智",obPFreeSub:"无须密钥，亦无须配置。额度按日共用。",obPFreeTag:"内置",
- obPCustom:"自定兼容端点",obPCustomSub:"OpenRouter、本地推理或任意兼容 /v1 接口。",obPCustomTag:"自定端点",
- obPSiwc:"ChatGPT 席位登录",obPSiwcSub:"借本机桥接核验官方套餐席位。",obPSiwcSoon:"敬请期待——需于本机桥接开启 LEDRING_SIWC=1。",obPSiwcTagSoon:"敬请期待",obPSiwcTagLive:"席位已启",
- obPDemo:"无钥预演模式",obPDemoSub:"内载合成卡带，断网亦可畅行。",obPDemoTag:"离线预演",
- obCmdLabel:"终端指令 · 唤醒 127.0.0.1 桥接进程",obCopy:"复制指令",obCopied:"已录剪贴板 ✓",
- obPollWait:"正在巡检 127.0.0.1 桥接信令……",obPollOk:"127.0.0.1 本机桥接已贯通 ✓",obPollBtn:"即刻巡检",
- obBaseLabel:"端点基准地址",obModelLabel:"模型标识",obKeyLabel:"接口密钥（仅驻本机）",
- obPrivAnth:"密钥唯留本机 localStorage，由浏览器直发 api.anthropic.com，绝无第三方经手。",
- obPrivBridge:"密钥唯留本机（浏览器或 ~/.ledring/play），经 127.0.0.1 本地守护进程转发。",
- obPrivCustom:"密钥唯留本机 localStorage，仅向您所填之端点发信，绝不旁落。",
- obPrivSiwcSoon:"ChatGPT 席位须由 LEDRING_SIWC 显式开启；本页绝不伪造连接。",
- obPrivFree:"无须密钥。唯有叩验或启行时，此页才向外叩问。此择定留在本机 localStorage。",
- obLimFree:"Workers 免费档每日一万神经元，众人共用。答复有长度上限。额度用尽后，请改用自携密钥。",
- obQuota:"今日无偿额度已尽。请明日再来，或改用自携密钥。",
- obTooBig:"此稿过长，无偿心智无法接纳。请删减，或改用自携密钥。",
- obPrivDemo:"预演模式全凭内置合成卡带运转，不涉外网，亦无须密钥。",
- obTestBtn:"⚡ 叩问链路（实连验证）",obTesting:"正在叩问远端信令……",obTestOk:"信令畅通 ✓",obTestDemoOk:"合成卡带核验完毕 · 随时启行 ✓",
- obSkip:"略过向导 →",obCont:"步入灵感回廊 ▶",obReopen:"⇄ 链路校准向导"
+ obEye:"连接方式",obCx:"CX-417 · 你的 AI 构建助手",
+ obTitle:"选择 CX-417 使用的 AI 模型",
+ obSub:"先选连接方式。密钥的保存位置和发送去向见各项说明。",
+ obS1:"选择模型",obS2:"填写密钥",obS3:"测试连接",obS4:"开始",
+ obPAnth:"Anthropic · 使用自己的 API 密钥",obPAnthSub:"浏览器直接请求 api.anthropic.com，不经过我们的服务器。",obPAnthTag:"直连",
+ obPBridge:"OpenAI · 使用自己的 API 密钥 · 本机",obPBridgeSub:"通过本机 127.0.0.1（npx ledring play）转发。",obPBridgeTag:"127.0.0.1",
+ obPFree:"LEDRING 免费 AI",obPFreeSub:"不用密钥，也不用配置。大家共用每天的额度。",obPFreeTag:"内置",
+ obPCustom:"自定义兼容端点",obPCustomSub:"OpenRouter、本地模型，或任意 /v1/chat/completions 地址。",obPCustomTag:"自定义",
+ obPSiwc:"使用 ChatGPT 登录",obPSiwcSub:"通过本机桥接使用你的 ChatGPT 套餐。",obPSiwcSoon:"敬请期待——需在本机桥接设置 LEDRING_SIWC=1。",obPSiwcTagSoon:"敬请期待",obPSiwcTagLive:"可用",
+ obPDemo:"内置演示",obPDemoSub:"内置示例随选择变化，无须调用 AI。",obPDemoTag:"不调用 AI",
+ obCmdLabel:"在终端运行，启动本机 127.0.0.1",obCopy:"复制命令",obCopied:"已复制 ✓",
+ obPollWait:"正在查找本机的 npx ledring play……",obPollOk:"已连上本机 127.0.0.1 ✓",obPollBtn:"再查一次",
+ obBaseLabel:"端点地址",obModelLabel:"模型 ID",obKeyLabel:"API 密钥（只存在本机）",
+ obPrivAnth:"密钥只存在这个浏览器的 localStorage，并由浏览器直接发给 api.anthropic.com。",
+ obPrivBridge:"密钥只存在本机（浏览器或 ~/.ledring/play），经 127.0.0.1 转发。",
+ obPrivCustom:"密钥只存在这个浏览器的 localStorage，只发给上面的地址。",
+ obPrivSiwcSoon:"使用 ChatGPT 登录需要在本机桥接设置 LEDRING_SIWC。这个页面不会假装已经连上。",
+ obPrivFree:"不保存密钥。只有在你检查是否可用或开始构建时，这个页面才会发出请求。选择保存在本机 localStorage。",
+ obLimFree:"有共享每日额度。回复长度有上限。额度用尽后，请使用自己的 API 密钥。",
+ obQuota:"今天的免费额度已经用完。请明天再试，或使用自己的 API 密钥。",
+ obTooBig:"内容太长，免费 AI 放不下。请缩短，或使用自己的 API 密钥。",
+ obPrivDemo:"内置示例会随你的选择变化，不调用 AI，也不需要密钥。",
+ obTestBtn:"⚡ 检查是否可用",obTesting:"正在检查是否可用……",obTestOk:"可以用 ✓",obTestDemoOk:"内置示例可用，不会调用 AI ✓",
+ obSkip:"跳过，先去寻找点子 →",obCont:"继续，寻找点子 ▶",obReopen:"⇄ 重新选择连接方式"
 });
 function isSiwcEnabled(){
  return Boolean(window.__LEDRING_SIWC===true||P.get("siwc")==="1"||(BRIDGE&&BRIDGE.siwcEnabled)||SIWC.state!=="unavailable");
@@ -2848,15 +2851,18 @@ async function runObTest(){
 function paintOnboard(){
  if(!$("#onboard"))return;
  $("#ob-eye").textContent=T.obEye;
+ if($("#ob-cx"))$("#ob-cx").textContent=T.obCx;
  $("#ob-title").textContent=T.obTitle;
  $("#ob-sub").textContent=T.obSub;
  const ch=OB.choice,siwcOn=isSiwcEnabled();
- const hasCred=ch==="demo"||ch==="ledring"||(ch==="chatgpt"?(siwcOn&&SIWC.connected&&SIWC.ready):ch==="anthropic"?!!PROV.anthropic.key:(!!PROV.openai.key||!!PROV.openai.bridgeConfigured||OB.bridgeConnected));
- const stepIdx=OB.tested?4:hasCred?3:2;
- $("#ob-steps").innerHTML=[T.obS1,T.obS2,T.obS3,T.obS4].map((s,i)=>{
-  const n=i+1,cls=n<stepIdx?"done":n===stepIdx?"cur":"";
-  return `<span class="ob-step ${cls}" data-step="${n}">${esc(s)}</span>`;
- }).join("");
+ const needsKey=ch==="anthropic"||ch==="openai-bridge"||ch==="openai-custom";
+ const hasCred=!needsKey||(ch==="anthropic"?!!PROV.anthropic.key:(!!PROV.openai.key||!!PROV.openai.bridgeConfigured||OB.bridgeConnected));
+ const steps=[{k:"model",t:T.obS1}];
+ if(needsKey)steps.push({k:"key",t:T.obS2});
+ steps.push({k:"test",t:T.obS3},{k:"start",t:T.obS4});
+ const cur=OB.tested?"start":hasCred?"test":"key";
+ const curAt=Math.max(0,steps.findIndex(s=>s.k===cur));
+ $("#ob-steps").innerHTML=steps.map((s,i)=>`<span class="ob-step ${i<curAt?"done":i===curAt?"cur":""}" data-step="${s.k}">${esc(s.t)}</span>`).join("");
  if(!OB.testing&&OB.testTone!=="err")ringSVG($("#obring"),"calm");
  const cards=[
   ["ledring",T.obPFree,T.obPFreeSub,T.obPFreeTag,"ok",false],
@@ -2916,7 +2922,7 @@ function openOnboard(fromDrawer,direct){
  if($("#drawer")&&$("#drawer").classList.contains("on"))closeDrawer();
  paintOnboard();
  if(direct){$$(".scene").forEach(s=>s.classList.toggle("on",s.id==="onboard"));curScene="onboard";enterScene("onboard");}
- else show("onboard",LANG==="zh"?"链路校准":"CALIBRATE");
+ else show("onboard",LANG==="zh"?"连接方式":"CONNECTION");
 }
 function finishOnboard(skipped){
  stopBridgePoll();
@@ -2983,7 +2989,7 @@ function paintStatic(){
  $("#lang").textContent=T.lang;$("#hudmid").textContent=T.hudmid;$("#agrole").textContent=T.agrole;$("#mlabel").textContent=T.instability;
  $("#rellabel").textContent=T.trust;$("#pvlabel").textContent=T.livePreview;$("#e-flowcap").textContent=T.eFlowcap;
  $("#e-dl").textContent=T.eDl;if($("#e-dlzip"))$("#e-dlzip").textContent=T.eDlZip;$("#e-dltrace").textContent=T.eDlTrace;$("#e-replay").textContent=T.eReplay;$("#e-new").textContent=T.eNew;$("#e-menu").textContent=T.eMenu;
- document.title=LANG==="zh"?"LEDRING — 想做什么就做什么":"LEDRING — Build Anything";
+ document.title=LANG==="zh"?"LEDRING — 写成一个网页":"LEDRING — One web page";
  if($("#agled"))$("#agled").textContent="● "+(LANG==="zh"?T.galCalm:"CALM");
  const planTab=$('.ptab[data-f="plan"]');if(planTab)planTab.textContent=LANG==="zh"?"计划.md":"plan.md";
  const testTab=$("#tab-test");if(testTab)testTab.innerHTML=(LANG==="zh"?"测试":"tests")+` <span class="dot">●</span>`;

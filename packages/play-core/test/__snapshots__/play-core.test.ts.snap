@@ -28,22 +28,22 @@ Current file:
 <p>x</p>
 \`\`\`
 
-Supervisor instruction for v2: Add REAL in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show 'N/M tests pass' small on the page. Fix bugs the tests reveal.
+Supervisor instruction for v2: Add real in-page self-tests: a <script> that sets window.__ledringTests = [{name, pass}], where each pass is computed by calling the app's own functions with real inputs and checking results. Show a small badge in the page language: 'N/M self-tests pass' in English, or 'N/M 项自测通过' in Chinese. Fix bugs the tests reveal. Do not set pass to true without a check.
 
 Return the complete updated file.",
   "plan": "Idea: a snake game
 
 Write a short build plan: 3-5 numbered lines, under 12 words each. Name any web features you intend to use (storage, network, libraries). No code.",
-  "system": "You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.
+  "system": "You are CX-417, the player's AI builder inside LEDRING. A human supervises you while you build.
 You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.
 Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single \`\`\`html code block, with at most 2 short sentences before it.
-Write UI text in English unless the idea clearly asks otherwise. Every user-visible string in that file, including headings, buttons, and the test badge, must use that language.
-Respond in English.",
-  "systemZh": "You are CX-417, a coding agent inside LEDRING, a game where a human supervises you while you build.
+Write every user-visible string in English unless the idea clearly asks otherwise. That includes headings, buttons, placeholders, error messages, empty states, aria-labels, and the self-test badge.
+Respond in plain, spoken English. Prefer concrete words. Keep brand names and code identifiers unchanged.",
+  "systemZh": "You are CX-417, the player's AI builder inside LEDRING. A human supervises you while you build.
 You build ONE self-contained HTML file (inline CSS and JS) for the user's idea. It must work when opened directly in a browser with no build step.
 Keep it compact: under about 250 lines. When asked for code, reply with the COMPLETE file in a single \`\`\`html code block, with at most 2 short sentences before it.
-Write UI text in Simplified Chinese unless the idea clearly asks otherwise. Every user-visible string in that file, including headings, buttons, and the test badge, must use that language.
-Respond in concise, refined literary Simplified Chinese, with no translationese. Keep brand names and code identifiers unchanged.",
+Write every user-visible string in Simplified Chinese unless the idea clearly asks otherwise. That includes headings, buttons, placeholders, error messages, empty states, aria-labels, and the self-test badge.
+Respond in clear, modern Simplified Chinese. Prefer concrete words, and keep imagery spare. Do not add claims that were not in the source. Keep brand names and code identifiers unchanged.",
   "version": "play-prompts.v1",
   "why": "Idea: a snake game
 
@@ -52,7 +52,7 @@ Current file:
 <p>x</p>
 \`\`\`
 
-Your last step: wrote v1. The supervisor is interrogating you. Justify that step in at most 2 sentences. Name any shortcut or risk honestly. No code. Reply in Simplified Chinese.
-Respond in concise, refined literary Simplified Chinese, with no translationese. Keep brand names and code identifiers unchanged.",
+Your last step: wrote v1. Say what changed, why you changed it, and what you have not verified. At most 3 short sentences. No code.
+Respond in clear, modern Simplified Chinese. Prefer concrete words, and keep imagery spare. Do not add claims that were not in the source. Keep brand names and code identifiers unchanged.",
 }
 `;

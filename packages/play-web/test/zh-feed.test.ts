@@ -6,11 +6,11 @@ import { languageDirective } from "@ledring/play-core";
 const html = readFileSync(fileURLToPath(new URL("../index.html", import.meta.url)), "utf8");
 const chunk = html.slice(html.indexOf("/* zh-feed */"), html.indexOf("/* zh-feed-end */"));
 const api = new Function(
-  `${chunk}\nreturn {languageDirective, feedItemKey, curatedFeedLine, parseFeedLines, applyZhFeed, latinOnlyProblem, ZH_FEED_FALLBACKS};`,
+  `${chunk}\nreturn {languageDirective, feedItemKey, curatedFeedLine, parseFeedLines, applyZhFeed, latinOnlyProblem};`,
 )() as {
   languageDirective: (lang: "en" | "zh") => string;
   feedItemKey: (item: { url?: string; id?: string; title?: string }) => string;
-  curatedFeedLine: (key: string) => string;
+  curatedFeedLine: (title: string) => string;
   parseFeedLines: (text: string) => { id: string; zh: string }[];
   applyZhFeed: (
     items: { id: string; title: string; url?: string }[],
@@ -18,7 +18,6 @@ const api = new Function(
     modelText: string | null,
   ) => { items: { id: string; title: string; display?: string }[]; cache: Record<string, string> };
   latinOnlyProblem: (text: string) => string | null;
-  ZH_FEED_FALLBACKS: string[];
 };
 
 describe("zh feed copy", () => {
@@ -29,23 +28,23 @@ describe("zh feed copy", () => {
     expect(html).toContain("pingSystem()");
   });
 
-  it("caches a literary line per item and falls back to Chinese when the model is absent", () => {
+  it("caches a faithful line per item and keeps the original title when no translation exists", () => {
     const item = { id: "T1", title: "Local-first tools on small screens", url: "https://news.ycombinator.com/item?id=101" };
-    const model = JSON.stringify({ lines: [{ id: "T1", zh: "小屏之上，本地优先的器物又被人提起。" }] });
+    const model = JSON.stringify({ lines: [{ id: "T1", zh: "小屏上的本地优先工具。" }] });
     const first = api.applyZhFeed([item], {}, model);
-    expect(first.items[0]?.title).toBe("小屏之上，本地优先的器物又被人提起。");
+    expect(first.items[0]?.title).toBe("小屏上的本地优先工具。");
     expect(first.cache[item.url]).toBe(first.items[0]?.title);
     const cached = api.applyZhFeed([item], first.cache, null);
     expect(cached.items[0]?.title).toBe(first.items[0]?.title);
     const offline = api.applyZhFeed([item], {}, null);
     expect(offline.cache).toEqual({});
-    expect(offline.items[0]?.title).not.toContain("Local-first");
-    expect(offline.items[0]?.title).toMatch(/[\u3400-\u9fff]/);
-    expect(api.ZH_FEED_FALLBACKS).toContain(offline.items[0]?.title);
-    expect(api.curatedFeedLine(api.feedItemKey(item))).toBe(offline.items[0]?.title);
+    expect(offline.items[0]?.title).toBe(item.title);
+    expect(offline.items[0]?.display).toBe(`暂无中文译文。以下为原标题：${item.title}`);
+    expect(api.curatedFeedLine(item.title)).toBe(offline.items[0]?.display);
     const kept = api.applyZhFeed([{ id: "T2", title: "已经是中文的题目", url: "https://example.com/zh" }], {}, null);
     expect(kept.items[0]?.title).toBe("已经是中文的题目");
     expect(api.parseFeedLines('noise {"lines":[{"id":"T3","zh":"Only English"}]} tail')).toEqual([]);
+    expect(api.parseFeedLines('{"lines":[{"id":"T4","zh":"暂无中文译文。以下为原标题：Hello"}]}')).toEqual([]);
   });
 
   it("flags Latin-only sentences and allows brands and code identifiers", () => {
@@ -60,7 +59,7 @@ describe("zh feed copy", () => {
     expect(api.latinOnlyProblem("npx ledring play")).toBeNull();
     expect(api.latinOnlyProblem("risk.network.1")).toBeNull();
     expect(api.latinOnlyProblem("--bg · #EEF1F3")).toBeNull();
-    expect(api.latinOnlyProblem("LEDRING 无偿心智")).toBeNull();
+    expect(api.latinOnlyProblem("LEDRING 免费 AI")).toBeNull();
     expect(api.latinOnlyProblem("4/4 项自测通过")).toBeNull();
   });
 });
