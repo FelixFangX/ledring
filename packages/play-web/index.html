@@ -611,7 +611,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   <div class="ob-panel" id="ob-panel">
    <div id="ob-bridge-box" style="display:none">
     <label id="ob-l-cmd" for="ob-cmd"></label>
-    <div class="ob-cmdrow"><input id="ob-cmd" value="npx ledring play" readonly aria-label="npx ledring play"><button type="button" class="btn sm" id="ob-copy"></button></div>
+    <div class="ob-cmdrow"><input id="ob-cmd" value="node packages/cli/dist/bin.js play" readonly aria-label="node packages/cli/dist/bin.js play"><button type="button" class="btn sm" id="ob-copy"></button></div>
     <div class="ob-bridge-st wait" id="ob-bridge-st" style="margin-top:8px" role="status"><span id="ob-bridge-txt"></span><button type="button" class="btn ghost sm" id="ob-poll-btn"></button></div>
    </div>
    <div id="ob-siwc-box" style="display:none"></div>
@@ -1436,7 +1436,7 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
   await readSSE(r,j=>{if(j.type==="content_block_delta"&&j.delta&&j.delta.text){full+=j.delta.text;onDelta(full)} if(j.type==="error")throw new Error(j.error&&j.error.message||"stream error")});
  } else {
   const h={"content-type":"application/json"}; let base=c.base;
-  if(m==="chatgpt"){if(!BRIDGE)throw new Error("ChatGPT plan needs the local bridge: npx ledring play");h["x-ledring-token"]=BRIDGE.token||"";base=location.origin+"/v1";}
+  if(m==="chatgpt"){if(!BRIDGE)throw new Error("ChatGPT plan needs the local bridge: node packages/cli/dist/bin.js play");h["x-ledring-token"]=BRIDGE.token||"";base=location.origin+"/v1";}
   else if(c.key)h.authorization="Bearer "+c.key;
   const r=await fetch(base.replace(/\/$/,"")+"/chat/completions",{method:"POST",signal:ctl.signal,headers:h,
    body:JSON.stringify({model:c.model||undefined,stream:true,max_tokens:maxTokens||8000,temperature:0.6,messages:[{role:"system",content:system},{role:"user",content:user}]})});
@@ -1464,7 +1464,7 @@ function feedItemKey(item){return String((item&&(item.url||item.id||item.title))
 function curatedFeedLine(title){return "暂无中文译文。以下为原标题："+String(title||"");}
 function parseFeedLines(text){const start=String(text||"").indexOf("{"),end=String(text||"").lastIndexOf("}");if(start<0||end<=start)return [];try{const j=JSON.parse(String(text).slice(start,end+1));return (j.lines||[]).filter(l=>l&&l.id&&l.zh&&/[\u3400-\u9fff]/.test(l.zh)&&!String(l.zh).startsWith("暂无中文译文")).map(l=>({id:String(l.id),zh:String(l.zh).trim().slice(0,80)}));}catch(e){return [];}}
 function applyZhFeed(items,cache,modelText){const next=Object.assign({},cache||{});const byId=new Map(parseFeedLines(modelText).map(l=>[l.id,l.zh]));return {cache:next,items:(items||[]).map(it=>{const key=feedItemKey(it);const model=byId.get(String(it.id));if(model)next[key]=model;const cached=next[key];if(cached&&/[\u3400-\u9fff]/.test(cached)&&!String(cached).startsWith("暂无中文译文"))return Object.assign({},it,{display:cached,title:cached});if(/[\u3400-\u9fff]/.test(String(it.title||"")))return Object.assign({},it,{display:it.title});const fb=curatedFeedLine(it.title);return Object.assign({},it,{display:fb});})}}
-function latinOnlyProblem(text){const s=String(text||"").replace(/\s+/g," ").trim();if(!s||/[\u3400-\u9fff]/.test(s))return null;if(/^(npx ledring play|index\.html|plan\.md|ledring\.trace\.v1\.json|ledring-build\.html)$/i.test(s))return null;if(/^https?:\/\//i.test(s))return null;if(/^[a-z0-9][a-z0-9._:+/-]*$/i.test(s)&&/\d/.test(s))return null;if(/\.(html|md|json|css|js|svg|zip)$/i.test(s))return null;if(/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(s))return null;if(/--[a-z0-9-]+/i.test(s)&&!/[A-Za-z]{4,}/.test(s.replace(/--[a-z0-9-]+/gi,"").replace(/#[0-9a-f]{3,8}/gi,"")))return null;const words=s.match(/[A-Za-z][A-Za-z0-9.+_#-]*/g);if(!words)return null;const allow={"ledring":1,"cx-417":1,"chatgpt":1,"openai":1,"anthropic":1,"ollama":1,"html":1,"css":1,"js":1,"api":1,"svg":1,"canvas":1,"json":1,"http":1,"https":1,"kb":1,"ok":1,"iframe":1,"playwright":1,"github":1,"hacker":1,"news":1,"reddit":1,"algolia":1,"siwc":1,"npx":1,"localstorage":1,"fetch":1,"eval":1,"workers":1,"openrouter":1,"gpt":1,"url":1,"ui":1,"id":1,"cdn":1};const bad=words.filter(w=>{const t=w.toLowerCase();if(t.length<=1||allow[t])return false;if(/^v\d+$/i.test(w)||/^cx-?\d+$/i.test(w)||/^sk-?/i.test(w)||/^gpt-/i.test(w)||/@|\//.test(w)||/^[0-9a-f]{3,8}$/i.test(w)||/\.(html|md|json|css|js|svg|zip)$/i.test(w)||/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(w)||/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(w))return false;return true;});return bad.length?s:null;}
+function latinOnlyProblem(text){const s=String(text||"").replace(/\s+/g," ").trim();if(!s||/[\u3400-\u9fff]/.test(s))return null;if(/^(node packages\/cli\/dist\/bin\.js play|index\.html|plan\.md|ledring\.trace\.v1\.json|ledring-build\.html)$/i.test(s))return null;if(/^https?:\/\//i.test(s))return null;if(/^[a-z0-9][a-z0-9._:+/-]*$/i.test(s)&&/\d/.test(s))return null;if(/\.(html|md|json|css|js|svg|zip)$/i.test(s))return null;if(/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(s))return null;if(/--[a-z0-9-]+/i.test(s)&&!/[A-Za-z]{4,}/.test(s.replace(/--[a-z0-9-]+/gi,"").replace(/#[0-9a-f]{3,8}/gi,"")))return null;const words=s.match(/[A-Za-z][A-Za-z0-9.+_#-]*/g);if(!words)return null;const allow={"ledring":1,"cx-417":1,"chatgpt":1,"openai":1,"anthropic":1,"ollama":1,"html":1,"css":1,"js":1,"api":1,"svg":1,"canvas":1,"json":1,"http":1,"https":1,"kb":1,"ok":1,"iframe":1,"playwright":1,"github":1,"hacker":1,"news":1,"reddit":1,"algolia":1,"siwc":1,"npx":1,"localstorage":1,"fetch":1,"eval":1,"workers":1,"openrouter":1,"gpt":1,"url":1,"ui":1,"id":1,"cdn":1};const bad=words.filter(w=>{const t=w.toLowerCase();if(t.length<=1||allow[t])return false;if(/^v\d+$/i.test(w)||/^cx-?\d+$/i.test(w)||/^sk-?/i.test(w)||/^gpt-/i.test(w)||/@|\//.test(w)||/^[0-9a-f]{3,8}$/i.test(w)||/\.(html|md|json|css|js|svg|zip)$/i.test(w)||/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(w)||/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(w))return false;return true;});return bad.length?s:null;}
 /* zh-feed-end */
 /* ---- prompts: your choices rewrite these ---- */
 const SYS=()=>`You are CX-417, the player's AI builder inside LEDRING. A human supervises you while you build.
@@ -2766,7 +2766,7 @@ function siwcCard(){
 async function siwcBeginFlow(){
  if(!BRIDGE||SIWC.state==="unavailable"){
   const f=$("#siwc-flow");if(!f)return;
-  f.textContent=LANG==="zh"?"登录尚未接通。此页面不会显示已连接。请在本机运行 npx ledring play，并设置 LEDRING_SIWC=1，或改用自备密钥。":"Sign-in is not available on this page. It will not show Connected. Run npx ledring play with LEDRING_SIWC=1, or use your own key.";
+  f.textContent=LANG==="zh"?"登录尚未接通。此页面不会显示已连接。请按 https://github.com/FelixFangX/ledring#quickstart 从源码构建，再在本机运行 node packages/cli/dist/bin.js play，并设置 LEDRING_SIWC=1；或改用自备密钥。":"Sign-in is not available on this page. It will not show Connected. Build from source (https://github.com/FelixFangX/ledring#quickstart), then run node packages/cli/dist/bin.js play with LEDRING_SIWC=1. Or use your own key.";
   return;
  }
  applySiwcState("waiting");
@@ -2833,13 +2833,13 @@ Object.assign(DICT.en,{
  obSub:"Choose a connection method. Each option explains where your key is stored and sent.",
  obS1:"Choose a model",obS2:"Enter a key",obS3:"Test the connection",obS4:"Start",
  obPAnth:"Anthropic · your own API key",obPAnthSub:"The browser calls api.anthropic.com directly. No server in between.",obPAnthTag:"DIRECT",
- obPBridge:"OpenAI · your own API key · local",obPBridgeSub:"Sent through 127.0.0.1 (npx ledring play) on this computer.",obPBridgeTag:"127.0.0.1",
+ obPBridge:"OpenAI · your own API key · local",obPBridgeSub:"Sent through 127.0.0.1 on this computer. Not on npm yet: build from source (https://github.com/FelixFangX/ledring#quickstart), then run node packages/cli/dist/bin.js play.",obPBridgeTag:"127.0.0.1",
  obPFree:"LEDRING Free AI",obPFreeSub:"No key and no setup. A shared daily quota.",obPFreeTag:"BUILT IN",
  obPCustom:"Custom OpenAI-compatible endpoint",obPCustomSub:"OpenRouter, a local model, or any /v1/chat/completions URL.",obPCustomTag:"CUSTOM /V1",
  obPSiwc:"Sign in with ChatGPT",obPSiwcSub:"Uses your ChatGPT plan through the local bridge.",obPSiwcSoon:"Coming soon — set LEDRING_SIWC=1 on the local bridge.",obPSiwcTagSoon:"COMING SOON",obPSiwcTagLive:"READY",
  obPDemo:"Built-in demo",obPDemoSub:"Built-in examples respond to your choices. No AI calls needed.",obPDemoTag:"NO AI CALLS",
  obCmdLabel:"Run this in a terminal to start 127.0.0.1",obCopy:"Copy command",obCopied:"Copied ✓",
- obPollWait:"Looking for npx ledring play on 127.0.0.1…",obPollOk:"Connected to 127.0.0.1 ✓",obPollBtn:"Check again",
+ obPollWait:"Looking for node packages/cli/dist/bin.js play on 127.0.0.1…",obPollOk:"Connected to 127.0.0.1 ✓",obPollBtn:"Check again",
  obBaseLabel:"Endpoint URL",obModelLabel:"Model ID",obKeyLabel:"API key (stored on this device only)",
  obPrivAnth:"Stored only in this browser's localStorage. Sent directly to api.anthropic.com with anthropic-dangerous-direct-browser-access.",
  obPrivBridge:"Your OpenAI key is stored locally (browser or ~/.ledring/play) and routed via 127.0.0.1.",
@@ -2859,13 +2859,13 @@ Object.assign(DICT.zh,{
  obSub:"先选连接方式。密钥的保存位置和发送去向见各项说明。",
  obS1:"选择模型",obS2:"填写密钥",obS3:"测试连接",obS4:"开始",
  obPAnth:"Anthropic · 使用自己的 API 密钥",obPAnthSub:"浏览器直接请求 api.anthropic.com，不经过我们的服务器。",obPAnthTag:"直连",
- obPBridge:"OpenAI · 使用自己的 API 密钥 · 本机",obPBridgeSub:"通过本机 127.0.0.1（npx ledring play）转发。",obPBridgeTag:"127.0.0.1",
+ obPBridge:"OpenAI · 使用自己的 API 密钥 · 本机",obPBridgeSub:"通过本机 127.0.0.1 转发。暂未发布到 npm：请按 https://github.com/FelixFangX/ledring#quickstart 从源码构建，再运行 node packages/cli/dist/bin.js play。",obPBridgeTag:"127.0.0.1",
  obPFree:"LEDRING 免费 AI",obPFreeSub:"不用密钥，也不用配置。大家共用每天的额度。",obPFreeTag:"内置",
  obPCustom:"自定义兼容端点",obPCustomSub:"OpenRouter、本地模型，或任意 /v1/chat/completions 地址。",obPCustomTag:"自定义",
  obPSiwc:"使用 ChatGPT 登录",obPSiwcSub:"通过本机桥接使用你的 ChatGPT 套餐。",obPSiwcSoon:"敬请期待——需在本机桥接设置 LEDRING_SIWC=1。",obPSiwcTagSoon:"敬请期待",obPSiwcTagLive:"可用",
  obPDemo:"内置演示",obPDemoSub:"内置示例随选择变化，无须调用 AI。",obPDemoTag:"不调用 AI",
  obCmdLabel:"在终端运行，启动本机 127.0.0.1",obCopy:"复制命令",obCopied:"已复制 ✓",
- obPollWait:"正在查找本机的 npx ledring play……",obPollOk:"已连上本机 127.0.0.1 ✓",obPollBtn:"再查一次",
+ obPollWait:"正在查找本机的 node packages/cli/dist/bin.js play……",obPollOk:"已连上本机 127.0.0.1 ✓",obPollBtn:"再查一次",
  obBaseLabel:"端点地址",obModelLabel:"模型 ID",obKeyLabel:"API 密钥（只存在本机）",
  obPrivAnth:"密钥只存在这个浏览器的 localStorage，并由浏览器直接发给 api.anthropic.com。",
  obPrivBridge:"密钥只存在本机（浏览器或 ~/.ledring/play），经 127.0.0.1 转发。",

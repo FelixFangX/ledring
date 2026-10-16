@@ -58,7 +58,7 @@ describe("play page", () => {
     ]) {
       expect(html).toContain(`id="${id}"`);
     }
-    expect(html).toContain('value="npx ledring play"');
+    expect(html).toContain('value="node packages/cli/dist/bin.js play"');
     expect(html).toContain("ledring-onboarded");
     expect(html).toContain("LEDRING_SIWC");
     expect(html).toContain("COMING SOON");
