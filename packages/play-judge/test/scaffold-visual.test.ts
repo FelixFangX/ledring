@@ -34,6 +34,11 @@ const types: Record<string, string> = {
   ".png": "image/png",
 };
 
+async function revealEndingRecord(page: Page) {
+  const more = page.locator("#e-more");
+  if (await more.isVisible()) await more.click();
+}
+
 function serve(dir: string): Promise<{ url: string; close: () => Promise<void> }> {
   const server = createServer((req, res) => {
     const pathname = new URL(req.url ?? "/", "http://127.0.0.1").pathname;
@@ -1014,6 +1019,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
             bytes: 120,
           });
         });
+        await revealEndingRecord(page);
         await page.locator("#e-strand").click();
         await page.waitForFunction(() => document.querySelector("#e-strand")?.getAttribute("data-simulated") === "false");
         expect(await page.locator("#e-strand").textContent()).not.toContain(simWord);
@@ -1241,6 +1247,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
             bytes: 128,
           });
         });
+        await revealEndingRecord(page);
         await page.waitForSelector("#e-comp-quote");
         expect(await page.locator("#e-comp-quote").textContent()).toContain("Secret neon synth");
         await ctx.close();
