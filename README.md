@@ -7,6 +7,37 @@
 
 </div>
 
+## ▶ LEDRING Play
+
+**[Play it in your browser → felixfangx.github.io/ledring/play/](https://felixfangx.github.io/ledring/play/)**
+
+[![LEDRING Play: you watch CX-417 build one page](docs/assets/play.gif)](https://felixfangx.github.io/ledring/play/)
+
+You watch **CX-417**, an AI builder, turn your idea into one self-contained web page in real time. It may take shortcuts. **You decide what gets through.** Every choice is a branch, and the end screen shows your path through the flowchart alongside the paths other builds took.
+
+### How to play
+1. Open **[/play/](https://felixfangx.github.io/ledring/play/)** and press **▶ Start**.
+2. Pick an AI. The default needs nothing from you (see below).
+3. Give CX-417 an idea, or let it suggest one.
+4. Watch the build. Approve, push back, or stop it when it drifts.
+5. Reach one of the 7 endings, then replay to find the others.
+
+### AI options
+| Option | What you need |
+|---|---|
+| **LEDRING Free AI** (default) | Nothing. No key, no sign-up. It runs on a shared daily quota. |
+| Built-in demo | Nothing. Scripted examples, with no AI calls. |
+| Anthropic | Your own API key. The browser calls api.anthropic.com directly. |
+| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (`npx ledring play`) or a custom `/v1` URL |
+
+**Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://felixfangx.github.io/ledring/play/?lang=zh).
+
+---
+
+## Under the hood: the trace toolkit
+
+The game runs on the same engine as LEDRING's CLI and GitHub Action, which you can point at your own agent runs.
+
 **LEDRING reads agent traces from any stack, normalizes them to one schema, and turns them into views you can read at a glance:** where runs diverge, how often, and how far a run drifted from what you asked.
 
 Inspired by a narrative game about androids, whose end-of-chapter flowcharts show the path you took, the branches you didn't, and how many players chose each one. LEDRING does that for agent runs. Blue: calm. Yellow: processing. Red: critical.
