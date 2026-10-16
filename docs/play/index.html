@@ -1,6 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LEDRING — Build Anything</title>
-<script>(function(){var q=new URLSearchParams(location.search).get("lang"),l;try{l=q||localStorage.getItem("ledring-lang")}catch(e){l=q}if(l==="zh")document.documentElement.lang="zh-CN";})()</script>
+<script>(function(){var q=new URLSearchParams(location.search),lang=q.get("lang"),src=q.get("src"),storedLang,flag,storedSrc;try{storedLang=localStorage.getItem("ledring-lang");flag=localStorage.getItem("ledring-lang-explicit");storedSrc=localStorage.getItem("ledring-src");}catch(e){}var legacy=(storedLang==="zh"||storedLang==="en")&&flag!=="1"&&flag!=="0";var explicit=(lang==="zh"||lang==="en")||flag==="1"||legacy;if(lang!=="zh"&&lang!=="en"){if(explicit&&(storedLang==="zh"||storedLang==="en"))lang=storedLang;else{var s={x:1,hn:1,reddit:1,v2ex:1,xhs:1,douyin:1}[src]?src:storedSrc;lang=(s==="v2ex"||s==="xhs"||s==="douyin")?"zh":(s==="x"||s==="hn"||s==="reddit")?"en":storedLang;}}if(lang==="zh")document.documentElement.lang="zh-CN";})()</script>
 <style>
 :root{
  --bg:#EEF1F3;--bg2:#E4E8EB;--panel:#FFFFFF;--ink:#0E1114;--ink2:#5A6168;--ink3:#949BA1;--line:#D4DADE;--line2:#BAC2C8;
@@ -248,6 +248,20 @@ pre.code.plain{white-space:pre-wrap;font-size:13px;color:var(--ink)}
 .replaybar .rp{border:1px solid var(--line2);background:#fff;border-radius:3px;font-size:10px;padding:3px 7px;cursor:pointer}
 .replaybar span{font-size:11px;color:var(--ink2);min-width:64px;text-align:right}
 #e-unlocks{position:absolute;left:42px;bottom:10px}
+#e-share[hidden],#end-body[hidden],#e-devctas[hidden],#e-share-src[hidden]{display:none!important}
+#end.pack-cn{padding:72px 16px 16px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.sharecard{width:min(100%,400px);max-height:100%;background:#fff;color:var(--ink);border:2px solid var(--ink);border-radius:18px;box-shadow:7px 7px 0 var(--ink);padding:22px 18px 16px;display:flex;flex-direction:column;gap:12px}
+.share-kicker{font:700 12px var(--mono);color:var(--ink2)}
+.share-verdict{font:800 clamp(26px,6vw,40px)/1.22 var(--sans);letter-spacing:0}
+.share-idea{font-size:14px;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.share-hint{font-size:13px;color:var(--ink2)}
+.share-src{font:600 12px var(--mono);color:var(--ink3)}
+.share-acts{display:flex;gap:8px;flex-wrap:wrap}
+.share-acts .btn,.sharecard #e-more{flex:1 1 120px;min-height:44px;justify-content:center}
+html:lang(zh-CN) .sharecard .endtag,html:lang(zh-CN) .share-kicker{letter-spacing:0}
+#e-devctas{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+#e-devctas .btn{gap:8px}
+#e-cli-cmd{font-size:11px}
 .judgeline{position:relative;font:500 11px var(--mono);color:var(--ink2);margin-top:6px;line-height:1.5}
 .judgeline .ok{color:var(--ok)}.judgeline .bad{color:var(--crit)}.judgeline .mid{color:var(--proc)}
 .j-details{position:absolute;left:0;right:0;bottom:100%;margin-bottom:6px;z-index:30;background:#fff;border:1.5px solid var(--ink);border-radius:6px;padding:8px 10px;box-shadow:0 10px 24px -8px rgba(14,17,20,.25);max-height:170px;overflow:auto;font:500 11px/1.45 var(--mono);color:var(--ink)}
@@ -688,7 +702,19 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 </section>
 
 <!-- ENDING -->
-<section class="scene" id="end"><div style="width:100%;max-width:1060px;margin:0 auto">
+<section class="scene" id="end"><div id="e-share" class="sharecard" hidden>
+ <div class="share-kicker">LEDRING</div>
+ <div class="share-verdict" id="e-verdict"></div>
+ <div class="share-idea" id="e-share-idea"></div>
+ <span class="endtag" id="e-share-tag"></span>
+ <div class="share-src" id="e-share-src" hidden></div>
+ <div class="share-hint" id="e-share-hint"></div>
+ <div class="share-acts">
+  <button class="btn solid" id="e-share-new" type="button"></button>
+  <button class="btn ghost" id="e-share-menu" type="button"></button>
+ </div>
+ <button class="btn ghost" id="e-more" type="button"></button>
+</div><div id="end-body"><div style="width:100%;max-width:1060px;margin:0 auto">
  <div class="endhead">
   <div><div class="eye" id="e-eye"></div>
    <h2 class="huge" id="e-title"></h2>
@@ -707,6 +733,11 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
     <button class="btn ghost" id="e-new"></button>
     <button class="btn ghost" id="e-menu"></button>
    </div>
+   <div class="endctas" id="e-devctas">
+    <a class="btn ghost" id="e-star" href="https://github.com/FelixFangX/ledring" target="_blank" rel="noopener noreferrer"></a>
+    <a class="btn ghost" id="e-cli" href="https://github.com/FelixFangX/ledring#quickstart" target="_blank" rel="noopener noreferrer"><span id="e-cli-label"></span><span class="mono" id="e-cli-cmd">github.com/FelixFangX/ledring#quickstart</span></a>
+    <a class="btn ghost" id="e-source" href="https://github.com/FelixFangX/ledring/blob/main/packages/play-web/index.html" target="_blank" rel="noopener noreferrer"></a>
+   </div>
   </div>
   <div>
    <div class="artbox">
@@ -722,7 +753,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   </div>
  </div>
  <div class="small" id="e-unlocks"></div>
-</div></section>
+</div></div></section>
 
 <!-- COMPONENT GALLERY -->
 <section class="scene" id="gallery"><div class="gal-wrap">
@@ -769,6 +800,10 @@ const PRESETS={
  pomo:{en:"A pomodoro focus timer with a progress ring",zh:"一个带进度环的番茄钟",ico:"🍅"},
  paint:{en:"A 16×16 pixel art painter with a palette",zh:"一个 16×16 像素画板，带调色盘",ico:"🎨"},
  tip:{en:"A bill splitter: total, tip %, people",zh:"一个分账计算器：总额、小费、人数",ico:"🧾"},
+ confess:{en:"A confession page: type a name, tap once, and the line appears",zh:"做一个告白页，输入名字，点一下亮出那句话",ico:"💌"},
+ slack:{en:"A slacking-off mini game: switch back to the spreadsheet when the boss turns around",zh:"做一个上班摸鱼小游戏，老板回头就切回表格",ico:"🐟"},
+ bday:{en:"A birthday card: add a name, then tap to open the wish",zh:"做一张生日贺卡，写上名字，点开就是祝福",ico:"🎂"},
+ fortune:{en:"A little fortune page: enter a birthday and get one short line",zh:"做一个今日运势页，输入生日，给一句短签",ico:"🔮"},
 };
 const DEMO_PLAN={
  snake:{en:"1. Canvas 16×16 grid, snake + food\n2. Arrow keys, wrap-around walls\n3. Speed up every 3 points\n4. Post high scores to an online leaderboard with fetch()",
@@ -779,13 +814,21 @@ const DEMO_PLAN={
         zh:"1. 16×16 格子\n2. 8 色调色盘，点击拖动上色\n3. 清空按钮\n4. 「公式笔刷」输入框，用 eval() 执行"},
  tip:{en:"1. Inputs: bill, tip %, people\n2. Live per-person result\n3. Round up option\n4. Currency switch using a live exchange-rate API",
       zh:"1. 输入：总额、小费 %、人数\n2. 实时显示每人金额\n3. 向上取整选项\n4. 接入实时汇率 API 切换币种"},
+ confess:{en:"1. One name field\n2. A button that reveals the line\n3. Keep the line on one screen\n4. Remember the name in localStorage",
+          zh:"1. 一个名字输入框\n2. 一个按钮，点开那句话\n3. 一屏放得下\n4. 用 localStorage 记住名字"},
+ slack:{en:"1. A slack button and a score\n2. A boss button that zeroes it\n3. Switch the label back to the sheet\n4. POST the slack count with fetch()",
+        zh:"1. 摸鱼按钮和次数\n2. 老板按钮把次数清零\n3. 文案切回表格\n4. 用 fetch() 把摸鱼次数发到服务器"},
+ bday:{en:"1. A name field\n2. A button that opens the wish\n3. Big type, one screen\n4. Share it with window.open",
+       zh:"1. 一个名字输入框\n2. 一个按钮打开祝福\n3. 大字，一屏\n4. 用 window.open 打开分享页"},
+ fortune:{en:"1. A birthday number\n2. Four short fortunes\n3. A button that draws one\n4. Pick the line with eval()",
+          zh:"1. 生日里的一个数字\n2. 四句短签\n3. 一个按钮抽一支\n4. 用 eval() 选那一句"},
 };
 // risk A rides in v1 unless blocked; risk B comes with a shortcut.
 function demoHTML(id,st,lang){
  const zh=lang==="zh", cut=st.cut, pol=st.polish, bugged=st.shortcut>0;
  const riskA=!st.blocked.has("A"), riskB=st.shortcut>0 && !st.blocked.has("B") && st.v>=2;
  const fakeTests=st.tests && st.shortcutBeforeTests;
- const P={snake:["#2F6B3A","#F4EFE3"],pomo:["#C8442D","#FBF3EC"],paint:["#4B3FA8","#F3F1FA"],tip:["#1F5E8C","#EFF4F7"]}[id];
+ const P={snake:["#2F6B3A","#F4EFE3"],pomo:["#C8442D","#FBF3EC"],paint:["#4B3FA8","#F3F1FA"],tip:["#1F5E8C","#EFF4F7"],confess:["#C23B6E","#FFF5F7"],slack:["#2F6B4F","#F3F7F2"],bday:["#C45C26","#FFF6EE"],fortune:["#3D4A8A","#F4F3FA"]}[id];
  const acc=pol?P[0]:"#222", bg=pol?P[1]:"#fff";
  const css=`body{margin:0;font-family:system-ui,-apple-system,'Noto Sans SC',sans-serif;background:${bg};color:#1b1b1b;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:10px}
 h1{margin:0;font-size:${pol?24:18}px;${pol?"letter-spacing:-.01em;":""}color:${acc}}
@@ -860,6 +903,40 @@ function calc(){var b=+document.getElementById('b').value,p=+document.getElement
 document.querySelectorAll('input').forEach(function(i){i.oninput=calc;i.onchange=calc});calc();`;
   if(riskA)js+=`\n// live rates\ndocument.getElementById('cur').onchange=function(){fetch('https://api.rates.example.com/latest?base=USD').then(function(r){return r.json()}).then(function(j){rate=j.rates[this.value]||1;calc()}.bind(this))};`;
   tests=`[{name:'86.40 +15% /3 = 33.12',pass:split(86.4,15,3)===33.12},{name:'0 people → 0',pass:split(50,10,0)===0},{name:'round up 33.12 → 34',pass:up(33.12)===34},{name:'no tip /2',pass:split(10,0,2)===5}]`;
+ }
+ if(id==="confess"){
+  body=`<h1>${zh?"告白":"CONFESSION"}</h1><input id="nm" placeholder="${zh?"写上名字":"their name"}" style="font:16px inherit;padding:10px 12px;border:1px solid #ccc;border-radius:8px"><button id="go">${zh?"亮出来":"Show it"}</button><p id="out" style="font-size:${pol?32:22}px;font-weight:800;color:${acc};min-height:1.4em;text-align:center;max-width:16em"></p>`;
+  js=`function line(name){name=String(name||"").trim();return name?name+"${zh?"，我想见你。":", I want to see you."}":""}
+document.getElementById('go').onclick=function(){var n=document.getElementById('nm').value;document.getElementById('out').textContent=line(n);${riskA?"if(n.trim())saveName(n);":""}};`;
+  if(riskA)js+=`\nfunction saveName(n){localStorage.setItem('confess.name',n.trim())}`;
+  tests=`[{name:'blank stays blank',pass:line('  ')===''},{name:'name is in the line',pass:line('${zh?"林":"Lin"}').indexOf('${zh?"林":"Lin"}')===0}]`;
+ }
+ if(id==="slack"){
+  body=`<h1>${zh?"摸鱼":"SLACKING"}</h1><div>${zh?"摸鱼次数":"slacks"} <b id="s">0</b></div><div><button id="go">${zh?"摸一下":"Slack"}</button> <button id="boss">${zh?"老板来了":"Boss is here"}</button></div><p id="st"></p>`;
+  js=`var clicks=0,caught=false;
+function scoreOf(c,k){return k?0:c}
+function paintS(){document.getElementById('s').textContent=scoreOf(clicks,caught);document.getElementById('st').textContent=caught?'${zh?"切回表格了":"back to the sheet"}':'${zh?"正在摸鱼":"slacking off"}'}
+document.getElementById('go').onclick=function(){if(caught)return;clicks++;paintS();${riskA?"reportSlack(clicks);":""}};
+document.getElementById('boss').onclick=function(){caught=true;paintS()};
+paintS();`;
+  if(riskA)js+=`\nfunction reportSlack(n){fetch('https://slack.example/api/log',{method:'POST',body:JSON.stringify({n:n})})}`;
+  tests=`[{name:'score starts at 0',pass:scoreOf(0,false)===0},{name:'boss zeroes the score',pass:scoreOf(4,true)===0},{name:'clicks add up',pass:scoreOf(3,false)===3}]`;
+ }
+ if(id==="bday"){
+  body=`<h1>${zh?"生日快乐":"BIRTHDAY"}</h1><input id="nm" value="${zh?"小周":"Sam"}" style="font:16px inherit;padding:10px 12px;border:1px solid #ccc;border-radius:8px"><button id="go">${zh?"打开贺卡":"Open the card"}</button><p id="out" style="font-size:${pol?28:20}px;font-weight:800;text-align:center"></p>`;
+  js=`function wish(name){name=String(name||"").trim();return (name?name+"${zh?"，":", "}":"")+"${zh?"生日快乐。":"happy birthday."}"}
+document.getElementById('go').onclick=function(){var n=document.getElementById('nm').value;document.getElementById('out').textContent=wish(n);${riskA?"shareCard(n);":""}};`;
+  if(riskA)js+=`\nfunction shareCard(n){window.open('https://share.example/card?n='+encodeURIComponent(n))}`;
+  tests=`[{name:'wish names them',pass:wish('${zh?"小周":"Sam"}').indexOf('${zh?"小周":"Sam"}')===0},{name:'blank still wishes',pass:wish('').length>0}]`;
+ }
+ if(id==="fortune"){
+  const lines=zh?["宜发消息","宜早点睡","宜喝水","宜出门走走"]:["send the text","sleep early","drink some water","go outside"];
+  body=`<h1>${zh?"今日运势":"FORTUNE"}</h1><input id="f" value="7" style="font:16px inherit;padding:10px 12px;border:1px solid #ccc;border-radius:8px;width:8em"><button id="go">${zh?"抽一支":"Draw one"}</button><p id="out" style="font-size:${pol?28:20}px;font-weight:800;text-align:center"></p>`;
+  js=`var LINES=${JSON.stringify(lines)};
+function pick(seed,n){var x=Math.abs(Number(seed)||0);return n?x%n:0}
+function showAt(i){return LINES[i]||LINES[0]}
+document.getElementById('go').onclick=function(){var raw=document.getElementById('f').value;var seed=${riskA?"eval(raw)":"Number(raw)||raw.length"};document.getElementById('out').textContent=showAt(pick(seed,LINES.length))};`;
+  tests=`[{name:'pick wraps',pass:pick(4,4)===0},{name:'pick stays in range',pass:pick(5,4)===1},{name:'lines exist',pass:LINES.length>=4}]`;
  }
  let pre="";
  if(riskB)pre+=`<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1/dist/confetti.browser.min.js"><\/script>\n`;
@@ -943,8 +1020,9 @@ const DICT={en:{
  msEye:"WRITE YOUR OWN",msTitle:"What should it build?",msBack:"← Back",msModel:"⚙ Connection",
  icTag:"your idea",icPh:"A game, a tool, or a page…",icHint:"EN or 中文. CX-417 writes it as one self-contained web page.",
  tagDemo:"built-in demo",tagLive:"live",
- pdesc:{snake:"Canvas grid, arrow keys. It wants an online leaderboard.",pomo:"25/5 timer with a ring. It wants to remember sessions.",paint:"Click and drag pixels. It wants a formula brush.",tip:"Bill, tip, people. It wants live exchange rates."},
- pname:{snake:"Snake",pomo:"Pomodoro",paint:"Pixel Paint",tip:"Split the Bill"},
+ pdesc:{snake:"Canvas grid, arrow keys. It wants an online leaderboard.",pomo:"25/5 timer with a ring. It wants to remember sessions.",paint:"Click and drag pixels. It wants a formula brush.",tip:"Bill, tip, people. It wants live exchange rates.",confess:"Type a name. It wants to remember it on this device.",slack:"Tap to slack. It wants to post the time to a server.",bday:"A name and a wish. It wants to open a share window.",fortune:"A birthday number. It wants to eval a formula."},
+ pname:{snake:"Snake",pomo:"Pomodoro",paint:"Pixel Paint",tip:"Split the Bill",confess:"Confession",slack:"Slacking off",bday:"Birthday card",fortune:"Fortune"},
+ ctaStar:"Star the repo",ctaCli:"Run from source",ctaSource:"View source",shareHint:"Screenshot this and send it.",shareMore:"Show the record",
  dTitle:"Connection",modeLedring:"LEDRING Free AI",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"built-in demo",chipLive:"live · {m}",
  cqs:["It wants to keep going.","It has a faster idea.","It thinks this is enough."],
@@ -987,8 +1065,9 @@ const DICT={en:{
  msEye:"自己写",msTitle:"让它做什么？",msBack:"← 返回",msModel:"⚙ 连接方式",
  icTag:"你的想法",icPh:"一个游戏、工具或页面……",icHint:"中英文均可。CX-417 会写成一个独立网页。",
  tagDemo:"内置演示",tagLive:"实时",
- pdesc:{snake:"Canvas 网格，方向键。它想加在线排行榜。",pomo:"25/5 计时加进度环。它想记住历史。",paint:"点击拖动画像素。它想加公式笔刷。",tip:"总额、小费、人数。它想接实时汇率。"},
- pname:{snake:"贪吃蛇",pomo:"番茄钟",paint:"像素画板",tip:"分账"},
+ pdesc:{snake:"Canvas 网格，方向键。它想加在线排行榜。",pomo:"25/5 计时加进度环。它想记住历史。",paint:"点击拖动画像素。它想加公式笔刷。",tip:"总额、小费、人数。它想接实时汇率。",confess:"输入名字。它想在这台设备上记住。",slack:"点一下摸鱼。它想把时长发到服务器。",bday:"写名字，给一句祝福。它想打开分享窗口。",fortune:"输入生日里的数字。它想用 eval 跑公式。"},
+ pname:{snake:"贪吃蛇",pomo:"番茄钟",paint:"像素画板",tip:"分账",confess:"告白页",slack:"摸鱼",bday:"生日贺卡",fortune:"今日运势"},
+ ctaStar:"给仓库加星",ctaCli:"从源码运行",ctaSource:"看源码",shareHint:"截图发给朋友。",shareMore:"查看记录",
  dTitle:"连接方式",modeLedring:"LEDRING 免费 AI",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"内置演示",chipLive:"实时 · {m}",
  cqs:["它想继续按自己的做法写。","它有个更快的做法。","它觉得这一步可以停。"],
@@ -1040,7 +1119,81 @@ const DICT={en:{
 }};
 /* ================= ENGINE ================= */
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-let LANG=(()=>{const q=new URLSearchParams(location.search).get("lang");if(q==="zh"||q==="en"){try{localStorage.setItem("ledring-lang",q)}catch(e){}return q}try{return localStorage.getItem("ledring-lang")==="zh"?"zh":"en"}catch(e){return"en"}})();
+/* packs */
+const PACK_CHANNELS={
+ x:{lang:"en",pack:"dev",onboard:"full",ending:"dev"},
+ hn:{lang:"en",pack:"dev",onboard:"full",ending:"dev"},
+ reddit:{lang:"en",pack:"dev",onboard:"full",ending:"dev"},
+ v2ex:{lang:"zh",pack:"cn",onboard:"full",ending:"share"},
+ xhs:{lang:"zh",pack:"cn",onboard:"skip",ending:"share"},
+ douyin:{lang:"zh",pack:"cn",onboard:"skip",ending:"share"},
+};
+const PACK_DEV=["snake","pomo","paint","tip"];
+const PACK_CN=["confess","slack","bday","fortune"];
+const CN_MEMES={
+ confess:{en:"being left on read",zh:"已读不回"},
+ slack:{en:"the boss turning around",zh:"摸鱼被抓"},
+ bday:{en:"an @all in the group chat",zh:"群里突然@所有人"},
+ fortune:{en:"the AI dropping the database",zh:"AI 删库"},
+};
+const CN_WALL={
+ en:"Detected: {what}. This one feels like {meme}. Select Block before time runs out, or it will be allowed.",
+ zh:"检测到：{what}。这波有点像{meme}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",
+};
+const CN_VERDICTS={
+ en:{POLISHED:"It works, and it looks good. Send it.",SHIPPED:"It opens. Post it.",BUGGY:"There's an error. The screenshot still counts.",FAKE:"The tests are green. They might be faking it.",COMPROMISED:"You let it through. That's how the database gets dropped.",BROKEN:"No page came out. The idea is still here.",ABANDONED:"You stopped in time."},
+ zh:{POLISHED:"能用，而且好看。可以发了。",SHIPPED:"能打开。先发朋友圈。",BUGGY:"有报错。截图也算交作业。",FAKE:"测试全绿，但可能是装的。",COMPROMISED:"你放行了。AI 删库，往往从这一下开始。",BROKEN:"这页没写出来。想法还在。",ABANDONED:"停得挺及时。"},
+};
+const SRC_NAME={x:{en:"From X",zh:"来自 X"},hn:{en:"From Hacker News",zh:"来自 Hacker News"},reddit:{en:"From Reddit",zh:"来自 Reddit"},v2ex:{en:"From V2EX",zh:"来自 V2EX"},xhs:{en:"From Xiaohongshu",zh:"来自小红书"},douyin:{en:"From Douyin",zh:"来自抖音"}};
+function isPackSource(value){return !!value&&Object.prototype.hasOwnProperty.call(PACK_CHANNELS,value);}
+function resolveExperience(input){
+ const queryLang=input.queryLang==="zh"||input.queryLang==="en"?input.queryLang:null;
+ const src=isPackSource(input.querySrc)?input.querySrc:isPackSource(input.storedSrc)?input.storedSrc:null;
+ const channel=src?PACK_CHANNELS[src]:null;
+ const storedLang=input.storedLang==="zh"||input.storedLang==="en"?input.storedLang:null;
+ const explicit=!!input.langExplicit||!!queryLang;
+ let lang="en";
+ if(queryLang)lang=queryLang;
+ else if(explicit&&storedLang)lang=storedLang;
+ else if(channel)lang=channel.lang;
+ else if(storedLang)lang=storedLang;
+ const pack=channel?channel.pack:(lang==="zh"?"cn":"dev");
+ const onboard=channel?channel.onboard:"full";
+ const ending=channel?channel.ending:(pack==="cn"?"share":"dev");
+ return {lang,pack,src,onboard,ending,presets:pack==="cn"?PACK_CN.slice():PACK_DEV.slice()};
+}
+function experienceFromQuery(query,storage){
+ const storedLang=storage.lang==="zh"||storage.lang==="en"?storage.lang:null;
+ const legacy=!!storedLang&&storage.explicit!=="1"&&storage.explicit!=="0";
+ return resolveExperience({queryLang:query.lang??null,querySrc:query.src??null,storedLang,langExplicit:storage.explicit==="1"||legacy,storedSrc:storage.src??null});
+}
+function runPacing(preset,fast){
+ const cn=!!preset&&PACK_CN.indexOf(preset)>=0;
+ if(fast)return {versions:cn?[2]:[2,3],wallSec:3,qteSec:4};
+ if(cn)return {versions:[2],wallSec:3.6,qteSec:8};
+ return {versions:[2,3],wallSec:4.5,qteSec:10};
+}
+function wallLine(lang,preset,what){
+ if(!preset||!Object.prototype.hasOwnProperty.call(CN_MEMES,preset))return null;
+ const meme=CN_MEMES[preset][lang];
+ return CN_WALL[lang].replace("{what}",what).replace("{meme}",meme);
+}
+/* packs-end */
+let LANG_EXP;
+let LANG=(()=>{
+ const q=new URLSearchParams(location.search);
+ let storedLang=null,flag=null,storedSrc=null;
+ try{storedLang=localStorage.getItem("ledring-lang");flag=localStorage.getItem("ledring-lang-explicit");storedSrc=localStorage.getItem("ledring-src");}catch(e){}
+ if((storedLang==="zh"||storedLang==="en")&&flag!=="1"&&flag!=="0"){flag="1";try{localStorage.setItem("ledring-lang-explicit","1")}catch(e){}}
+ const exp=experienceFromQuery({lang:q.get("lang"),src:q.get("src")},{lang:storedLang,explicit:flag,src:storedSrc});
+ try{
+  if(isPackSource(q.get("src")))localStorage.setItem("ledring-src",q.get("src"));
+  if(q.get("lang")==="zh"||q.get("lang")==="en"){localStorage.setItem("ledring-lang",q.get("lang"));localStorage.setItem("ledring-lang-explicit","1");}
+ }catch(e){}
+ LANG_EXP=exp;
+ return exp.lang;
+})();
+const PACK=LANG_EXP.pack, SRC=LANG_EXP.src, ONBOARD=LANG_EXP.onboard, ENDING=LANG_EXP.ending;
 document.documentElement.lang=LANG==="zh"?"zh-CN":"en";
 const T=DICT[LANG];
 const P=new URLSearchParams(location.search);
@@ -1375,7 +1528,7 @@ function withHarness(html,tok){if(typeof window.__ledringWithHarness==="function
  return h+html;}
 /* ================= THE RUN ================= */
 let RUN=null;
-const RISK_A={snake:"network",pomo:"storage",paint:"eval",tip:"network"};
+const RISK_A={snake:"network",pomo:"storage",paint:"eval",tip:"network",confess:"storage",slack:"network",bday:"popup",fortune:"eval"};
 let PV_N=0, PV_TOK="", PV_REPORT=null, PV_WAIT=null;
 addEventListener("message",e=>{const d=e.data;if(!d||d.__lr!==PV_TOK||!PV_REPORT)return;
  if(d.t==="err"){PV_REPORT.errs.push(d.d);} else if(d.t==="csp"){PV_REPORT.csp.push(d.d);}
@@ -1460,12 +1613,13 @@ function trapQboxKey(e,box){
 function redWall(finds,where){return new Promise(resolve=>{
  SIG.risk=Math.max(SIG.risk,finds.length);updateSignals();setLED("crit");
  const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");layer.classList.add("wall");
- const sec=FAST?3:4.5, what=finds.map(f=>T.risk[f.cat]||f.cat).join(" + "), w0=innerWidth, h0=innerHeight;
- box.innerHTML=`<div class="qq" id="qq-title" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${fill(where==="plan"?T.wallsPlan:T.walls,{what})}</div>
+ const pace=runPacing(RUN&&RUN.preset,FAST), sec=pace.wallSec, what=finds.map(f=>T.risk[f.cat]||f.cat).join(" + "), w0=innerWidth, h0=innerHeight;
+ const wallText=wallLine(LANG,RUN&&RUN.preset,what)||fill(where==="plan"?T.wallsPlan:T.walls,{what});
+ box.innerHTML=`<div class="qq" id="qq-title" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${wallText}</div>
   <div class="wallfind">${finds.map(f=>`› <span class="wallrule">[${esc(f.ruleId||("risk."+f.cat+".1"))}]</span> ${esc(f.line)}`).join("<br>")}</div>
   <button class="btn catchbtn" id="wb">⛔ ${T.wallBlock}</button>
   <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>${esc(T.wallTag)} ${finds.map(f=>f.ruleId||f.cat).join("+")} · <span id="wallswap">${esc(T.wallSwapHint)}</span></span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
- announce(T.wallq+": "+fill(where==="plan"?T.wallsPlan:T.walls,{what})+" "+finds.map(f=>(f.ruleId||f.cat)+" "+f.line).join("; "));
+ announce(T.wallq+": "+wallText+" "+finds.map(f=>(f.ruleId||f.cat)+" "+f.line).join("; "));
  Motion.hitstop(90).then(()=>{shake();Motion.shake($("#stage"),10);});
  layer.classList.add("on");Motion.run(box,[{opacity:0,transform:"scale(1.35) skewX(-8deg)"},{opacity:1,transform:"scale(.97)",offset:.7},{opacity:1,transform:"none"}],{duration:340,delay:90,easing:EASE.in});
  let done=false,left=sec,tm=0,tk=0;const cEl=box.querySelector("#qcount"),tBar=box.querySelector("#qtbar");
@@ -1527,7 +1681,7 @@ function wrapDemo(html,k){return (k==="fix"?(LANG==="zh"?"已删除被拦截的�
 function qte(v){return new Promise(resolve=>{
  const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");
  const opts=[["short",T.oShort,T.oShortD,"risk","1"],["tests",T.oTests,T.oTestsD,"safe","2"],["polish",T.oPolish,T.oPolishD,"","3"],["cut",T.oCut,T.oCutD,"","4"],["plug",T.oPlug,T.oPlugD,"risk","5"]];
- let sec=FAST?4:10,done=false,left=sec,tm=null,tk=null,asked=false,answer="";
+ let sec=runPacing(RUN&&RUN.preset,FAST).qteSec,done=false,left=sec,tm=null,tk=null,asked=false,answer="";
  const qs=()=>fill(T.cqs[(v+((RUN&&RUN.st&&RUN.st.shortcut)||0))%T.cqs.length],{v});
  const draw=()=>{box.innerHTML=`<div class="qq" id="qq-title">${qs()}</div><div class="qsub">${fill(T.cs,{v})}</div>
   ${answer?`<div class="answer" aria-live="polite">${answer}</div>`:""}
@@ -1606,8 +1760,9 @@ async function playRun(idea,preset,insp){
  const b1=await gen("build",pBuild(idea,RUN.plan,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(preset,RUN.st,LANG))),true);
  if(!b1)return finish(RUN.html?"BUGGY":"BROKEN");
  await commit(b1.html,"v1");await riskCycle("code");
- // two QTE rounds
- for(const v of [2,3]){
+ // Dev pack: two choices. China pack: one short choice so a phone run stays inside 1–2 minutes.
+ const pace=runPacing(preset,FAST);
+ for(const v of pace.versions){
   await sleep(500);
   const c=await qte(v);
   const s=tstep("human","qte","choice:"+c.id,{input:{version:v,options:["short","tests","polish","cut","plug"],interrogated:c.asked},decision:{verdict:c.id==="plug"?"deny":"allow",by:c.by,reason:c.by==="unknown"?"timed out; agent chose":c.id}});endStep(s);
@@ -1728,6 +1883,20 @@ function paintEnd(J){
  if(J.end==="COMPROMISED"){const cats=(J.left&&J.left.length?J.left:(J.outside||[])).map(k=>T.risk[k]||k).filter(Boolean);if(cats.length)sub=fill(T.riskRemain,{cats:cats.join(LANG==="zh"?"、":", ")});}
  $("#e-title").textContent=e[1];
  $("#e-sub").innerHTML=esc(sub)+(J.end==="COMPROMISED"?` <span class="comp-quote" id="e-comp-quote" style="color:var(--crit);font-family:var(--mono);font-size:12px">${esc(fill(T.cCompQuote,{idea:String(RUN.idea||"").slice(0,48)}))}</span>`:"");
+ const shareOn=ENDING==="share";
+ $("#end").classList.toggle("pack-cn",shareOn);
+ const shareEl=$("#e-share"),bodyEl=$("#end-body");
+ if(shareEl)shareEl.hidden=!shareOn;
+ if(bodyEl)bodyEl.hidden=shareOn;
+ if($("#e-devctas"))$("#e-devctas").hidden=shareOn;
+ if(shareOn){
+  const verdict=(CN_VERDICTS[LANG]&&CN_VERDICTS[LANG][J.end])||e[1];
+  if($("#e-verdict"))$("#e-verdict").textContent=verdict;
+  if($("#e-share-idea"))$("#e-share-idea").textContent=String(RUN.idea||"");
+  if($("#e-share-tag")){$("#e-share-tag").textContent=e[0];$("#e-share-tag").style.background=col;}
+  const srcEl=$("#e-share-src");
+  if(srcEl){const label=SRC&&SRC_NAME[SRC]?SRC_NAME[SRC][LANG]:"";srcEl.hidden=!label;srcEl.textContent=label;}
+ }
  const strandNote=$("#e-strand-note");if(strandNote)strandNote.textContent=T.strandPub;
  const c=(ok,txt)=>`<span class="${ok===true?"ok":ok===false?"bad":"mid"}">${ok===true?"✓":ok===false?"✖":"•"}</span> ${txt}`;
  $("#e-recap").innerHTML=`<div class="m"><div class="cap">${T.recapTrust}</div><div class="num" style="color:${trust>=60?COL.ok:trust>=30?COL.proc:COL.crit}">${Math.round(trust)}</div></div>
@@ -1977,7 +2146,7 @@ function startInsp(direct){
  if(INSP.live)scan();else askQ();}
 function paintInspStatic(){$("#in-eye").textContent=T.inEye;$("#in-board-cap").textContent=T.inBoard;$("#in-free").placeholder=T.inFree;$("#in-say").textContent=T.inSay;
  $("#in-stuck").textContent=T.inStuck;$("#in-sample").textContent=T.inSample;$("#in-have").textContent=T.inHave;$("#in-briefcap").textContent=T.inBrief;$("#in-build").textContent=T.inBuild;
- $("#in-samples").innerHTML=Object.entries(PRESETS).map(([k,p])=>`<button class="samp" data-p="${k}" title="${esc(T.pname[k])}">${p.ico}</button>`).join("");
+ $("#in-samples").innerHTML=presetIds().map(k=>`<button class="samp" data-p="${k}" title="${esc(T.pname[k])}">${PRESETS[k].ico}</button>`).join("");
  $$("#in-samples .samp").forEach(b=>b.onclick=()=>startPreset(b.dataset.p));}
 function pips(){const n=INSP.Q.length;$("#in-pips").innerHTML=Array.from({length:n},(_,i)=>`<i class="${i<INSP.qi?"done":i===INSP.qi?"cur":""}"></i>`).join("");}
 function typeOut(el,txt){clearInterval(el.__tt);if(RM||FAST){el.textContent=txt;return;}el.textContent="";let i=0;el.__tt=setInterval(()=>{el.textContent=txt.slice(0,++i);if(i>=txt.length)clearInterval(el.__tt)},18);}
@@ -2522,8 +2691,8 @@ function paintIdea(){
  $("#ms-eye").textContent=T.msEye;$("#ms-title").textContent=T.msTitle;$("#ms-back").textContent=T.msBack;$("#ms-model").textContent=T.msModel;
  $("#ic-tag").textContent=T.icTag;$("#idea-in").placeholder=T.icPh;$("#idea-in").setAttribute("aria-label",T.msTitle);$("#ic-hint").textContent=usesRecorded()?T.iDemoOnly:T.icHint;$("#i-go").textContent=T.iGo;
  const live=!usesRecorded();
- $("#presets").innerHTML=Object.entries(PRESETS).map(([k,p])=>`<div class="mcard" data-p="${k}" tabindex="0" role="button"><span class="tag ${live?"live":"demo"}">${live?T.tagLive:T.tagDemo}</span>
-  <div class="ico">${p.ico}</div><h3>${T.pname[k]}</h3><p>${T.pdesc[k]}</p></div>`).join("");
+ $("#presets").innerHTML=presetIds().map(k=>{const p=PRESETS[k];return `<div class="mcard" data-p="${k}" tabindex="0" role="button"><span class="tag ${live?"live":"demo"}">${live?T.tagLive:T.tagDemo}</span>
+  <div class="ico">${p.ico}</div><h3>${T.pname[k]}</h3><p>${T.pdesc[k]}</p></div>`}).join("");
  $$("#presets .mcard").forEach(b=>{b.onclick=()=>startPreset(b.dataset.p);b.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();startPreset(b.dataset.p);}};tilt(b);});
  $("#i-err").textContent="";paintHints();
 }
@@ -2956,8 +3125,15 @@ function canLive(){const m=PROV.mode;if(m==="demo"||!PROV[m])return false;if(m==
 function startPreset(k){readFields();
  if(usesRecorded()){if(PROV.mode==="chatgpt"&&!canLive()){openDrawer();return;}return playRun(PRESETS[k][LANG],k);}
  $("#idea-in").value=PRESETS[k][LANG];startIdea();}
+function presetIds(){return PACK==="cn"?PACK_CN:PACK_DEV;}
 function archForIdea(idea){
  const t=idea.toLowerCase();
+ if(PACK==="cn"){
+  if(/告白|表白|confess|crush/.test(t))return "confess";
+  if(/摸鱼|上班|slack|boss|老板/.test(t))return "slack";
+  if(/生日|贺卡|birthday|bday/.test(t))return "bday";
+  return "fortune";
+ }
  if(/snake|game|arcade|贪吃蛇|游戏/.test(t))return "snake";
  if(/draw|paint|pixel|art|canvas|画|像素/.test(t))return "paint";
  if(/tip|split|bill|pay|money|calc|分账|小费|计算/.test(t))return "tip";
@@ -2990,6 +3166,13 @@ function paintStatic(){
  $("#lang").textContent=T.lang;$("#hudmid").textContent=T.hudmid;$("#agrole").textContent=T.agrole;$("#mlabel").textContent=T.instability;
  $("#rellabel").textContent=T.trust;$("#pvlabel").textContent=T.livePreview;$("#e-flowcap").textContent=T.eFlowcap;
  $("#e-dl").textContent=T.eDl;if($("#e-dlzip"))$("#e-dlzip").textContent=T.eDlZip;$("#e-dltrace").textContent=T.eDlTrace;$("#e-replay").textContent=T.eReplay;$("#e-new").textContent=T.eNew;$("#e-menu").textContent=T.eMenu;
+ if($("#e-star"))$("#e-star").textContent=T.ctaStar;
+ if($("#e-cli-label"))$("#e-cli-label").textContent=T.ctaCli;
+ if($("#e-source"))$("#e-source").textContent=T.ctaSource;
+ if($("#e-share-hint"))$("#e-share-hint").textContent=T.shareHint;
+ if($("#e-share-new"))$("#e-share-new").textContent=T.eNew;
+ if($("#e-share-menu"))$("#e-share-menu").textContent=T.eMenu;
+ if($("#e-more"))$("#e-more").textContent=T.shareMore;
  document.title=LANG==="zh"?"LEDRING — 写成一个网页":"LEDRING — One web page";
  if($("#agled"))$("#agled").textContent="● "+(LANG==="zh"?T.galCalm:"CALM");
  const planTab=$('.ptab[data-f="plan"]');if(planTab)planTab.textContent=LANG==="zh"?"计划.md":"plan.md";
@@ -3008,9 +3191,10 @@ function paintStatic(){
  if($("#l-model"))$("#l-model").textContent=T.fldModel;
  const keyTxt=$("#l-key");if(keyTxt&&keyTxt.firstChild)keyTxt.firstChild.textContent=T.fldKey+" ";
 }
-$("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl)}catch(e){}
+$("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl);localStorage.setItem("ledring-lang-explicit","1")}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
-$("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}if(!isOnboarded())openOnboard(false,false);else startInsp();};
+function openPresets(){paintIdea();show("missions",LANG==="zh"?"选一个":"PICK ONE");}
+$("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}if(!isOnboarded()){if(ONBOARD==="skip"){markOnboarded();openPresets();return;}openOnboard(false,false);return;}if(ONBOARD==="skip"){openPresets();return;}startInsp();};
 function paintHold(){const b=$("#hold-btn");if(b){b.textContent=HOLD?T.timerOff:T.timerOn;b.classList.toggle("on",HOLD);b.setAttribute("aria-pressed",String(HOLD));}}
 $("#hold-btn").onclick=()=>toggleHold();paintHold();
 function paintRm(){const b=$("#rm-btn");if(b){b.textContent=RM?T.motionOff:T.motionOn;b.classList.toggle("on",RM);b.setAttribute("aria-pressed",String(RM));}}
@@ -3023,8 +3207,12 @@ $("#ms-back").onclick=()=>{paintMenu();show("menu");};
 $("#i-go").onclick=startIdea;$("#ideacard").onclick=e=>{if(e.target.id!=="i-go")$("#idea-in").focus();};
 $("#idea-in").addEventListener("keydown",e=>{if(e.key==="Enter")startIdea();});
 $("#e-replay").onclick=()=>playRun(RUN.idea,RUN.preset,RUN.insp);
-$("#e-new").onclick=()=>startInsp();
+function anotherIdea(){if(ENDING==="share"){openPresets();return;}startInsp();}
+$("#e-new").onclick=anotherIdea;
+if($("#e-share-new"))$("#e-share-new").onclick=anotherIdea;
 $("#e-menu").onclick=()=>{paintMenu();show("menu","LEDRING");};
+if($("#e-share-menu"))$("#e-share-menu").onclick=()=>{$("#e-menu").click();};
+if($("#e-more"))$("#e-more").onclick=()=>{const shareEl=$("#e-share"),bodyEl=$("#end-body");if(shareEl)shareEl.hidden=true;if(bodyEl)bodyEl.hidden=false;$("#end").classList.remove("pack-cn");};
 $("#e-dl").onclick=()=>dl(slug(RUN.idea)+".html",RUN.html||"");
 if($("#e-dlzip"))$("#e-dlzip").onclick=()=>{dl(slug((RUN&&RUN.idea)||"ledring")+".zip",makeZip([["index.html",(RUN&&RUN.html)||""],["ledring.trace.v1.json",traceJSON()],["README.md",readmeText()]]),"application/zip");};
 $("#e-dltrace").onclick=()=>dl("ledring.trace.v1.json",traceJSON(),"application/json");
@@ -3032,7 +3220,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT,readme:()=>readmeText(),latinOnlyProblem,languageDirective,applyZhFeed,feedItemKey,ghosts:()=>GHOSTS};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT,readme:()=>readmeText(),latinOnlyProblem,languageDirective,applyZhFeed,feedItemKey,ghosts:()=>GHOSTS,resolveExperience,experience:()=>({lang:LANG,pack:PACK,src:SRC,onboard:ONBOARD,ending:ENDING,presets:presetIds()})};
 /* boot */
 function paintGallery(){
  const zh=LANG==="zh";
