@@ -2592,6 +2592,7 @@ async function refreshLibrary(){
  const local=Array.isArray(SAVE.sessions)?SAVE.sessions.slice():[];
  let remote=[];
  try{
+  if(!BRIDGE)throw 0; // static hosting (GitHub Pages) has no bridge API; skip the request instead of logging a 404
   const r=await fetch("/api/sessions",{credentials:"same-origin"});
   if(r.ok){const j=await r.json();if(j&&Array.isArray(j.sessions)){BRIDGE=BRIDGE||{active:true};remote=j.sessions;}}
  }catch(e){}
@@ -2608,6 +2609,7 @@ function setLibrarySessions(rows){LIB_SESSIONS=Array.isArray(rows)?rows.slice():
 async function loadSessionEvents(id){
  const row=(LIB_SESSIONS||[]).find(x=>x&&x.id===id)||(SAVE.sessions||[]).find(x=>x&&x.id===id);
  try{
+  if(!BRIDGE)throw 0;
   const r=await fetch(`/api/sessions/${encodeURIComponent(id)}/replay`,{credentials:"same-origin"});
   if(r.ok){
    const j=await r.json();
