@@ -72,7 +72,7 @@ describe("play page", () => {
     expect(html).toContain('return "ledring"');
     expect(html).toContain("LEDRING Free AI");
     expect(html).toContain("LEDRING 免费 AI");
-    expect(html).toContain('root+"/ai/chat"');
+    expect(html).toContain('strandsFetch("/ai/chat"');
     expect(html).toContain("T.obQuota");
     expect(html).toContain("今天的免费额度已经用完");
     expect(html).not.toContain("FREE_PRESETS");

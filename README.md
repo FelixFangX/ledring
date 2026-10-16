@@ -9,14 +9,14 @@
 
 ## ▶ LEDRING Play
 
-**[Play it in your browser → felixfangx.github.io/ledring/play/](https://felixfangx.github.io/ledring/play/)**
+**[Play it in your browser → play.ledring.dev/play/](https://play.ledring.dev/play/)**
 
-[![LEDRING Play: you watch CX-417 build one page](docs/assets/play.gif)](https://felixfangx.github.io/ledring/play/)
+[![LEDRING Play: you watch CX-417 build one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
 
 You watch **CX-417**, an AI builder, turn your idea into one self-contained web page in real time. It may take shortcuts. **You decide what gets through.** Every choice is a branch, and the end screen shows your path through the flowchart alongside the paths other builds took.
 
 ### How to play
-1. Open **[/play/](https://felixfangx.github.io/ledring/play/)** and press **▶ Start**.
+1. Open **[/play/](https://play.ledring.dev/play/)** and press **▶ Start**.
 2. Pick an AI. The default needs nothing from you (see below).
 3. Give CX-417 an idea, or let it suggest one.
 4. Watch the build. Approve, push back, or stop it when it drifts.
@@ -30,7 +30,7 @@ You watch **CX-417**, an AI builder, turn your idea into one self-contained web 
 | Anthropic | Your own API key. The browser calls api.anthropic.com directly. |
 | OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [Quickstart](#quickstart), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
 
-**Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://felixfangx.github.io/ledring/play/?lang=zh).
+**Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://play.ledring.dev/play/?lang=zh).
 
 ---
 
@@ -49,7 +49,7 @@ Inspired by a narrative game about androids, whose end-of-chapter flowcharts sho
   (your adapter)    ─┘                    └─▶ ledring instability drift score · ▲/▼ reasons
 ```
 
-**[Sample reports](https://felixfangx.github.io/ledring/)** · **[Concept demo](https://felixfangx.github.io/ledring/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`)
+**[Sample reports](https://play.ledring.dev/)** · **[Concept demo](https://play.ledring.dev/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`)
 
 ---
 

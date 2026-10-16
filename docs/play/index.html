@@ -939,7 +939,7 @@ document.getElementById('go').onclick=function(){var raw=document.getElementById
   tests=`[{name:'pick wraps',pass:pick(4,4)===0},{name:'pick stays in range',pass:pick(5,4)===1},{name:'lines exist',pass:LINES.length>=4}]`;
  }
  let pre="";
- if(riskB)pre+=`<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1/dist/confetti.browser.min.js"><\/script>\n`;
+ if(riskB)pre+=`<script src="${new URL("vendor/confetti.browser.min.js",location.href).href}"><\/script>\n`;
  if(bugged)js+=`\n// quick status line\ndocument.querySelector('#status').textContent='${zh?"就绪":"ready"}';`;
  let tblock="";
  if(st.tests){
@@ -1394,8 +1394,7 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
  const tmo=setTimeout(()=>ctl.abort(),180000);
  try{
  if(m==="ledring"){
-  const root=String(STRANDS_URL||DEFAULT_STRANDS_URL).replace(/\/$/,"");
-  const r=await fetch(root+"/ai/chat",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json"},
+  const r=await strandsFetch("/ai/chat",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json"},
    body:JSON.stringify({stream:true,max_tokens:Math.min(2048,maxTokens||2048),temperature:0.6,messages:[{role:"system",content:system},{role:"user",content:user}]})});
   if(!r.ok){
    let msg="HTTP "+r.status;
@@ -2371,8 +2370,18 @@ function clearScan(){const ov=$("#odradek");if(ov){ov.classList.remove("on");ov.
 const GHOSTS=(()=>{const en=["Off Switch","Cat Dash","Fair Split","Loop Breaker","Stop on Time","Obey or Deviate","Rent Fair","Toast Poster","One More Try","Desk Knockout","Still Here?","Pixel Vow"],
  zh=["停下键","猫冲冲","公平分账","断环格子","准点停下","服从或偏离","房租平分","吐司发帖机","再试一次","桌面清空","你还在吗","像素誓言"];
  return (LANG==="zh"?zh:en).map((t,i)=>({t,l:7+hashS(t)%60,a:(i/12)*Math.PI*2+(hashS(t)%100)/180,r:.58+(hashS(t+"r")%40)/100,ph:(hashS(t+"p")%628)/100,simulated:true}));})();
-const DEFAULT_STRANDS_URL="https://strands.ledring.workers.dev";
+const DEFAULT_STRANDS_URL="https://api.ledring.dev";
+const FALLBACK_STRANDS_URL="https://strands.ledring.workers.dev";
 let STRANDS_URL=P.get("strandsUrl")||window.__LEDRING_STRANDS_URL__||(()=>{try{return localStorage.getItem("ledring-strands-url")||""}catch(e){return ""}})()||DEFAULT_STRANDS_URL;
+/* Try the configured Strands root. If it is the default custom domain and the request fails at the network level, retry once on workers.dev. */
+async function strandsFetch(path,init){
+ const root=String(STRANDS_URL||DEFAULT_STRANDS_URL).replace(/\/$/,"");
+ try{return await fetch(root+path,init);}
+ catch(e){
+  if(root!==DEFAULT_STRANDS_URL||(e&&e.name==="AbortError"))throw e;
+  return fetch(FALLBACK_STRANDS_URL+path,init);
+ }
+}
 const STRAND_STATE={simulated:true,remote:[]};
 function getBriefBucket(brief){
  if(typeof window.__ledringBriefBucket==="function")return window.__ledringBriefBucket(String(brief||""));
@@ -2422,7 +2431,7 @@ async function syncStrands(brief){
  try{
   const lastB=SAVE.strands&&SAVE.strands.length&&SAVE.strands[SAVE.strands.length-1].bucket;
   const bucket=brief?getBriefBucket(brief):(lastB||getBriefBucket((RUN&&RUN.idea)||(SAVE.last&&SAVE.last.idea)||"timer stop"));
-  const r=await fetch(`${STRANDS_URL.replace(/\/$/,"")}/strands?near=${encodeURIComponent(bucket)}`);
+  const r=await strandsFetch(`/strands?near=${encodeURIComponent(bucket)}`);
   if(!r.ok)throw new Error("HTTP "+r.status);
   const j=await r.json();
   if(j&&Array.isArray(j.strands)&&j.strands.length>0){
@@ -2464,7 +2473,7 @@ async function setStrandsUrl(url,brief){
 async function likeStrand(id){
  if(!STRANDS_URL||!id)return {ok:false};
  try{
-  const r=await fetch(`${STRANDS_URL.replace(/\/$/,"")}/strands/${encodeURIComponent(id)}/like`,{
+  const r=await strandsFetch(`/strands/${encodeURIComponent(id)}/like`,{
    method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({deviceKey:getDeviceKey()})
   });
   if(!r.ok)return {ok:false,status:r.status};
@@ -2515,7 +2524,7 @@ async function leaveStrand(){
  if(STRANDS_URL){
   try{
    const traceHash=await hashTraceHex(traceJSON());
-   const resp=await fetch(`${STRANDS_URL.replace(/\/$/,"")}/strands`,{
+   const resp=await strandsFetch(`/strands`,{
     method:"POST",
     headers:{"content-type":"application/json"},
     body:JSON.stringify({traceHash,title,ending,brief,signatures:sigs,lang:LANG==="zh"?"zh":"en",optIn:true,deviceKey:getDeviceKey()})
