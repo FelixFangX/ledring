@@ -5,6 +5,8 @@
     status lights for AI agents
 ```
 
+**[▶ Play](https://play.ledring.dev/play/)** · **[ledring.dev](https://ledring.dev)** · **[Sample reports](https://play.ledring.dev/)** · **[中文](https://play.ledring.dev/play/?lang=zh)**
+
 </div>
 
 ## ▶ LEDRING Play
@@ -210,3 +212,7 @@ Next slices, each one a spec issue first: pull request comments from the Action,
 Spec issue → thin vertical slice → tests first through public interfaces. See [CONTRIBUTING.md](CONTRIBUTING.md), [GLOSSARY.md](GLOSSARY.md) and [AGENTS.md](AGENTS.md).
 
 MIT © Felix Fang
+
+---
+
+Made by [Felix Fang](https://ledring.dev) · [ledring.dev](https://ledring.dev) · [X @ColeFangX](https://x.com/ColeFangX)
