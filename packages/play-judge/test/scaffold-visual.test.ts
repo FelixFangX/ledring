@@ -596,7 +596,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         }
         if (lang === "en") {
           expect(await page.locator("#e-star").textContent()).toContain("Star");
-          expect(await page.locator("#e-cli").textContent()).toContain("npx ledring play");
+          expect(await page.locator("#e-cli").textContent()).toContain("#quickstart");
           expect(await page.locator("#e-source").textContent()).toMatch(/source/i);
           expect(await page.locator("#e-share").evaluate((el) => (el as HTMLElement).hidden)).toBe(true);
         } else {
