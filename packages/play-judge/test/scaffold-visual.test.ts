@@ -9,7 +9,8 @@ import { chromium, type Browser, type Page } from "playwright";
 import { handleStrands, memoryStore } from "../../play-strands/src/index.js";
 
 // The deployed strands worker is Play's default backend and the only allowed external request.
-const DEFAULT_STRANDS_HOST = "strands.ledring.workers.dev";
+const DEFAULT_STRANDS_HOST = "api.ledring.dev";
+const FALLBACK_STRANDS_HOST = "strands.ledring.workers.dev";
 import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
 
 const root = fileURLToPath(new URL("../../..", import.meta.url));
@@ -114,7 +115,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       const page: Page = await browser.newPage();
       page.on("request", (req) => {
         const u = new URL(req.url());
-        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST) {
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST && u.hostname !== FALLBACK_STRANDS_HOST) {
           externalRequests.push(req.url());
         }
       });
@@ -341,7 +342,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       const page = await ctx.newPage();
       page.on("request", (req) => {
         const u = new URL(req.url());
-        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST) {
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST && u.hostname !== FALLBACK_STRANDS_HOST) {
           externalRequests.push(req.url());
         }
       });
@@ -1757,7 +1758,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         }
       });
       let quota = true;
-      await page.route("https://strands.ledring.workers.dev/ai/chat", async (route) => {
+      await page.route("https://api.ledring.dev/ai/chat", async (route) => {
         const origin = route.request().headers().origin ?? "*";
         const cors = {
           "access-control-allow-origin": origin,
@@ -1791,7 +1792,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await page.locator("#ob-test").click();
       await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
       expect(await page.locator("#ob-test-status").textContent()).toContain("Try again tomorrow");
-      expect(external.filter((entry) => entry.startsWith("POST"))).toEqual(["POST strands.ledring.workers.dev/ai/chat"]);
+      expect(external.filter((entry) => entry.startsWith("POST"))).toEqual(["POST api.ledring.dev/ai/chat"]);
 
       quota = false;
       await page.locator("#ob-test").click();
@@ -1805,8 +1806,8 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       await page.locator("#ob-test").click();
       expect(await page.locator("#ob-test-status").textContent()).toContain("offline");
       expect(external.filter((entry) => entry.startsWith("POST"))).toEqual([
-        "POST strands.ledring.workers.dev/ai/chat",
-        "POST strands.ledring.workers.dev/ai/chat",
+        "POST api.ledring.dev/ai/chat",
+        "POST api.ledring.dev/ai/chat",
       ]);
 
       await page.locator('.ob-card[data-choice="openai-custom"]').click();

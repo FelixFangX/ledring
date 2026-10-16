@@ -32,7 +32,7 @@ function allowedOrigin(origin: string | null): string | null {
   } catch {
     return null;
   }
-  if (origin === "https://felixfangx.github.io") return origin;
+  if (origin === "https://felixfangx.github.io" || origin === "https://play.ledring.dev") return origin;
   if ((url.protocol === "http:" || url.protocol === "https:") && (url.hostname === "localhost" || url.hostname === "127.0.0.1")) {
     return origin;
   }

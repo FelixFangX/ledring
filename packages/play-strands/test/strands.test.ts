@@ -241,6 +241,9 @@ describe("free AI chat", () => {
     const loopback = await handleStrands(chat(okBody, { origin: "http://127.0.0.1:8787", ip: "203.0.113.11" }), store, 2_000, model);
     expect(loopback.status).toBe(200);
     expect(loopback.headers.get("access-control-allow-origin")).toBe("http://127.0.0.1:8787");
+    const custom = await handleStrands(chat(okBody, { origin: "https://play.ledring.dev", ip: "203.0.113.12" }), store, 2_000, model);
+    expect(custom.status).toBe(200);
+    expect(custom.headers.get("access-control-allow-origin")).toBe("https://play.ledring.dev");
     const denied = await handleStrands(chat(okBody, { origin: "https://evil.example" }), store, 2_000, model);
     expect(denied.status).toBe(403);
     expect(denied.headers.get("access-control-allow-origin")).toBeNull();
