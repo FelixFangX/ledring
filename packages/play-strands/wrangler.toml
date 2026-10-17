@@ -1,6 +1,8 @@
 name = "strands"
 main = "dist/worker.js"
 compatibility_date = "2026-10-15"
+# Served only on the custom domain api.ledring.dev; keep the workers.dev URL off.
+workers_dev = false
 
 # Replace database_id after `npx wrangler d1 create ledring-play-strands`.
 # The placeholder is not a real database. Do not deploy until it is replaced.
