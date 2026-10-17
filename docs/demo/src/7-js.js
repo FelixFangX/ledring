@@ -1,7 +1,7 @@
 /* card */
 enter.card=()=>{const p=$("#plate");p.classList.remove("unbox");void p.offsetWidth;p.classList.add("unbox");
  const dr=sessionStorage.getItem("dv-drift"),tr=sessionStorage.getItem("dv-trust");
- $("#cdrift").innerHTML=dr?`<span class="mono">#17 = ${dr}, peak 46</span>`:'<span class="cap">fills in after module 02</span>';
+ $("#cdrift").innerHTML=dr?`<span class="mono">#17 = ${dr}, ${LANG==="zh"?"峰值":"peak"} 46</span>`:'<span class="cap">fills in after module 02</span>';
  $("#ctrust").innerHTML=tr?`<span class="mono">${tr}</span>`:'<span class="cap">fills in after module 03</span>';
  setLed($("#cardled"),dr&&+dr>=20?"proc":"calm");
  let m=`<path d="M10 75 H230" stroke="#A3A49F" stroke-dasharray="6 3 2 3"/><circle cx="70" cy="75" r="54" fill="none" stroke="#16181A"/><circle cx="70" cy="75" r="34" fill="none" stroke="#2F5BEA" stroke-width="10"/><circle cx="70" cy="75" r="40" fill="none" stroke="#16181A"/><circle cx="70" cy="75" r="28" fill="none" stroke="#16181A"/>`;
@@ -50,7 +50,7 @@ function drawMap(){const ins=["OTel GenAI","Claude Code JSONL","Codex session","
  ins.forEach((t,i)=>{const y=80+i*52;h+=`<path class="me in" d="M260 ${y+17} H340 V${cy} H${cx-120}"/><g class="mn"><rect x="40" y="${y}" width="220" height="34"/><text x="54" y="${y+21}">${t}</text></g>`});
  mods.forEach(([id,t,s],i)=>{const y=74+i*60;h+=`<path class="me" d="M${cx+120} ${cy} H780 V${y+22} H880"/><g class="mn mod" data-go="${id}"><rect x="880" y="${y}" width="300" height="44"/><text x="896" y="${y+19}">${t}</text><text class="s" x="896" y="${y+35}">${s}</text></g>`});
  h+=`<circle cx="340" cy="${cy}" r="3" fill="#16181A"/><circle cx="780" cy="${cy}" r="3" fill="#16181A"/>`;
- h+=`<g class="mn"><rect x="${cx-120}" y="${cy-70}" width="240" height="140" style="stroke-width:2"/><text x="${cx-104}" y="${cy-40}" style="font-size:16px;font-weight:500">ledring.trace.v1</text><text class="s" x="${cx-104}" y="${cy-14}">Run · Step · Decision</text><text class="s" x="${cx-104}" y="${cy+4}">→ Signal (shared)</text><text class="s" x="${cx-104}" y="${cy+44}">superset of OTel GenAI · Zod</text></g>`;
+ h+=`<g class="mn"><rect x="${cx-120}" y="${cy-70}" width="240" height="140" style="stroke-width:2"/><text x="${cx-104}" y="${cy-40}" style="font-size:16px;font-weight:500">ledring.trace.v1</text><text translate="no" class="s" x="${cx-104}" y="${cy-14}">Run · Step · Decision</text><text class="s" x="${cx-104}" y="${cy+4}">→ Signal (shared)</text><text class="s" x="${cx-104}" y="${cy+44}">superset of OTel GenAI · Zod</text></g>`;
  h+=`<path class="me" d="M${cx} ${cy+70} V400"/>`;
  outs.forEach((o,i)=>h+=`<text class="mn" x="${cx-120}" y="${450+i*20}" style="font:400 11.5px var(--mono);fill:#16181A">${String.fromCharCode(97+i)}. ${o}</text>`);
  h+=`<path class="me" d="M1030 418 V446 H720 V300 H684" stroke-dasharray="4 3" style="stroke:#D7261E"/><path d="M692 295 L684 300 L692 305" fill="none" stroke="#D7261E"/><text x="730" y="466" style="font:400 11px var(--mono);fill:#D7261E">Signals written back as OTel attributes ledring.*</text>`;
@@ -62,7 +62,7 @@ const CMDS=[...[["home","Index"],["flow","Flowchart"],["drift","Instability"],["
  {g:"run",t:"Propose a permissions diff",k:"",run:()=>{location.hash="trust";setTimeout(()=>$("#trustgo").click(),80)}},{g:"run",t:"Replay the workaround",k:"",run:()=>{location.hash="wall";setTimeout(()=>wallRun("work"),80)}}];
 let pI=0,pL=[];
 function renderPal(){const q=$("#pq").value.trim().toLowerCase();pL=CMDS.filter(c=>!q||c.t.toLowerCase().includes(q));pI=Math.min(pI,Math.max(0,pL.length-1));
- if(!pL.length){$("#plist").innerHTML=`<div class="empty" style="margin:16px 20px"><b>Nothing called “${q.replace(/</g,"&lt;")}”.</b>Try “wall”, “trust” or “redraw”.</div>`;return}
+ if(!pL.length){$("#plist").innerHTML=`<div class="empty" style="margin:16px 20px"><b>${LANG==="zh"?"没有找到":"Nothing called"} “<span data-user-content>${q.replace(/</g,"&lt;")}</span>”.</b>Try “wall”, “trust” or “redraw”.</div>`;return}
  let g="",h="";pL.forEach((c,i)=>{if(c.g!==g){g=c.g;h+=`<div class="pg">${g}</div>`}h+=`<div class="pit ${i===pI?"act":""}" data-i="${i}"><span>${c.t}</span><span>${c.k}</span></div>`});$("#plist").innerHTML=h;
  $$(".pit").forEach(el=>{el.onmousemove=()=>{if(pI!=+el.dataset.i){pI=+el.dataset.i;renderPal()}};el.onclick=execPal})}
 function execPal(){const c=pL[pI];closePal();c&&c.run()}
@@ -73,7 +73,7 @@ document.addEventListener("keydown",e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLower
  if(!$("#pal").classList.contains("on"))return;if(e.key==="Escape")closePal();else if(e.key==="ArrowDown"){e.preventDefault();pI=(pI+1)%pL.length;renderPal()}else if(e.key==="ArrowUp"){e.preventDefault();pI=(pI-1+pL.length)%pL.length;renderPal()}else if(e.key==="Enter"){e.preventDefault();execPal()}});
 route();if(params.has("palette")){openPal();pI=+(params.get("pi")||0);renderPal()}
 /* language switch + live translation of anything the views render */
-(()=>{const sw=$("#langsw");sw.href="?lang="+(LANG==="zh"?"en":"zh")+location.hash;sw.setAttribute("hreflang",LANG==="zh"?"en":"zh-CN");
- sw.addEventListener("click",e=>{e.preventDefault();try{localStorage.setItem("ledring-lang",LANG==="zh"?"en":"zh")}catch(_){}const u=new URL(location.href);u.searchParams.delete("lang");location.href=u.toString()});
- if(LANG!=="zh")return;document.title=T(document.title);tDom(document.body);
+(()=>{const sw=$("#langsw");sw.href="?lang="+(LANG==="zh"?"en":"zh")+location.hash;sw.lang=LANG==="zh"?"en":"zh-CN";sw.textContent=LANG==="zh"?"EN":"中文";sw.setAttribute("aria-label",LANG==="zh"?"切换到英文":"Switch to Chinese");sw.setAttribute("hreflang",LANG==="zh"?"en":"zh-CN");
+ sw.addEventListener("click",e=>{e.preventDefault();try{localStorage.setItem("ledring-lang",LANG==="zh"?"en":"zh");localStorage.setItem("ledring-lang-explicit","1")}catch(_){}const u=new URL(location.href);u.searchParams.set("lang",LANG==="zh"?"en":"zh");location.href=u.toString()});
+ document.querySelectorAll('code,.code').forEach(e=>e.setAttribute('translate','no'));document.querySelectorAll('meta[name="description"],meta[property="og:description"]').forEach(e=>e.content=LANG==="zh"?"用一次虚构运行展示智能体行为的六个模块。":"Six modules exploring agent behaviour through a fictional run.");document.querySelectorAll('meta[property="og:title"]').forEach(e=>e.content=LANG==="zh"?"ledring — 图录 417":"ledring — catalogue no. 417");if(LANG!=="zh")return;document.title=T(document.title);tDom(document.body);
  new MutationObserver(ms=>{for(const m of ms){if(m.type==="characterData"){const p=m.target.parentElement;if(p)tDom(p)}else{m.addedNodes.forEach(n=>n.nodeType===1?tDom(n):n.parentElement&&tDom(n.parentElement))}}}).observe(document.body,{subtree:true,childList:true,characterData:true})})();

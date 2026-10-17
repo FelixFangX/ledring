@@ -136,6 +136,7 @@ describe("fromDesignTokens", () => {
 import { STRINGS } from "../src/i18n.js";
 describe("viewer i18n", () => {
   it("has every key in both languages, none empty", () => {
+    expect(JSON.stringify(STRINGS.en)).not.toMatch(/[\u3400-\u9fff\uf900-\ufaff\u3000-\u303f\uff00-\uffef]/);
     const en = Object.keys(STRINGS.en).sort();
     expect(Object.keys(STRINGS.zh).sort()).toEqual(en);
     for (const k of en) expect(STRINGS.zh[k as keyof typeof STRINGS.zh].length).toBeGreaterThan(0);
@@ -145,6 +146,9 @@ describe("viewer i18n", () => {
     const zh = renderHtml(tree, { lang: "zh" });
     expect(zh).toContain('<html lang="zh-CN">');
     expect(zh).toContain("分支回放");
+    expect(zh).toContain('aria-label="分支树"');
+    expect(zh).toContain(">开始<");
+    expect(zh).not.toContain(">START<");
     expect(zh).toContain("PingFang SC");
     expect(renderHtml(tree)).toContain('<html lang="en">');
   });

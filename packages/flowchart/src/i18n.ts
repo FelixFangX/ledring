@@ -4,6 +4,7 @@ export type Lang = "en" | "zh";
 export const STRINGS = {
   en: {
     title: "Branch replay",
+    branchTree: "Branch tree", err: "err", start: "start", end: "end", tool: "tool", llm: "llm", plan: "plan", handoff: "handoff", human: "human", agent: "agent", success: "success", failure: "failure", unknown: "unknown",
     section: "flowchart · ledring.branch-tree.v1",
     runs: "runs", forks: "forks", errored: "errored steps",
     figure: "fig. 1 — branch tree, {n} runs; figures are the share of runs taking each branch",
@@ -16,15 +17,16 @@ export const STRINGS = {
   },
   zh: {
     title: "分支回放",
-    section: "分岔 · ledring.branch-tree.v1",
-    runs: "运行", forks: "岔口", errored: "出错",
-    figure: "图一　分支树，凡 {n} 次运行。边上之数，为行至此岔者择此路之比",
-    taken: "本次所经", others: "他次运行", erroredStep: "出错之步",
+    branchTree: "分支树", err: "出错", start: "开始", end: "结束", tool: "工具", llm: "模型", plan: "计划", handoff: "交接", human: "人工", agent: "智能体", success: "成功", failure: "失败", unknown: "未知",
+    section: "分支树 · ledring.branch-tree.v1",
+    runs: "运行", forks: "分支点", errored: "出错",
+    figure: "图 1 — 分支树，共 {n} 次运行；边上的数字表示选择该分支的运行比例",
+    taken: "所选路径", others: "其他运行", erroredStep: "出错步骤",
     highlighted: "高亮运行", selected: "选中",
-    empty: "尚未选取。点选图一任一铭牌，可见其签名、所经运行与结局。",
-    generated: "由 ledring 生成", offline: "单一文件 · 离线可阅",
-    kSignature: "签名", kKind: "类型", kRuns: "所经", kDivergence: "分流", ofParent: "%（较上一步）",
-    kErrors: "出错", kEnded: "止于此", kOutcomes: "结局", ok: "成", fail: "败",
+    empty: "尚未选择。点击图 1 中的节点，查看签名、运行和结果。",
+    generated: "由 ledring 生成", offline: "独立文件 · 可离线查看",
+    kSignature: "签名", kKind: "类型", kRuns: "运行", kDivergence: "分流", ofParent: "%（较上一步）",
+    kErrors: "出错", kEnded: "在此结束", kOutcomes: "结果", ok: "成功", fail: "失败",
   },
 
 

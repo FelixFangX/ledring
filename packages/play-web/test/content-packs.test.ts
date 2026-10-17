@@ -43,6 +43,15 @@ const cases: { name: string; query: { lang?: string | null; src?: string | null 
 ];
 
 describe("content packs", () => {
+  it("falls back to the browser language only when nothing else decides", () => {
+    for (const fn of [experienceFromQuery, page.experienceFromQuery]) {
+      expect(fn({}, { browser: "zh" }).lang).toBe("zh");
+      expect(fn({}, { browser: "en" }).lang).toBe("en");
+      expect(fn({ src: "hn" }, { browser: "zh" }).lang).toBe("en");
+      expect(fn({ lang: "en" }, { browser: "zh" }).lang).toBe("en");
+      expect(fn({}, { lang: "en", explicit: "1", browser: "zh" }).lang).toBe("en");
+    }
+  });
   it("resolves src, language, pack, onboard length, and ending the same way on the page", () => {
     for (const row of cases) {
       const got = experienceFromQuery(row.query, row.storage);

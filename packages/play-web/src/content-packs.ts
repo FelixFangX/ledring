@@ -132,6 +132,8 @@ export interface ExperienceInput {
   storedLang?: string | null;
   langExplicit?: boolean;
   storedSrc?: string | null;
+  /** Browser language, used only when no query, stored choice or channel decides. */
+  browserLang?: string | null;
 }
 
 export interface Experience {
@@ -158,6 +160,7 @@ export function resolveExperience(input: ExperienceInput): Experience {
   else if (explicit && storedLang) lang = storedLang;
   else if (channel) lang = channel.lang;
   else if (storedLang) lang = storedLang;
+  else if (input.browserLang === "zh") lang = "zh";
   const pack: PackId = channel ? channel.pack : lang === "zh" ? "cn" : "dev";
   const onboard: OnboardLength = channel ? channel.onboard : "full";
   const ending: EndingKind = channel ? channel.ending : pack === "cn" ? "share" : "dev";
@@ -175,6 +178,7 @@ export interface StoredExperience {
   lang?: string | null;
   explicit?: string | null;
   src?: string | null;
+  browser?: string | null;
 }
 
 /** Apply legacy `ledring-lang` (set before the explicit flag existed) and channel defaults. */
@@ -190,6 +194,7 @@ export function experienceFromQuery(
     storedLang,
     langExplicit: storage.explicit === "1" || legacy,
     storedSrc: storage.src ?? null,
+    browserLang: storage.browser ?? null,
   });
 }
 

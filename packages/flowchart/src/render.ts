@@ -42,6 +42,9 @@ function layout(root: BranchNode): Placed[] {
 
 /** Render a branch tree to a single self-contained HTML document (no network). */
 export function renderHtml(tree: BranchTree, opts: RenderOptions = {}): string {
+  const lang: Lang = opts.lang === "zh" ? "zh" : "en";
+  const L = STRINGS[lang];
+  const label = (key: string) => (L as Record<string, string>)[key] ?? key;
   const placed = layout(tree.root);
   const at = new Map(placed.map((p) => [p.n.id, p]));
   const hl = tree.runs.find((r) => r.id === opts.highlightRunId) ?? tree.runs[0]!;
@@ -67,20 +70,18 @@ export function renderHtml(tree: BranchTree, opts: RenderOptions = {}): string {
       }
     });
     const cls = ["n", taken.has(p.n.id) ? "taken" : "locked", p.n.errors > 0 ? "error" : ""].filter(Boolean).join(" ");
-    const kind = p.n.id === "0" ? "start" : p.n.children.length === 0 ? `${p.n.kind} · end` : p.n.kind;
-    const meta = p.n.errors > 0 ? `${p.n.errors} err` : `${p.n.count}/${tree.runCount}`;
+    const kind = p.n.id === "0" ? L.start : p.n.children.length === 0 ? `${label(p.n.kind)} · ${L.end}` : label(p.n.kind);
+    const meta = p.n.errors > 0 ? `${p.n.errors} ${L.err}` : `${p.n.count}/${tree.runCount}`;
     const no = String(placed.indexOf(p) + 1).padStart(2, "0");
     const tab = no.length * 6.2 + kind.length * 5.6 + 16;
-    nodes.push(`<g class="${cls}" data-id="${p.n.id}" tabindex="0" transform="translate(${p.x + PAD} ${p.y + PAD})"><title>${esc(p.n.signature)} — ${p.n.count}/${tree.runCount} runs</title><rect class="b" width="${W}" height="${H}"/><rect class="tab" width="${tab}" height="15"/><text class="no" x="5" y="11">${no}</text><text class="k" x="${no.length * 6.2 + 10}" y="11">${esc(kind.toUpperCase())}</text><text class="t" x="10" y="35">${esc(clip(p.n.signature))}</text><text class="m" x="${W - 8}" y="11" text-anchor="end">${meta}</text></g>`);
+    nodes.push(`<g class="${cls}" data-id="${p.n.id}" tabindex="0" transform="translate(${p.x + PAD} ${p.y + PAD})"><title data-user-content>${esc(p.n.id === "0" ? L.start : p.n.signature)} — ${p.n.count}/${tree.runCount} ${L.runs}</title><rect class="b" width="${W}" height="${H}"/><rect class="tab" width="${tab}" height="15"/><text class="no" x="5" y="11">${no}</text><text class="k" x="${no.length * 6.2 + 10}" y="11">${esc(kind.toUpperCase())}</text><text data-user-content class="t" x="10" y="35">${esc(clip(p.n.id === "0" ? L.start : p.n.signature))}</text><text class="m" x="${W - 8}" y="11" text-anchor="end">${meta}</text></g>`);
   }
 
   const data = JSON.stringify({ labels: STRINGS[opts.lang === "zh" ? "zh" : "en"], runs: tree.runs, nodes: placed.map((p) => ({ id: p.n.id, signature: p.n.signature, kind: p.n.kind, count: p.n.count, share: p.n.share, errors: p.n.errors, ends: p.n.ends, outcomes: p.n.outcomes })) }).replace(/</g, "\\u003c");
   const paper = { ...paperTokens, ...opts.lightTokens, ...opts.tokens };
   const dark = { ...darkTokens, ...opts.darkTokens };
-  const lang: Lang = opts.lang === "zh" ? "zh" : "en";
-  const L = STRINGS[lang];
   const title = opts.title ?? L.title;
-  const runOptions = tree.runs.map((r) => `<option value="${esc(r.id)}"${r.id === hl.id ? " selected" : ""}>${esc(clip(r.id, 44))} · ${esc(r.outcome)}</option>`).join("");
+  const runOptions = tree.runs.map((r) => `<option data-user-content value="${esc(r.id)}"${r.id === hl.id ? " selected" : ""}>${esc(clip(r.id, 44))} · ${esc(label(r.outcome))}</option>`).join("");
 
   return `<!doctype html>
 <html lang="${lang === "zh" ? "zh-CN" : "en"}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -145,10 +146,10 @@ ${lang === "zh" ? `body{font-family:var(--lr-font-sans),${CJK_SANS};line-height:
 </style></head><body>
 <header><span class="mark"><span class="ring"></span>ledring</span><span class="cap">${L.section}</span></header>
 <div class="head"><div class="disp idx">01</div><div><h1 class="disp">${esc(title)}</h1>
-${tree.instruction ? `<p class="instr">“${esc(tree.instruction)}”</p>` : ""}</div>
+${tree.instruction ? `<p data-user-content class="instr">“${esc(tree.instruction)}”</p>` : ""}</div>
 <div class="kpis"><div class="kpi"><span class="cap">${L.runs}</span><b class="disp">${tree.runCount}</b></div><div class="kpi"><span class="cap">${L.forks}</span><b class="disp">${forks}</b></div><div class="kpi"><span class="cap">${L.errored}</span><b class="disp"${errored ? ' style="color:var(--lr-critical)"' : ""}>${errored}</b></div></div></div>
 <div class="layout">
-<div><div class="canvas"><svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="Branch tree">${base.join("")}${lit.join("")}${pills.join("")}${nodes.join("")}</svg></div>
+<div><div class="canvas"><svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${L.branchTree}">${base.join("")}${lit.join("")}${pills.join("")}${nodes.join("")}</svg></div>
 <div class="fig cap"><span>${L.figure.replace("{n}", String(tree.runCount)).replace(" 1 runs", " 1 run")}</span><span class="legend"><span><i></i>${L.taken}</span><span class="l2"><i></i>${L.others}</span><span class="l3"><i></i>${L.erroredStep}</span></span></div></div>
 <aside><div class="cap rule">${L.highlighted}</div><select id="run" aria-label="${L.highlighted}">${runOptions}</select>
 <div class="cap rule">${L.selected}</div><div id="info"><p class="empty">${L.empty}</p></div></aside>
@@ -164,7 +165,7 @@ document.querySelectorAll(".n").forEach(function(g){var on=!!t[g.dataset.id];g.c
 document.querySelectorAll("[data-to]").forEach(function(e){var to=e.dataset.to,from=to.slice(0,to.lastIndexOf(".")),on=!!(t[to]&&t[from]);
 if(e.classList.contains("e-lit")){e.classList.remove("on");void e.getBoundingClientRect();}e.classList.toggle("on",on)})}
 function show(id){var n=byId[id];document.querySelectorAll(".n.sel").forEach(function(g){g.classList.remove("sel")});var g=document.querySelector('.n[data-id="'+id+'"]');g&&g.classList.add("sel");
-var L=d.labels;document.getElementById("info").innerHTML='<div class="kv"><b>'+L.kSignature+'</b><span>'+esc(n.signature)+'</span><b>'+L.kKind+'</b><span>'+esc(n.kind)+'</span><b>'+L.kRuns+'</b><span>'+n.count+' / '+d.runs.length+'</span><b>'+L.kDivergence+'</b><span>'+Math.round(n.share*100)+L.ofParent+'</span><b>'+L.kErrors+'</b><span>'+n.errors+'</span><b>'+L.kEnded+'</b><span>'+n.ends+'</span><b>'+L.kOutcomes+'</b><span>'+n.outcomes.success+' '+L.ok+' · '+n.outcomes.failure+' '+L.fail+' · '+n.outcomes.unknown+' ?</span></div>'}
+var L=d.labels;document.getElementById("info").innerHTML='<div class="kv"><b>'+L.kSignature+'</b><span data-user-content>'+esc(n.signature)+'</span><b>'+L.kKind+'</b><span>'+esc(L[n.kind]||n.kind)+'</span><b>'+L.kRuns+'</b><span>'+n.count+' / '+d.runs.length+'</span><b>'+L.kDivergence+'</b><span>'+Math.round(n.share*100)+L.ofParent+'</span><b>'+L.kErrors+'</b><span>'+n.errors+'</span><b>'+L.kEnded+'</b><span>'+n.ends+'</span><b>'+L.kOutcomes+'</b><span>'+n.outcomes.success+' '+L.ok+' · '+n.outcomes.failure+' '+L.fail+' · '+n.outcomes.unknown+' ?</span></div>'}
 document.getElementById("run").addEventListener("change",function(e){light(e.target.value)});
 document.querySelectorAll(".n").forEach(function(g){g.addEventListener("click",function(){show(g.dataset.id)});g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();show(g.dataset.id)}})});
 })();

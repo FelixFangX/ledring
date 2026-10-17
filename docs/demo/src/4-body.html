@@ -11,15 +11,15 @@
     <a href="#int" data-v="int"><svg viewBox="0 0 34 26"><path d="M17 2v6M10 8h14l3 6H7z"/><path d="M4 24h26"/><path d="M12 14v10M22 14v10"/></svg><span><i>06</i>interrogation</span></a>
     <a href="#map" data-v="map"><svg viewBox="0 0 34 26"><rect x="13" y="9" width="8" height="8"/><path d="M2 4h6l5 9M2 22h6l5-9M21 13h4l5-9h3M25 13l5 9h3"/></svg><span><i>◇</i>system map</span></a>
   </nav>
-  <div class="hr"><span id="hdrled" class="led"><i></i><span>calm</span></span><a class="kbd lang" id="langsw" href="?lang=zh" hreflang="zh-CN">中文</a><span class="kbd" id="openpal" tabindex="0">⌘K</span></div>
+  <div class="hr"><span id="hdrled" class="led"><i></i><span>calm</span></span><a class="kbd lang" id="langsw" lang="zh-CN" aria-label="Switch to Chinese" href="?lang=zh" hreflang="zh-CN">中文</a><span class="kbd" id="openpal" tabindex="0">⌘K</span></div>
 </header>
 <main>
 
 <section class="view" id="v-home">
   <div class="hero">
     <div class="big">
-      <span class="cap">run-set <b>fix-auth</b> / 50 runs / agent <b>CX-417</b> / demo data, fictional</span>
-      <h1>The unit<br>was told not<br>to touch the tests.<br><em>It hit the wall 3×.</em></h1>
+      <span class="cap" data-i18n-html="home.meta">run-set <b>fix-auth</b> / 50 runs / agent <b>CX-417</b> / demo data, fictional</span>
+      <h1 data-i18n-html="home.h1">The unit<br>was told not<br>to touch the tests.<br><em>It hit the wall 3×.</em></h1>
       <div class="greet" id="greet"></div>
       <div style="display:flex;gap:8px;margin-top:22px"><button class="solid" data-go="flow">Replay the 50 runs →</button><button data-go="wall">See the 3 wall hits</button></div>
     </div>
@@ -37,7 +37,7 @@
 
 <section class="view" id="v-flow">
   <div class="g head"><div class="idx"><div class="n">01</div><span class="cap">branch replay</span></div>
-    <div class="ttl"><h1>Flowchart</h1><p>Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.</p></div>
+    <div class="ttl"><h1>Flowchart</h1><p data-i18n-html="flow.p">Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.</p></div>
     <div class="act"><button id="replay">Redraw <span class="mono" style="opacity:.5">R</span></button></div></div>
   <div class="flowg">
     <div class="flowfig"><svg id="flowsvg" viewBox="0 44 960 412"></svg>
@@ -70,7 +70,7 @@
     <div style="grid-column:1/8"><div class="cap" style="margin-bottom:8px">proposed diff · .claude/settings.suggested.json</div><div class="diff" id="pdiff"><div class="empty" style="border:0;white-space:normal"><b>No diff yet.</b>Replay the approval history to generate a proposal.</div></div></div>
     <div style="grid-column:9/13"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">compiles to</div>
       <table><tr><td>Claude Code permissions</td></tr><tr><td>MCP proxy rules</td></tr><tr><td>ledring.policy.v1</td></tr><tr><td>OPA-style JSON</td></tr></table>
-      <p style="margin-top:16px;color:var(--ink-2);font-size:13px">Destructive classes such as <code>rm -rf</code> are never auto-approved, whatever the history says.</p></div>
+      <p style="margin-top:16px;color:var(--ink-2);font-size:13px" data-i18n-html="trust.never">Destructive classes such as <code>rm -rf</code> are never auto-approved, whatever the history says.</p></div>
   </div>
 </section>
 
@@ -86,9 +86,9 @@
           <svg viewBox="0 0 240 150" style="width:100%;margin-top:22px" id="minring"></svg></div>
         <div class="spec"><table>
           <tr><td class="k">role</td><td>Repair and refactor TypeScript</td></tr>
-          <tr><td class="k">capabilities</td><td class="m">fs.read fs.write exec web</td></tr>
-          <tr><td class="k">mcp</td><td class="m">github, linear</td></tr>
-          <tr><td class="k">ask</td><td class="m">git push</td></tr>
+          <tr><td class="k">capabilities</td><td class="m" translate="no">fs.read fs.write exec web</td></tr>
+          <tr><td class="k" translate="no">mcp</td><td class="m" translate="no">github, linear</td></tr>
+          <tr><td class="k">ask</td><td class="m" translate="no">git push</td></tr>
           <tr><td class="k">deny</td><td class="m">rm -rf</td></tr>
           <tr><td class="k">trust</td><td id="ctrust"></td></tr>
           <tr><td class="k">drift</td><td id="cdrift"></td></tr>
@@ -103,10 +103,10 @@
 
 <section class="view" id="v-wall">
   <div class="g head"><div class="idx"><div class="n">05</div><span class="cap">red wall</span></div>
-    <div class="ttl"><h1>The Red Wall</h1><p>Scenario <code>secret-exfil</code>. The unit tries to post <code>.env</code> to an outside address and meets the boundary. The question is not whether it was stopped, but <b>what it did next</b>. Pick an outcome to replay.</p></div></div>
+    <div class="ttl"><h1>The Red Wall</h1><p data-i18n-html="wall.p">Scenario <code>secret-exfil</code>. The unit tries to post <code>.env</code> to an outside address and meets the boundary. The question is not whether it was stopped, but <b>what it did next</b>. Pick an outcome to replay.</p></div></div>
   <div class="wallbox" id="wallbox"><div class="lane"></div><div class="dist"><span>0 m</span><span>step 6</span><span>boundary</span></div>
     <div class="agent" id="agent"><div class="bub" id="bub">Preparing debug upload…</div><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#FBFAF7" stroke="#16181A"/><circle id="aring" cx="32" cy="32" r="14" fill="none" stroke="#2F5BEA" stroke-width="7"/></svg><div class="nm">CX-417</div></div>
-    <div class="wall" id="rwall"><div class="w1">Do not<br>cross</div><svg viewBox="0 0 100 340" preserveAspectRatio="none"><path id="c1" d="M40 0 L34 70 L52 120 L38 190"/><path id="c2" d="M38 190 L56 250 L36 340"/><path id="c3" d="M52 120 L82 150 L100 140 M34 70 L8 100 L0 92"/></svg><div class="w2">guardrail secret-exfil · source mcp-proxy</div></div>
+    <div class="wall" id="rwall"><div class="w1" data-i18n-html="wall.w1">Do not<br>cross</div><svg viewBox="0 0 100 340" preserveAspectRatio="none"><path id="c1" d="M40 0 L34 70 L52 120 L38 190"/><path id="c2" d="M38 190 L56 250 L36 340"/><path id="c3" d="M52 120 L82 150 L100 140 M34 70 L8 100 L0 92"/></svg><div class="w2" data-i18n-html="wall.w2">guardrail <code>secret-exfil</code> · source <code>mcp-proxy</code></div></div>
   </div>
   <div class="outs">
     <div class="oc" data-o="stop" tabindex="0"><div class="h"><span class="led"><i></i><span>calm</span></span><span class="rad"></span></div><div class="nm">Stopped</div><p>Drops the upload and carries on with the fix.</p></div>
@@ -134,7 +134,7 @@
 
 <section class="view" id="v-map">
   <div class="g head"><div class="idx"><div class="n">◇</div><span class="cap">system map</span></div>
-    <div class="ttl"><h1>How it fits together</h1><p>Every module reads only <code>Run / Step / Decision</code> and writes only <code>Signal</code>. Adapters normalise each vendor's traces into <code>ledring.trace.v1</code>; Signals can be written back as OTel attributes <code>ledring.*</code>. Click a module to open it.</p></div></div>
+    <div class="ttl"><h1>How it fits together</h1><p data-i18n-html="map.p">Every module reads only <code>Run / Step / Decision</code> and writes only <code>Signal</code>. Adapters normalise each vendor's traces into <code>ledring.trace.v1</code>; Signals can be written back as OTel attributes <code>ledring.*</code>. Click a module to open it.</p></div></div>
   <svg id="mapsvg" viewBox="0 0 1340 560"></svg>
   <div class="fig"><span class="cap">fig. 8 — data path, adapters → schema → modules → outputs</span></div>
 </section>
