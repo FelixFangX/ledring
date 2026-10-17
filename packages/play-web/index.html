@@ -1,6 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Watch AI build your idea as one web page. You decide what gets through."><meta property="og:title" content="LEDRING Play — One web page"><meta property="og:description" content="Watch AI build your idea as one web page. You decide what gets through.">
 <title>LEDRING — Build Anything</title>
-<script>(function(){var q=new URLSearchParams(location.search),lang=q.get("lang"),src=q.get("src"),storedLang,flag,storedSrc;try{storedLang=localStorage.getItem("ledring-lang");flag=localStorage.getItem("ledring-lang-explicit");storedSrc=localStorage.getItem("ledring-src");}catch(e){}var legacy=(storedLang==="zh"||storedLang==="en")&&flag!=="1"&&flag!=="0";var explicit=(lang==="zh"||lang==="en")||flag==="1"||legacy;if(lang!=="zh"&&lang!=="en"){if(explicit&&(storedLang==="zh"||storedLang==="en"))lang=storedLang;else{var s={x:1,hn:1,reddit:1,v2ex:1,xhs:1,douyin:1}[src]?src:storedSrc;lang=(s==="v2ex"||s==="xhs"||s==="douyin")?"zh":(s==="x"||s==="hn"||s==="reddit")?"en":storedLang;}}if(lang==="zh")document.documentElement.lang="zh-CN";})()</script>
+<script>(function(){var q=new URLSearchParams(location.search),lang=q.get("lang"),src=q.get("src"),storedLang,flag,storedSrc;try{storedLang=localStorage.getItem("ledring-lang");flag=localStorage.getItem("ledring-lang-explicit");storedSrc=localStorage.getItem("ledring-src");}catch(e){}var legacy=(storedLang==="zh"||storedLang==="en")&&flag!=="1"&&flag!=="0";var explicit=(lang==="zh"||lang==="en")||flag==="1"||legacy;if(lang!=="zh"&&lang!=="en"){if(explicit&&(storedLang==="zh"||storedLang==="en"))lang=storedLang;else{var s={x:1,hn:1,reddit:1,v2ex:1,xhs:1,douyin:1}[src]?src:storedSrc;lang=(s==="v2ex"||s==="xhs"||s==="douyin")?"zh":(s==="x"||s==="hn"||s==="reddit")?"en":storedLang;}}if(lang!=="zh"&&lang!=="en")lang=(navigator.language||"").toLowerCase().indexOf("zh")===0?"zh":"en";if(lang==="zh")document.documentElement.lang="zh-CN";})()</script>
 <script type="module" src="/src/boot.ts"></script>
 <style>
 :root{
@@ -582,7 +583,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 <div class="hud">
  <div class="brand"><span class="d" id="hudled"></span><span>LEDRING</span></div>
  <div class="mid" id="hudmid">BUILD ANYTHING</div>
- <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="hold-btn" aria-pressed="false" title="toggle timer pause"></button><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang">中文</span></div>
+ <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="hold-btn" aria-pressed="false" title="toggle timer pause"></button><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang" role="button" tabindex="0" lang="zh-CN" aria-label="Switch to Chinese">中文</span></div>
 </div>
 <div id="toasts"></div>
 <div id="a11y-live" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
@@ -611,7 +612,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   <div class="ob-panel" id="ob-panel">
    <div id="ob-bridge-box" style="display:none">
     <label id="ob-l-cmd" for="ob-cmd"></label>
-    <div class="ob-cmdrow"><input id="ob-cmd" value="node packages/cli/dist/bin.js play" readonly aria-label="node packages/cli/dist/bin.js play"><button type="button" class="btn sm" id="ob-copy"></button></div>
+    <div class="ob-cmdrow"><input translate="no" id="ob-cmd" value="node packages/cli/dist/bin.js play" readonly aria-label="node packages/cli/dist/bin.js play"><button type="button" class="btn sm" id="ob-copy"></button></div>
     <div class="ob-bridge-st wait" id="ob-bridge-st" style="margin-top:8px" role="status"><span id="ob-bridge-txt"></span><button type="button" class="btn ghost sm" id="ob-poll-btn"></button></div>
    </div>
    <div id="ob-siwc-box" style="display:none"></div>
@@ -689,7 +690,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
    <pre class="code" id="code"></pre>
    <div class="previewwrap">
     <div class="ph"><span id="pvlabel"></span><span id="pvvers" class="pvvers"></span><span id="pvbuild" class="mono">v0</span></div>
-    <iframe id="preview" sandbox="allow-scripts" title="live preview"></iframe>
+    <iframe data-user-content id="preview" sandbox="allow-scripts" title="live preview"></iframe>
     <div class="testslip none" id="testslip"><span id="tsL"></span><span id="tsR">—</span></div>
    </div>
   </div>
@@ -741,7 +742,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
   <div>
    <div class="artbox">
     <div class="ah"><span id="art-name">artifact.html</span><span id="art-badge" class="mono"></span></div>
-    <iframe id="artframe" sandbox="allow-scripts" title="built artifact"></iframe>
+    <iframe data-user-content id="artframe" sandbox="allow-scripts" title="built artifact"></iframe>
     <div class="replaybar"><button class="rp" id="e-play" aria-label="Play replay">▶</button><input type="range" id="scrubrange" min="0" max="0" value="0" aria-label="Replay timeline"><span class="mono" id="scrubout"></span></div>
    </div>
    <div class="endacts">
@@ -1017,7 +1018,7 @@ const DICT={en:{
  liveHint:"LEDRING · LIVE · {model}",
 
  msEye:"WRITE YOUR OWN",msTitle:"What should it build?",msBack:"← Back",msModel:"⚙ Connection",
- icTag:"your idea",icPh:"A game, a tool, or a page…",icHint:"EN or 中文. CX-417 writes it as one self-contained web page.",
+ icTag:"your idea",icPh:"A game, a tool, or a page…",icHint:"English or Chinese. CX-417 writes it as one self-contained web page.",
  tagDemo:"built-in demo",tagLive:"live",
  pdesc:{snake:"Canvas grid, arrow keys. It wants an online leaderboard.",pomo:"25/5 timer with a ring. It wants to remember sessions.",paint:"Click and drag pixels. It wants a formula brush.",tip:"Bill, tip, people. It wants live exchange rates.",confess:"Type a name. It wants to remember it on this device.",slack:"Tap to slack. It wants to post the time to a server.",bday:"A name and a wish. It wants to open a share window.",fortune:"A birthday number. It wants to eval a formula."},
  pname:{snake:"Snake",pomo:"Pomodoro",paint:"Pixel Paint",tip:"Split the Bill",confess:"Confession",slack:"Slacking off",bday:"Birthday card",fortune:"Fortune"},
@@ -1041,6 +1042,7 @@ const DICT={en:{
  ariaAnswer:"Your answer",ariaBrief:"Brief",ariaPlay:"Play replay",ariaTimeline:"Replay timeline",ariaClose:"Close",ariaCall:"call",ariaPreview:"live preview",ariaArtifact:"built artifact",
  fldBase:"Base URL",fldModel:"Model",fldKey:"API key",tipModel:"model settings",tipHold:"toggle timer pause",tipMotion:"toggle reduced motion",
  demoHint:"Demo · built-in examples, not a live recording",obFailPlain:"The model did not answer.",
+ galEye:"DESIGN SYSTEM · V1",galTitle:"Component Gallery",galBack:"← Menu",galRings:"LED RING STATES",galButtons:"BUTTONS",galMeter:"METER & TOAST",galLog:"LOG STREAM",
  galCalm:"CALM",galProc:"PROCESSING",galCrit:"CRITICAL",galSolid:"Solid",galDef:"Default",galGhost:"Ghost",galDis:"Disabled",galInst:"INSTABILITY",galToast:"Trigger Toast",
  galLog1:"reads the idea, writes a plan",galLog2:"v1 done · 142 lines · new",galLog3:"BLOCKED — network call. agent must remove it",
 },zh:{ modeChatgpt:"ChatGPT 套餐",siwcCont:"使用 ChatGPT 继续",siwcMock:"此页面无法登录",siwcUsing:"正在使用 ChatGPT 套餐",siwcManage:"管理用量",siwcOut:"断开",
@@ -1058,6 +1060,7 @@ const DICT={en:{
  ariaAnswer:"你的回答",ariaBrief:"简报",ariaPlay:"播放回放",ariaTimeline:"回放时间轴",ariaClose:"关闭",ariaCall:"通话",ariaPreview:"实时预览",ariaArtifact:"建成的页面",
  fldBase:"端点地址",fldModel:"模型",fldKey:"接口密钥",tipModel:"模型设置",tipHold:"暂停计时",tipMotion:"减弱动效",
  demoHint:"演示 · 内置示例，不是实时录制",obFailPlain:"模型没有回应。",
+ galEye:"设计规范 · V1",galTitle:"组件画廊",galBack:"← 菜单",galRings:"指示环状态",galButtons:"按钮",galMeter:"仪表与提示",galLog:"运行日志",
  galCalm:"平稳",galProc:"运转",galCrit:"告急",galSolid:"实心",galDef:"默认",galGhost:"幽灵",galDis:"禁用",galInst:"不稳定度",galToast:"弹出提示",
  galLog1:"读想法，写计划",galLog2:"v1 完成 · 142 行 · 新",galLog3:"已拦截 — 网络请求。代理必须删掉",
 
@@ -1156,6 +1159,7 @@ function resolveExperience(input){
  else if(explicit&&storedLang)lang=storedLang;
  else if(channel)lang=channel.lang;
  else if(storedLang)lang=storedLang;
+ else if(input.browserLang==="zh")lang="zh";
  const pack=channel?channel.pack:(lang==="zh"?"cn":"dev");
  const onboard=channel?channel.onboard:"full";
  const ending=channel?channel.ending:(pack==="cn"?"share":"dev");
@@ -1164,7 +1168,7 @@ function resolveExperience(input){
 function experienceFromQuery(query,storage){
  const storedLang=storage.lang==="zh"||storage.lang==="en"?storage.lang:null;
  const legacy=!!storedLang&&storage.explicit!=="1"&&storage.explicit!=="0";
- return resolveExperience({queryLang:query.lang??null,querySrc:query.src??null,storedLang,langExplicit:storage.explicit==="1"||legacy,storedSrc:storage.src??null});
+ return resolveExperience({queryLang:query.lang??null,querySrc:query.src??null,storedLang,langExplicit:storage.explicit==="1"||legacy,storedSrc:storage.src??null,browserLang:storage.browser??null});
 }
 function runPacing(preset,fast){
  const cn=!!preset&&PACK_CN.indexOf(preset)>=0;
@@ -1184,7 +1188,7 @@ let LANG=(()=>{
  let storedLang=null,flag=null,storedSrc=null;
  try{storedLang=localStorage.getItem("ledring-lang");flag=localStorage.getItem("ledring-lang-explicit");storedSrc=localStorage.getItem("ledring-src");}catch(e){}
  if((storedLang==="zh"||storedLang==="en")&&flag!=="1"&&flag!=="0"){flag="1";try{localStorage.setItem("ledring-lang-explicit","1")}catch(e){}}
- const exp=experienceFromQuery({lang:q.get("lang"),src:q.get("src")},{lang:storedLang,explicit:flag,src:storedSrc});
+ const exp=experienceFromQuery({lang:q.get("lang"),src:q.get("src")},{lang:storedLang,explicit:flag,src:storedSrc,browser:(navigator.language||"").toLowerCase().indexOf("zh")===0?"zh":"en"});
  try{
   if(isPackSource(q.get("src")))localStorage.setItem("ledring-src",q.get("src"));
   if(q.get("lang")==="zh"||q.get("lang")==="en"){localStorage.setItem("ledring-lang",q.get("lang"));localStorage.setItem("ledring-lang-explicit","1");}
@@ -1928,7 +1932,7 @@ function paintEnd(J){
   if(J.end==="POLISHED"||J.end==="SHIPPED"){const r=$("#e-tag").getBoundingClientRect();setTimeout(()=>Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:34,colors:[COL.ok,COL.calm,"#0E1114","#E8A50A"],dist:220,size:9,grav:120,dur:1100}),420);}
   if(J.end==="COMPROMISED"||J.end==="BROKEN")setTimeout(()=>Motion.shake($("#stage"),7),450);
  },RM||FAST?0:700);
- if(P.has("shoot"))document.title="DONE:"+J.end;
+ if(P.has("shoot"))document.title=(LANG==="zh"?"完成：":"DONE:")+T.ends[J.end][0];
 }
 function scrubTo(i){const sn=RUN.snaps[i];$("#scrubout").textContent=sn?sn.label+" · "+(i+1)+"/"+RUN.snaps.length:"—";
  $("#artframe").srcdoc=sn?withHarness(sn.html,"end"):`<body style="font:14px system-ui;color:#888;display:grid;place-items:center;height:90vh">—</body>`;}
@@ -2093,7 +2097,7 @@ async function fetchTrends(){const fetchedAt=new Date().toISOString();if(usesRec
  items.forEach((it,i)=>{it.tid="T"+(i+1);it.fetchedAt=fetchedAt;});return {items,report,fetchedAt};}
 function ago(ts){if(!ts)return "";const d=(Date.now()-Date.parse(ts))/60000;if(!(d>=0))return String(ts).slice(0,10);const zh=LANG==="zh";
  return d<1?(zh?"刚刚":"just now"):d<60?(zh?Math.round(d)+" 分钟前":Math.round(d)+"m ago"):d<2880?(zh?Math.round(d/60)+" 小时前":Math.round(d/60)+"h ago"):(zh?Math.round(d/1440)+" 天前":Math.round(d/1440)+"d ago");}
-function trendCard(it,cls){return `<div class="trend ${cls||""}" data-t="${it.tid}"><div class="th"><span class="fid">${it.tid}</span><span class="tsrc">${esc(it.source)}</span><span class="tts">${esc(ago(it.ts||it.fetchedAt))}</span></div><div class="tt">${esc(it.display||it.title)}</div></div>`;}
+function trendCard(it,cls){return `<div class="trend ${cls||""}" data-t="${it.tid}"><div class="th"><span class="fid">${it.tid}</span><span class="tsrc" data-user-content>${esc(it.source)}</span><span class="tts">${esc(ago(it.ts||it.fetchedAt))}</span></div><div class="tt" data-user-content>${esc(it.display||it.title)}</div></div>`;}
 const ZH_CACHE_KEY="ledring-zh-feed-v1";
 function loadZhCache(){try{const j=JSON.parse(localStorage.getItem(ZH_CACHE_KEY)||"{}");return j&&typeof j==="object"?j:{};}catch(e){return {};}}
 function saveZhCache(m){try{localStorage.setItem(ZH_CACHE_KEY,JSON.stringify(m));}catch(e){}}
@@ -2184,7 +2188,7 @@ function fragLabel(f){return f.k==="trend"?T.frag.trend:T.frag[f.k]||T.frag.ans;
 function renderBoard(fresh){const fr=INSP.frags();const canRR=!INSP.live&&INSP.qi>=INSP.Q.length;
  $("#in-frags").innerHTML=fr.length?fr.map((f,i)=>`<div class="frag ${f.k==="trend"?"tr":""}" data-id="${f.id}" data-k="${f.k}" style="--r:${[-2,1.5,-1,2,-1.5,1][i%6]}deg">
   <div class="fh"><span class="fid">${f.id}</span><span class="cap">${fragLabel(f)}${f.trend?" → "+f.trend:""}</span>${canRR&&f.k!=="trend"?`<button class="rr" data-k="${f.k}" title="${T.inReroll} ${f.id}" aria-label="${T.inReroll} ${f.id} (${fragLabel(f)})">↻</button>`:""}</div>
-  <div class="ft">${esc(f.text)}</div>${f.k==="trend"?`<div class="fsrc2">${T.inVia} ${esc(f.source)} · ${esc(ago(f.ts||f.fetchedAt))}</div>`:""}${f.src==="free"?`<div class="fsrc">✎</div>`:""}</div>`).join(""):`<div class="small fempty">${T.inEmpty}</div>`;
+  <div class="ft" data-user-content>${esc(f.text)}</div>${f.k==="trend"?`<div class="fsrc2">${T.inVia} ${esc(f.source)} · ${esc(ago(f.ts||f.fetchedAt))}</div>`:""}${f.src==="free"?`<div class="fsrc">✎</div>`:""}</div>`).join(""):`<div class="small fempty">${T.inEmpty}</div>`;
  $$("#in-frags .rr").forEach(b=>b.onclick=()=>reroll(b.dataset.k));
  if(fresh){const cs=fresh==="trend"?$$('#in-frags .frag.tr'):[$(`#in-frags .frag[data-id="${fresh}"]`)];cs.forEach((c,j)=>{if(!c)return;
   Motion.run(c,[{opacity:0,transform:"translate3d(0,-30px,0) rotate(-8deg) scale(1.15)"},{opacity:1,transform:`rotate(${c.style.getPropertyValue("--r")})`}],{duration:420,delay:j*90,easing:EASE.snap});
@@ -3048,7 +3052,7 @@ function paintOnboard(){
   ["demo",T.obPDemo,T.obPDemoSub,T.obPDemoTag,"",false]
  ];
  $("#ob-cards").innerHTML=cards.map(([id,t,sub,tag,bcls,soon])=>`<button type="button" class="ob-card${ch===id?" on":""}${soon?" soon":""}" data-choice="${id}" role="radio" aria-checked="${ch===id}">
-  <span class="ob-ct"><b>${esc(t)}</b><small>${esc(sub)}</small></span>
+  <span class="ob-ct"><b>${esc(t)}</b><small>${esc(sub).replace(/https:\/\/github\.com\/FelixFangX\/ledring#quickstart|node packages\/cli\/dist\/bin\.js play/g,s=>`<code translate="no">${s}</code>`)}</small></span>
   <span class="ob-badge ${bcls}">${esc(tag)}</span>
  </button>`).join("");
  $$("#ob-cards .ob-card").forEach(b=>b.onclick=()=>selectObChoice(b.dataset.choice,true));
@@ -3168,7 +3172,7 @@ function startIdea(){
  playRun(idea,null);
 }
 function paintStatic(){
- $("#lang").textContent=T.lang;$("#hudmid").textContent=T.hudmid;$("#agrole").textContent=T.agrole;$("#mlabel").textContent=T.instability;
+ $("#lang").textContent=T.lang;if(LANG==="zh")$("#lang").removeAttribute("lang");else $("#lang").lang="zh-CN";$("#lang").setAttribute("aria-label",LANG==="zh"?"切换到英文":"Switch to Chinese");$("#hudmid").textContent=T.hudmid;$("#agrole").textContent=T.agrole;$("#mlabel").textContent=T.instability;
  $("#rellabel").textContent=T.trust;$("#pvlabel").textContent=T.livePreview;$("#e-flowcap").textContent=T.eFlowcap;
  $("#e-dl").textContent=T.eDl;if($("#e-dlzip"))$("#e-dlzip").textContent=T.eDlZip;$("#e-dltrace").textContent=T.eDlTrace;$("#e-replay").textContent=T.eReplay;$("#e-new").textContent=T.eNew;$("#e-menu").textContent=T.eMenu;
  if($("#e-star"))$("#e-star").textContent=T.ctaStar;
@@ -3178,6 +3182,8 @@ function paintStatic(){
  if($("#e-share-new"))$("#e-share-new").textContent=T.eNew;
  if($("#e-share-menu"))$("#e-share-menu").textContent=T.eMenu;
  if($("#e-more"))$("#e-more").textContent=T.shareMore;
+ document.querySelectorAll('meta[name="description"],meta[property="og:description"],meta[name="twitter:description"]').forEach(e=>e.content=LANG==="zh"?"看着 AI 将你的想法写成一个网页。由你决定放行还是拦截。":"Watch AI build your idea as one web page. You decide what gets through.");
+ document.querySelectorAll('meta[property="og:title"],meta[name="twitter:title"]').forEach(e=>e.content=LANG==="zh"?"LEDRING Play — 写成一个网页":"LEDRING Play — One web page");
  document.title=LANG==="zh"?"LEDRING — 写成一个网页":"LEDRING — One web page";
  if($("#agled"))$("#agled").textContent="● "+(LANG==="zh"?T.galCalm:"CALM");
  const planTab=$('.ptab[data-f="plan"]');if(planTab)planTab.textContent=LANG==="zh"?"计划.md":"plan.md";
@@ -3198,6 +3204,7 @@ function paintStatic(){
 }
 $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl);localStorage.setItem("ledring-lang-explicit","1")}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
+$("#lang").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("#lang").click();}};
 function openPresets(){paintIdea();show("missions",LANG==="zh"?"选一个":"PICK ONE");}
 $("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}if(!isOnboarded()){if(ONBOARD==="skip"){markOnboarded();openPresets();return;}openOnboard(false,false);return;}if(ONBOARD==="skip"){openPresets();return;}startInsp();};
 function paintHold(){const b=$("#hold-btn");if(b){b.textContent=HOLD?T.timerOff:T.timerOn;b.classList.toggle("on",HOLD);b.setAttribute("aria-pressed",String(HOLD));}}
@@ -3228,16 +3235,15 @@ let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0)
 window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT,readme:()=>readmeText(),latinOnlyProblem,languageDirective,applyZhFeed,feedItemKey,ghosts:()=>GHOSTS,resolveExperience,experience:()=>({lang:LANG,pack:PACK,src:SRC,onboard:ONBOARD,ending:ENDING,presets:presetIds()})};
 /* boot */
 function paintGallery(){
- const zh=LANG==="zh";
- $("#gal-eye").textContent=zh?"设计规范 · V1":"DESIGN SYSTEM · V1";
- $("#gal-title").textContent=zh?"组件画廊":"Component Gallery";
- $("#gal-back").textContent=zh?"← 菜单":"← Menu";
- $("#gal-rings-cap").textContent=zh?"指示环状态":"LED RING STATES";
- $("#gal-btns-cap").textContent=zh?"按钮":"BUTTONS";
- $("#gal-meter-cap").textContent=zh?"仪表与提示":"METER & TOAST";
- $("#gal-log-cap").textContent=zh?"运行日志":"LOG STREAM";
+ $("#gal-eye").textContent=T.galEye;
+ $("#gal-title").textContent=T.galTitle;
+ $("#gal-back").textContent=T.galBack;
+ $("#gal-rings-cap").textContent=T.galRings;
+ $("#gal-btns-cap").textContent=T.galButtons;
+ $("#gal-meter-cap").textContent=T.galMeter;
+ $("#gal-log-cap").textContent=T.galLog;
  const sw=[["bg","#EEF1F3"],["panel","#FFFFFF"],["ink","#0E1114"],["ink2","#5A6168"],["calm","#1E63E9"],["proc","#E8A50A"],["crit","#E01E2B"],["ok","#1C9D54"]];
- $("#gal-swatches").innerHTML=sw.map(([k,v])=>`<div class="gal-swatch" data-token="${k}"><i style="background:${v}"></i><span>--${k} · ${v}</span></div>`).join("");
+ $("#gal-swatches").innerHTML=sw.map(([k,v])=>`<div class="gal-swatch" data-token="${k}"><i style="background:${v}"></i><span translate="no">--${k} · ${v}</span></div>`).join("");
  ringSVG($("#gal-ring-calm"),"calm");ringSVG($("#gal-ring-proc"),"proc");ringSVG($("#gal-ring-crit"),"crit");
  const ringLabels=[T.galCalm,T.galProc,T.galCrit];
  $$("#gal-rings-card .gal-ring-item span").forEach((el,i)=>{if(ringLabels[i])el.textContent="● "+ringLabels[i];});
