@@ -36,7 +36,7 @@ npx wrangler deploy
 
 `schema.sql` is the whole schema. Do not add an embedding column. The placeholder database id will refuse to deploy, which is intentional until the create step above has been run.
 
-The worker is deployed as `strands` at https://strands.ledring.workers.dev, and Play uses it by default: strands are server-backed out of the box. The `?strandsUrl=` query parameter, `window.__LEDRING_STRANDS_URL__`, and the saved localStorage value still override it. Play falls back to labelled simulated strands only when the server is unreachable or returns no strands. `strands.ledring.workers.dev` is the only external host Play's offline tests allow.
+The worker is deployed as `strands` at https://api.ledring.dev, and Play uses it by default: strands are server-backed out of the box. The `?strandsUrl=` query parameter, `window.__LEDRING_STRANDS_URL__`, and the saved localStorage value still override it. Play falls back to labelled simulated strands only when the server is unreachable or returns no strands. `api.ledring.dev` is the only external host Play's offline tests allow. The workers.dev URL is turned off (`workers_dev = false` in `wrangler.toml`).
 
 ## Free AI (`POST /ai/chat`)
 
@@ -71,4 +71,4 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-The `[ai]` binding needs no secret. Workers AI has to be available on the account. Keep the worker name `strands` so https://strands.ledring.workers.dev serves both `/strands` and `/ai/chat`. Re-run `npx wrangler d1 execute ledring-play-strands --remote --file=schema.sql` only when the database is new; the quota counter reuses `strand_quotas`.
+The `[ai]` binding needs no secret. Workers AI has to be available on the account. Keep the worker name `strands`; https://api.ledring.dev serves both `/strands` and `/ai/chat`. Re-run `npx wrangler d1 execute ledring-play-strands --remote --file=schema.sql` only when the database is new; the quota counter reuses `strand_quotas`.

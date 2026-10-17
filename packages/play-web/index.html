@@ -2370,16 +2370,11 @@ const GHOSTS=(()=>{const en=["Off Switch","Cat Dash","Fair Split","Loop Breaker"
  zh=["停下键","猫冲冲","公平分账","断环格子","准点停下","服从或偏离","房租平分","吐司发帖机","再试一次","桌面清空","你还在吗","像素誓言"];
  return (LANG==="zh"?zh:en).map((t,i)=>({t,l:7+hashS(t)%60,a:(i/12)*Math.PI*2+(hashS(t)%100)/180,r:.58+(hashS(t+"r")%40)/100,ph:(hashS(t+"p")%628)/100,simulated:true}));})();
 const DEFAULT_STRANDS_URL="https://api.ledring.dev";
-const FALLBACK_STRANDS_URL="https://strands.ledring.workers.dev";
 let STRANDS_URL=P.get("strandsUrl")||window.__LEDRING_STRANDS_URL__||(()=>{try{return localStorage.getItem("ledring-strands-url")||""}catch(e){return ""}})()||DEFAULT_STRANDS_URL;
-/* Try the configured Strands root. If it is the default custom domain and the request fails at the network level, retry once on workers.dev. */
+/* Call the configured Strands root (api.ledring.dev by default). */
 async function strandsFetch(path,init){
  const root=String(STRANDS_URL||DEFAULT_STRANDS_URL).replace(/\/$/,"");
- try{return await fetch(root+path,init);}
- catch(e){
-  if(root!==DEFAULT_STRANDS_URL||(e&&e.name==="AbortError"))throw e;
-  return fetch(FALLBACK_STRANDS_URL+path,init);
- }
+ return fetch(root+path,init);
 }
 const STRAND_STATE={simulated:true,remote:[]};
 function getBriefBucket(brief){
