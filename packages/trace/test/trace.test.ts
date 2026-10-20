@@ -70,7 +70,7 @@ describe("otel-genai adapter", () => {
 
 describe("parseTrace", () => {
   it("lists the available adapters", () => {
-    expect(adapters.map((a) => a.name)).toEqual(["claude-code", "otel-genai", "ledring-decisions"]);
+    expect(adapters.map((a) => a.name)).toEqual(["claude-code", "otel-genai", "ledring-decisions", "ledring-trace"]);
   });
 
   it("can be forced to one adapter", () => {
@@ -140,5 +140,50 @@ describe("riskOf", () => {
     expect(riskOf("Bash", { command: "git push --force origin main" })).toEqual(["force push"]);
     expect(riskOf("Bash", { command: "npm test" })).toEqual([]);
     expect(riskOf("Edit", { file_path: "rm -rf" })).toEqual([]);
+  });
+});
+
+
+describe("ledring-trace adapter", () => {
+  const text = fx("native/research-run.ledring.json");
+  const native = JSON.parse(text);
+  const adapter = () => adapters.find((a) => a.name === "ledring-trace")!;
+
+  it("detects only the native schema in objects, arrays and JSONL", () => {
+    for (const input of [text, JSON.stringify([native]), `${JSON.stringify(native)}\n${JSON.stringify(native)}\n`]) {
+      expect(adapter().detect(input)).toBe(true);
+    }
+    for (const input of ["null", "[]", "hello", '{"schema":"ledring.trace.v2"}', fx("claude-code/run-1.jsonl"), fx("otel/weather-agent.otlp.json")]) {
+      expect(adapter().detect(input)).toBe(false);
+    }
+  });
+
+  it("reads objects, arrays and JSONL while preserving run identity and parentIds", () => {
+    for (const [input, count] of [[text, 1], [JSON.stringify([native, native]), 2], [`${JSON.stringify(native)}\n${JSON.stringify(native)}\n`, 2]] as const) {
+      const runs = parseTrace(input);
+      expect(runs).toHaveLength(count);
+      expect(runs[0]).toMatchObject({ id: native.id, source: "research-thinking-ai", steps: [{ id: "plan" }, { parentId: "plan" }, { parentId: "llm", name: "check_citation" }] });
+      expect(runs[0]).not.toHaveProperty("x-research");
+    }
+  });
+
+  it("fills missing signatures and preserves supplied signatures", () => {
+    const [run] = parseTrace(text);
+    expect(run!.steps.map((step) => step.signature)).toEqual(native.steps.map((step: { signature?: string; name: string; input?: unknown }) => step.signature ?? signatureOf(step.name, step.input)));
+  });
+
+  it("rejects invalid schemas and invalid runs through RunSchema", () => {
+    expect(() => parseTrace(JSON.stringify({ ...native, schema: "ledring.trace.v2" }))).toThrow();
+    expect(() => parseTrace(JSON.stringify([native, { ...native, schema: "ledring.trace.v2" }]))).toThrow();
+    expect(() => parseTrace(JSON.stringify({ ...native, id: 42 }))).toThrow();
+    expect(() => parseTrace(JSON.stringify({ ...native, steps: [{ id: "bad", kind: "invalid", name: "tool" }] }))).toThrow();
+  });
+
+  it("reads Play exports as native runs and ignores their extension", () => {
+    const play = { ...native, source: "ledring-play", "x-ledring-play": { ending: "POLISHED" } };
+    expect(adapter().detect(JSON.stringify(play))).toBe(true);
+    const [run] = parseTrace(JSON.stringify(play));
+    expect(run!.source).toBe("ledring-play");
+    expect(run).not.toHaveProperty("x-ledring-play");
   });
 });

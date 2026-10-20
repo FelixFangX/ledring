@@ -248,3 +248,16 @@ describe("ledring play", () => {
     expect(io.stderr()).toMatch(/--port/);
   });
 });
+
+
+describe("native trace commands", () => {
+  it("renders flowchart and instability JSON from a research run", async () => {
+    const path = `${fixtures}native/research-run.ledring.json`;
+    const flow = nodeIOForTest();
+    expect(await run(["flowchart", path, "--json"], flow)).toBe(0);
+    expect(JSON.parse(flow.stdout())).toMatchObject({ schema: "ledring.branch-tree.v1", runCount: 1 });
+    const instability = nodeIOForTest();
+    expect(await run(["instability", path, "--json"], instability)).toBe(0);
+    expect(JSON.parse(instability.stdout())).toMatchObject([{ schema: "ledring.instability.v1" }]);
+  });
+});
