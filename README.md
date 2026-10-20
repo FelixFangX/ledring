@@ -234,6 +234,7 @@ const html = renderHtml(buildBranchTree(runs), { title: "nightly eval" });
 | Adapter | Input |
 |---|---|
 | `claude-code` | Claude Code session JSONL: `tool_use` / `tool_result` joined on `tool_use_id`; sidechains skipped |
+| `ledring-trace` | Native `ledring.trace.v1` JSON (one Run or an array) or JSONL (one Run per line); missing step signatures are filled automatically |
 | `ledring-decisions` | `ledring.decisions.v1` JSONL: one `{ tool, input, verdict, by }` per line, for harnesses without native traces |
 | `otel-genai` | OTLP/JSON (or JSON lines of batches) using the [OpenTelemetry GenAI semantic conventions](https://github.com/open-telemetry/semantic-conventions-genai): `invoke_agent`, `execute_tool`, `chat`, `plan`. Covers any framework that exports GenAI spans |
 

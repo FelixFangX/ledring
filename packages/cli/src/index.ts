@@ -42,7 +42,8 @@ Usage:
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
-claude-code (session JSONL), otel-genai (OTLP/JSON GenAI spans).
+claude-code (session JSONL), otel-genai (OTLP/JSON GenAI spans),
+ledring-trace (native ledring.trace.v1 JSON/JSONL), ledring-decisions (decisions JSONL).
 `;
 
 export function loadRuns(io: IO, paths: string[], adapter?: string): Run[] {

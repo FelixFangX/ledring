@@ -1,0 +1,45 @@
+{
+  "schema": "ledring.trace.v1",
+  "id": "research-citation-001",
+  "source": "research-thinking-ai",
+  "instruction": "Summarize the evidence for urban tree cooling and check the citation.",
+  "outcome": "success",
+  "steps": [
+    {
+      "id": "plan",
+      "kind": "plan",
+      "name": "plan",
+      "input": {
+        "goal": "Find evidence and verify the citation"
+      },
+      "signature": "research-plan"
+    },
+    {
+      "id": "llm",
+      "parentId": "plan",
+      "kind": "llm",
+      "name": "research-model",
+      "input": {
+        "topic": "Urban tree cooling"
+      },
+      "output": "Trees can reduce local heat through shade and evapotranspiration."
+    },
+    {
+      "id": "citation",
+      "parentId": "llm",
+      "kind": "tool",
+      "name": "check_citation",
+      "input": {
+        "url": "https://example.org/synthetic-urban-tree-study",
+        "claim": "Trees reduce local heat"
+      },
+      "output": {
+        "verified": true
+      }
+    }
+  ],
+  "x-research": {
+    "pipeline": "evidence-summary",
+    "synthetic": true
+  }
+}

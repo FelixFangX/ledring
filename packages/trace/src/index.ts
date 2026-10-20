@@ -1,3 +1,4 @@
+import { ledringTrace } from "./adapters/ledring-trace.js";
 import { claudeCode } from "./adapters/claude-code.js";
 import { otelGenAI } from "./adapters/otel-genai.js";
 import { decisionsLog } from "./adapters/decisions.js";
@@ -11,7 +12,7 @@ export { signatureOf, pathsOf } from "./signature.js";
 export type { Adapter, ParseOptions } from "./adapters/types.js";
 
 /** Built-in adapters, tried in order during auto-detection. */
-export const adapters: readonly Adapter[] = [claudeCode, otelGenAI, decisionsLog];
+export const adapters: readonly Adapter[] = [claudeCode, otelGenAI, decisionsLog, ledringTrace];
 
 export interface ParseTraceOptions extends ParseOptions {
   /** Force an adapter by name instead of auto-detecting. */
