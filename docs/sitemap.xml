@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://play.ledring.dev/</loc></url>
+  <url><loc>https://play.ledring.dev/play/</loc></url>
+  <url><loc>https://play.ledring.dev/demo/</loc></url>
+  <url><loc>https://play.ledring.dev/examples/claude-code.html</loc></url>
+  <url><loc>https://play.ledring.dev/examples/claude-code-zh.html</loc></url>
+  <url><loc>https://play.ledring.dev/examples/otel-genai.html</loc></url>
+  <url><loc>https://play.ledring.dev/examples/otel-genai-zh.html</loc></url>
+</urlset>
