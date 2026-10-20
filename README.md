@@ -93,6 +93,42 @@ ledring flowchart <traces...> [--out report.html] [--json] [--highlight <runId>]
 - **Theming**: paper-first (warm off-white, ink hairlines, square plates, no glow or gradients), with an ink theme under `prefers-color-scheme: dark`. The viewer reads only `--lr-*` CSS tokens; `--tokens` accepts a flat token object, `{ "dark": {…} }` for the dark scheme, or a structured design-tokens file (`color.bg.base`, `color.accent.ink`, `font.mono`, …). Fonts fall back to system faces, so reports render offline.
 - `--lang zh` renders the viewer chrome in Chinese (with CJK font fallbacks); English is the default.
 
+## MCP server (`ledring mcp`)
+
+A small stdio MCP server, so an agent can look at its own traces and ask how far it drifted, what it did after a guardrail said no, and where its runs split. All tools are read-only and accept `paths` (trace files or directories) and an optional `adapter`. They return text and structured results without step raw, input or output bodies. Strings are truncated to 200 characters; summaries have bounded lists and counts for the complete result.
+
+| Tool | Returns |
+|---|---|
+| `list_sessions` | Run metadata, instruction excerpts and step/tool/error/deny counts; newest first, `limit` defaults to 50 |
+| `get_drift` | Instability scores and up to ten contributing steps per run; optional `instruction` and `runId` |
+| `get_redwall` | Red Wall results and outcome counts; optional local `scenarios` file |
+| `get_branch_summary` | Run count, fork count and top fork points with divergence percentages; `full: true` includes the metadata tree |
+
+Build locally with `pnpm build`. The CLI is not on npm yet. Replace `/path/to/ledring` below with the absolute checkout path, and pass absolute trace paths in tool calls.
+
+For Claude Code (`.mcp.json`), Claude Desktop (`claude_desktop_config.json`) or Cursor (`.cursor/mcp.json`), merge this configuration:
+
+```json
+{
+  "mcpServers": {
+    "ledring": {
+      "command": "node",
+      "args": ["/path/to/ledring/packages/cli/dist/bin.js", "mcp"]
+    }
+  }
+}
+```
+
+For Codex, add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.ledring]
+command = "node"
+args = ["/path/to/ledring/packages/cli/dist/bin.js", "mcp"]
+```
+
+The server uses stdout only for the MCP protocol. To render a branch tree as HTML, use `ledring flowchart <paths> --out report.html` separately.
+
 ## `ledring instability`
 
 A heuristic 0–100 score of how far a run drifts from its instruction, with a per-step delta and a reason for each change. Rule-based, with no LLM calls:

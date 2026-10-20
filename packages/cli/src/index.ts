@@ -1,3 +1,6 @@
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { createMcpServer } from "./mcp.js";
+export { createMcpServer } from "./mcp.js";
 import { homedir } from "node:os";
 import { basename } from "node:path";
 import { parseArgs } from "node:util";
@@ -35,6 +38,7 @@ Usage:
                                                      Local Play bridge on 127.0.0.1. --print-config never prints secrets.
                                                      Sign in with ChatGPT stays off unless LEDRING_SIWC=1 and both
                                                      LEDRING_SIWC_AUTH_BASE and LEDRING_SIWC_API_BASE are set.
+  ledring mcp                                        Start the read-only stdio MCP server
   ledring help
 
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
@@ -57,6 +61,25 @@ function openBrowser(url: string): void {
 }
 
 const commands: Record<string, Command> = {
+  async mcp(args, io) {
+    parseArgs({ args, options: {} });
+    const server = createMcpServer(io);
+    const stop = () => { void server.close(); };
+    const closed = new Promise<number>((resolve) => {
+      server.server.onclose = () => resolve(0);
+    });
+    process.stdin.once("end", stop);
+    process.once("SIGINT", stop);
+    process.once("SIGTERM", stop);
+    try {
+      await server.connect(new StdioServerTransport());
+      return await closed;
+    } finally {
+      process.stdin.off("end", stop);
+      process.off("SIGINT", stop);
+      process.off("SIGTERM", stop);
+    }
+  },
   inspect(args, io) {
     const { values, positionals } = parseArgs({ args, allowPositionals: true, options: { adapter: { type: "string" } } });
     const runs = loadRuns(io, positionals, values.adapter);
