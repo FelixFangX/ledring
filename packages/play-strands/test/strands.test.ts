@@ -64,6 +64,19 @@ describe("lexical buckets", () => {
 });
 
 describe("strands worker", () => {
+
+  it("serves health on GET / and /health", async () => {
+    const store = memoryStore();
+    for (const path of ["/", "/health"]) {
+      const response = await handleStrands(request("GET", path), store, 1);
+      expect(response.status).toBe(200);
+      const body = await response.json();
+      expect(body.ok).toBe(true);
+      expect(body.service).toBe("ledring-play-strands");
+      expect(body.routes).toContain("POST /ai/chat");
+    }
+  });
+
   it("posts, lists the near bucket, and likes once", async () => {
     const store = memoryStore();
     const created = await post(store, 1_000);

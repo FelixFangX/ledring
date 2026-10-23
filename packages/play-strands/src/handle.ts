@@ -141,6 +141,13 @@ export async function handleStrands(request: Request, store: StrandStore, now = 
   const url = new URL(request.url);
   if (url.pathname === "/ai/chat") return handleAiChat(request, store, now, ai);
   if (request.method === "OPTIONS") return json(204, {});
+  if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) {
+    return json(200, {
+      ok: true,
+      service: "ledring-play-strands",
+      routes: ["GET /health", "GET /strands?near=<bucket>", "POST /strands", "POST /strands/:id/like", "POST /ai/chat"],
+    });
+  }
   await store.purge(now);
   if (request.method === "POST" && url.pathname === "/strands") return postStrand(request, store, now);
   if (request.method === "GET" && url.pathname === "/strands") {
