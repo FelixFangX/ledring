@@ -64,7 +64,7 @@ describe("play page", () => {
     expect(html).toContain("COMING SOON");
     expect(html).toContain("敬请期待");
     expect(html).toContain("CX-417 · 你的 AI 构建助手");
-    expect(html).toContain("选择 CX-417 使用的 AI 模型");
+    expect(html).toContain("和 CX-417 一起构建");
   });
 
   it("defaults to LEDRING Free AI and does not call /ai/chat until streamChat", () => {

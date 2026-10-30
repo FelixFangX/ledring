@@ -355,6 +355,9 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 #insp{padding:70px 40px 20px}
 /* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
 #onboard{padding:64px 36px 18px;overflow:auto}
+#ob-settings{margin-top:18px;color:var(--ink2);font-size:13px}
+#ob-settings summary{cursor:pointer;padding:10px 0}
+#ob-settings .ob-cards{margin-top:8px}
 .ob-wrap{max-width:1080px;margin:0 auto;width:100%;display:flex;flex-direction:column;gap:12px}
 .ob-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .ob-steps{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -618,7 +621,8 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
  <div class="ob-top"><div class="eye" id="ob-eye"></div><div class="ob-steps" id="ob-steps"></div></div>
  <div class="ob-hero"><svg class="ring" id="obring" viewBox="0 0 62 62"></svg><div><div class="cap" id="ob-cx">CX-417</div><h2 class="ob-title" id="ob-title"></h2><div class="ob-sub" id="ob-sub"></div></div></div>
  <div class="ob-main">
-  <div class="ob-cards" id="ob-cards" role="radiogroup" aria-labelledby="ob-title"></div>
+  <div><div class="ob-cards" id="ob-cards" role="radiogroup" aria-labelledby="ob-title"></div>
+   <details id="ob-settings"><summary id="ob-settings-label"></summary><div class="ob-cards" id="ob-other-cards" role="radiogroup" aria-labelledby="ob-settings-label"></div></details></div>
   <div class="ob-panel" id="ob-panel">
    <div id="ob-bridge-box" style="display:none">
     <label id="ob-l-cmd" for="ob-cmd"></label>
@@ -626,7 +630,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
     <div class="ob-bridge-st wait" id="ob-bridge-st" style="margin-top:8px" role="status"><span id="ob-bridge-txt"></span><button type="button" class="btn ghost sm" id="ob-poll-btn"></button></div>
    </div>
    <div id="ob-siwc-box" style="display:none"></div>
-   <div id="ob-fields">
+   <div id="ob-fields" style="display:none">
     <div id="ob-baserow"><label id="ob-l-base" for="ob-base"></label><input id="ob-base" spellcheck="false" autocomplete="off"></div>
     <div id="ob-modelrow" style="margin-top:8px"><label id="ob-l-model" for="ob-model"></label><input id="ob-model" spellcheck="false" autocomplete="off"></div>
     <div id="ob-keyrow" style="margin-top:8px"><label id="ob-l-key" for="ob-key"><span id="ob-l-key-txt"></span> <span id="ob-key-saved" class="key-saved"></span></label><input id="ob-key" type="password" spellcheck="false" autocomplete="off"></div>
@@ -991,7 +995,7 @@ const DICT={en:{
  howText:"You give an idea. CX-417 writes a plan, then one self-contained web page. Between steps you get a timed choice. The Red Wall is a timed risk alert. It appears when the page would use the network, storage, dynamic code, external assets, or navigation. Select Block before the timer ends, or that item is allowed. The ending is judged from the file that was actually written.",
  statPlays:"builds",statUnlock:"endings seen",
  iGo:"Build this →",
- iNeedKey:"A live build needs an API key, or switch to the built-in demo and pick a preset.",iDemoOnly:"The built-in demo only plays the 4 presets. Add an API key to type your own idea.",
+ iNeedKey:"This provider needs an API key. Add it in settings, or choose LEDRING Free AI.",iDemoOnly:"Try a demo preset, or choose LEDRING Free AI for your own idea.",
  pNoteDemo:"Built-in examples respond to your choices. Four presets only. No AI calls.",
  pNoteFree:"LEDRING Free AI. No key. This page calls it only when you check availability or start a build.",
  pNoteLive:"Your key stays in this browser's localStorage. It is sent only to the endpoint above. Nothing else.",
@@ -1093,7 +1097,7 @@ const DICT={en:{
  howText:"你给出想法。CX-417 先写计划，再写成一个独立网页。步骤之间有限时选择。红墙是限时风险提示，在检测到网络请求、本地存储、动态代码、外部资源或页面跳转时出现。倒计时结束前要点「拦截」，否则该项会放行。结局根据实际写出的文件判定。",
  statPlays:"次构建",statUnlock:"结局已见",
  iGo:"开始构建 →",
- iNeedKey:"实时构建需要 API 密钥，或改用内置演示并选择一个预设。",iDemoOnly:"内置演示只能用 4 个预设。填写密钥后可以自己写想法。",
+ iNeedKey:"此服务需要 API 密钥。请在设置中填写，或选择 LEDRING 免费 AI。",iDemoOnly:"体验演示预设，或选择 LEDRING 免费 AI 构建自己的想法。",
  pNoteDemo:"内置示例随选择变化。只有 4 个预设。不调用 AI。",
  pNoteFree:"LEDRING 免费 AI。不用密钥。只有在检查是否可用或开始构建时，这个页面才会发出请求。",
  pNoteLive:"密钥只存在本浏览器的 localStorage，只发送到上面的地址。不会去别处。",
@@ -2849,8 +2853,8 @@ $("#p-test").onclick=async()=>{readFields();$("#p-status").textContent="…";
 /* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
 Object.assign(DICT.en,{
  obEye:"CONNECTION",obCx:"CX-417 · your AI builder",
- obTitle:"Choose an AI model for CX-417",
- obSub:"Choose a connection method. Each option explains where your key is stored and sent.",
+ obTitle:"Build with CX-417",
+ obSub:"",obSettings:"Use your own provider",
  obS1:"Choose a model",obS2:"Enter a key",obS3:"Test the connection",obS4:"Start",
  obPAnth:"Anthropic · your own API key",obPAnthSub:"The browser calls api.anthropic.com directly. No server in between.",obPAnthTag:"DIRECT",
  obPBridge:"OpenAI · your own API key · local",obPBridgeSub:"Sent through 127.0.0.1 on this computer. Not on npm yet: build from source (https://github.com/FelixFangX/ledring#quickstart), then run node packages/cli/dist/bin.js play.",obPBridgeTag:"127.0.0.1",
@@ -2875,8 +2879,8 @@ Object.assign(DICT.en,{
 });
 Object.assign(DICT.zh,{
  obEye:"连接方式",obCx:"CX-417 · 你的 AI 构建助手",
- obTitle:"选择 CX-417 使用的 AI 模型",
- obSub:"先选连接方式。密钥的保存位置和发送去向见各项说明。",
+ obTitle:"和 CX-417 一起构建",
+ obSub:"",obSettings:"使用自己的模型服务",
  obS1:"选择模型",obS2:"填写密钥",obS3:"测试连接",obS4:"开始",
  obPAnth:"Anthropic · 使用自己的 API 密钥",obPAnthSub:"浏览器直接请求 api.anthropic.com，不经过我们的服务器。",obPAnthTag:"直连",
  obPBridge:"OpenAI · 使用自己的 API 密钥 · 本机",obPBridgeSub:"通过本机 127.0.0.1 转发。暂未发布到 npm：请按 https://github.com/FelixFangX/ledring#quickstart 从源码构建，再运行 node packages/cli/dist/bin.js play。",obPBridgeTag:"127.0.0.1",
@@ -3043,6 +3047,7 @@ function paintOnboard(){
  if($("#ob-cx"))$("#ob-cx").textContent=T.obCx;
  $("#ob-title").textContent=T.obTitle;
  $("#ob-sub").textContent=T.obSub;
+ $("#ob-sub").hidden=!T.obSub;
  const ch=OB.choice,siwcOn=isSiwcEnabled();
  const needsKey=ch==="anthropic"||ch==="openai-bridge"||ch==="openai-custom";
  const hasCred=!needsKey||(ch==="anthropic"?!!PROV.anthropic.key:(!!PROV.openai.key||!!PROV.openai.bridgeConfigured||OB.bridgeConnected));
@@ -3061,11 +3066,15 @@ function paintOnboard(){
   ["chatgpt",T.obPSiwc,siwcOn?T.obPSiwcSub:T.obPSiwcSoon,siwcOn?T.obPSiwcTagLive:T.obPSiwcTagSoon,siwcOn?"ok":"",!siwcOn],
   ["demo",T.obPDemo,T.obPDemoSub,T.obPDemoTag,"",false]
  ];
- $("#ob-cards").innerHTML=cards.map(([id,t,sub,tag,bcls,soon])=>`<button type="button" class="ob-card${ch===id?" on":""}${soon?" soon":""}" data-choice="${id}" role="radio" aria-checked="${ch===id}">
+ $("#ob-settings-label").textContent=T.obSettings;
+ if(needsKey||ch==="chatgpt")$("#ob-settings").open=true;
+ const renderCards=items=>items.map(([id,t,sub,tag,bcls,soon])=>`<button type="button" class="ob-card${ch===id?" on":""}${soon?" soon":""}" data-choice="${id}" role="radio" aria-checked="${ch===id}">
   <span class="ob-ct"><b>${esc(t)}</b><small>${esc(sub).replace(/https:\/\/github\.com\/FelixFangX\/ledring#quickstart|node packages\/cli\/dist\/bin\.js play/g,s=>`<code translate="no">${s}</code>`)}</small></span>
   <span class="ob-badge ${bcls}">${esc(tag)}</span>
  </button>`).join("");
- $$("#ob-cards .ob-card").forEach(b=>b.onclick=()=>selectObChoice(b.dataset.choice,true));
+ $("#ob-cards").innerHTML=renderCards(cards.filter(c=>c[0]==="ledring"||c[0]==="demo"));
+ $("#ob-other-cards").innerHTML=renderCards(cards.filter(c=>c[0]!=="ledring"&&c[0]!=="demo"));
+ $$("#onboard .ob-card").forEach(b=>b.onclick=()=>selectObChoice(b.dataset.choice,true));
 
  const bBox=$("#ob-bridge-box"),sBox=$("#ob-siwc-box"),fBox=$("#ob-fields");
  bBox.style.display=ch==="openai-bridge"?"":"none";
