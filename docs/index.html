@@ -5,12 +5,32 @@
 :root{--bg:#F3F2EE;--panel:#FBFAF7;--line:#CFCDC6;--ink:#16181A;--ink2:#6B6E70;--calm:#2F5BEA;--sans:'IBM Plex Sans','Helvetica Neue',Arial,sans-serif;--mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;--disp:'Archivo','Helvetica Neue',Arial,sans-serif}
 @media (prefers-color-scheme:dark){:root{--bg:#121314;--panel:#18191B;--line:#34363A;--ink:#ECEAE4;--ink2:#9A9C98}}
 *{box-sizing:border-box;margin:0}
-body{background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);max-width:880px;margin:0 auto;padding:40px 24px 64px}
-header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid var(--ink);padding-bottom:12px;font:12px var(--mono);color:var(--ink2)}
-header b{font:700 18px var(--disp);color:var(--ink);letter-spacing:-.01em}
-.ring{display:inline-block;width:11px;height:11px;border-radius:50%;border:3px solid var(--calm);margin-right:8px;vertical-align:0}
-h1{font:700 clamp(36px,6vw,60px)/1.02 var(--disp);letter-spacing:-.02em;margin:48px 0 16px;max-width:14ch}
-.lead{color:var(--ink2);max-width:60ch}
+html{font-size:clamp(15px,.66rem + .45vmin + .08vw,22px)}
+body{background:var(--bg);color:var(--ink);font:1rem/1.6 var(--sans);max-width:180rem;margin:0 auto;padding:0 clamp(1.25rem,3.2vw,4rem) 4rem}
+a{color:inherit;text-decoration:none}
+a:hover{color:var(--calm)}
+:focus-visible{outline:2px solid var(--calm);outline-offset:5px}
+header{min-height:4.25rem;display:flex;justify-content:space-between;align-items:center;gap:1.5rem;border-bottom:1px solid var(--line)}
+.brand{font:750 .75rem var(--disp);letter-spacing:.08em}
+.family{display:flex;align-items:center;flex-wrap:wrap;gap:.3rem 1.5rem;font:500 .75rem/1.5 var(--mono)}
+.family a,.family button{display:inline-flex;align-items:center;min-height:44px}
+.hero{padding:5rem 0 4rem;display:grid;grid-template-columns:1.1fr 1fr;align-items:center;gap:clamp(2rem,6vw,7rem);min-height:36rem}
+.label{font:500 .7rem/1.5 var(--mono);letter-spacing:.08em;color:var(--ink2);margin-bottom:2rem}
+h1{font:750 clamp(3rem,5.5vw,6rem)/1 var(--disp);letter-spacing:-.045em;margin:0 0 1.5rem}
+h1 span{display:block}
+.lead{color:var(--ink2);font-size:1.0625rem;line-height:1.7;max-width:36rem;margin-bottom:2rem}
+.cta{display:inline-flex;align-items:center;gap:1.5rem;min-height:52px;padding:0 1.5rem 0 1.25rem;border-radius:6px;background:var(--calm);color:#fff;font:500 .8125rem/1 var(--mono);letter-spacing:.04em}
+.cta:hover{color:#fff;box-shadow:0 0 0 3px rgb(47 91 234 / 15%)}
+.light-panel{margin:0;border:1px solid var(--line);border-radius:10px;padding:2rem;background:color-mix(in srgb,var(--bg) 96%,var(--calm) 4%);min-width:0}
+.light-panel svg{display:block;width:100%;height:auto}
+.light-panel text{font-family:var(--mono)}
+.light-paper{fill:var(--bg)}.light-case{fill:color-mix(in srgb,var(--bg) 94%,var(--ink) 6%);stroke:var(--line)}
+.light-ring{fill:var(--bg);stroke:var(--line);stroke-width:2}.light-text{fill:var(--ink2)}.light-play{fill:var(--ink)}
+.entries{border-top:1px solid var(--line);padding-top:2rem}
+.entries h2{font:400 clamp(1.5rem,2.5vw,2rem)/1.3 var(--disp);color:var(--ink);border:0;padding:0;margin:0}
+.skip{position:absolute;left:-9999px}.skip:focus{left:1rem;top:1rem;background:var(--bg);padding:1rem;z-index:5}
+@media(max-width:760px){header{align-items:flex-start;padding-block:1rem;flex-direction:column;gap:.5rem}.family{gap:0 1.2rem}.hero{grid-template-columns:1fr;min-height:0;padding:2.5rem 0 3rem;gap:3rem}h1{font-size:clamp(3rem,11vw,5rem)}.light-panel{padding:1.4rem}.label{margin-bottom:1.25rem}}
+
 h2{font:12px var(--mono);color:var(--ink2);border-bottom:1px solid var(--ink);padding-bottom:8px;margin-top:48px}
 a.row{display:grid;grid-template-columns:40px 1fr auto;gap:16px;padding:14px 0;border-bottom:1px solid var(--line);color:var(--ink);text-decoration:none}
 a.row:hover b{text-decoration:underline;text-underline-offset:3px}
@@ -29,13 +49,16 @@ code,.desc{font:12.5px var(--mono);color:var(--ink2)}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://play.ledring.dev/assets/og-play.png">
 </head><body>
-<header><span><span class="ring"></span><b>ledring</b></span><span data-i18n="0">catalogue no. 417 · github pages</span><button id="langsw" type="button" style="font:inherit;color:inherit;background:none;border:0;cursor:pointer"></button></header>
-<h1 data-i18n="1">Status lights for AI agents.</h1>
-<p class="lead" data-i18n="2">Explore agent runs. Build something with AI.</p>
+<a class="skip" href="#main">Skip to content</a>
+<header><a class="brand" href="/">Play</a><nav class="family" aria-label="LEDRING family"><a href="https://ledring.dev/tools/">Tools</a><a href="https://ledring.dev/projects/">Projects</a><a href="https://ledring.dev/notes/">Notes</a><a href="https://ledring.dev/">Home ↗</a><button id="langsw" type="button" style="font:inherit;color:inherit;background:none;border:0;cursor:pointer"></button></nav></header>
+<main id="main">
+<section class="hero" aria-labelledby="title"><div><p class="label">LEDRING PLAY</p><h1 id="title"><span data-i18n="15">A little light.</span><span data-i18n="16">A little play.</span></h1><p class="lead" data-i18n="2">Take a browser break. Explore LEDRING status lights and play with free AI, no key needed.</p><a class="cta" href="play/"><span data-i18n="17">Play in the browser</span><span aria-hidden="true">↗</span></a></div>
+<figure class="light-panel"><svg viewBox="0 0 520 400" role="img" aria-labelledby="light-title"><title id="light-title">LEDRING status light ring and play symbol</title><rect width="520" height="400" class="light-paper"/><rect x="96" y="48" width="328" height="304" rx="16" class="light-case"/><text x="128" y="88" class="light-text" font-size="12" letter-spacing="3">L E D R I N G</text><circle cx="260" cy="196" r="80" class="light-ring"/><g fill="#2F5BEA"><circle cx="260" cy="132" r="12"/><circle cx="308" cy="148" r="12"/><circle cx="260" cy="260" r="12"/><circle cx="212" cy="148" r="12"/></g><g fill="#8fa5d8"><circle cx="324" cy="196" r="12"/><circle cx="308" cy="244" r="12"/></g><g fill="#c9cbc7"><circle cx="212" cy="244" r="12"/><circle cx="196" cy="196" r="12"/></g><path d="M248 176L280 196L248 216Z" class="light-play"/><text x="128" y="320" font-size="12" class="light-text">STATUS LIGHTS × BROWSER PLAY</text></svg></figure></section>
+<section class="entries" aria-labelledby="entries-title"><h2 id="entries-title" data-i18n="18">Free AI. No key. A browser is enough.</h2>
 <nav class="paths">
 <a class="path" href="demo/"><span class="path-no">01 ↗</span><b data-i18n="6">View reports</b><span class="desc" data-i18n="7">Explore an agent run, branch by branch.</span></a>
 <a class="path" href="play/"><span class="path-no">02 ↗</span><b data-i18n="3">Start playing</b><span class="desc" data-i18n="4">Build with free AI, or try a demo preset.</span></a>
-</nav>
+</nav></section>
 <h2 data-i18n="8">sample reports · synthetic fixtures</h2>
 <a class="row" href="examples/claude-code.html"><span class="no">01</span><span><b data-i18n="9">Claude Code · fix login bug</b><br><code>ledring flowchart fixtures/claude-code --out report.html</code></span><span class="go" data-i18n="14">open →</span></a>
 <a class="row" href="examples/claude-code-zh.html"><span class="no">02</span><span><b data-i18n="10">Same report, Chinese chrome</b><br><code>ledring flowchart fixtures/claude-code --lang zh</code></span><span class="go" data-i18n="14">open →</span></a>
@@ -43,4 +66,5 @@ code,.desc{font:12.5px var(--mono);color:var(--ink2)}
 <a class="row" href="examples/instability.txt"><span class="no">04</span><span><b data-i18n="12">Instability · six runs</b><br><code>ledring instability fixtures/claude-code</code></span><span class="go" data-i18n="14">open →</span></a>
 <h2 data-i18n="13">source</h2>
 <a class="row" href="https://github.com/FelixFangX/ledring"><span class="no">◇</span><span><b>github.com/FelixFangX/ledring</b></span><span class="go">→</span></a>
-<script>(function(){var q=new URLSearchParams(location.search).get('lang'),l;try{if(q==='en'||q==='zh'){localStorage.setItem('ledring-lang',q);localStorage.setItem('ledring-lang-explicit','1');l=q}else if(localStorage.getItem('ledring-lang-explicit')==='1')l=localStorage.getItem('ledring-lang')}catch(e){}if(l!=='en'&&l!=='zh')l=navigator.language.toLowerCase().startsWith('zh')?'zh':'en';document.documentElement.lang=l==='zh'?'zh-CN':'en'; const zh=l==='zh',rows=[["catalogue no. 417 · github pages", "图录 417 · GitHub 页面"], ["Status lights for AI agents.", "AI 智能体的状态灯。"], ["Explore agent runs. Build something with AI.", "回看智能体运行，也亲手用 AI 构建。"], ["Start playing", "开玩"], ["Build with free AI, or try a demo preset.", "用免费 AI 构建，或体验演示预设。"], ["concept demo · fictional data", "概念演示 · 虚构数据"], ["View reports", "看报告"], ["Explore an agent run, branch by branch.", "沿着分支，回看智能体的一次运行。"], ["sample reports · synthetic fixtures", "示例报告 · 合成数据"], ["Claude Code · fix login bug", "Claude Code · 修复登录错误"], ["Same report, Chinese chrome", "同一报告的中文版"], ["OTel GenAI · weather agent", "OTel GenAI · 天气智能体"], ["Instability · six runs", "不稳定度 · 六次运行"], ["source", "源码"], ["open →", "打开 →"]];document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=rows[+e.dataset.i18n][zh?1:0]);const sw=document.getElementById('langsw');sw.textContent=zh?'EN':'中文';sw.lang=zh?'en':'zh-CN';sw.setAttribute('aria-label',zh?'切换到英文':'Switch to Chinese');sw.onclick=()=>{const u=new URL(location.href);u.searchParams.set('lang',zh?'en':'zh');location.href=u};document.title=zh?'LEDRING — AI 智能体的状态灯':'ledring — status lights for AI agents';document.querySelectorAll('meta[name="description"],meta[property="og:description"]').forEach(e=>e.content=zh?'AI 智能体的状态灯。独立文件，离线回放分支。':'Status lights for AI agents. A self-contained branch replay report.');document.querySelector('meta[property="og:title"]').content=document.title;document.querySelectorAll('a[href="play/"],a[href="demo/"],a[href="/"],a[href="/play/"]').forEach(e=>e.href+='?lang='+l);if(zh)document.querySelectorAll('a[href^="examples/"]').forEach(e=>{if(e.getAttribute('href').endsWith('.html')&&!e.href.endsWith('-zh.html'))e.href=e.getAttribute('href').replace('.html','-zh.html')});document.documentElement.style.visibility='';})();</script></body></html>
+</main>
+<script>(function(){var q=new URLSearchParams(location.search).get('lang'),l;try{if(q==='en'||q==='zh'){localStorage.setItem('ledring-lang',q);localStorage.setItem('ledring-lang-explicit','1');l=q}else if(localStorage.getItem('ledring-lang-explicit')==='1')l=localStorage.getItem('ledring-lang')}catch(e){}if(l!=='en'&&l!=='zh')l=navigator.language.toLowerCase().startsWith('zh')?'zh':'en';document.documentElement.lang=l==='zh'?'zh-CN':'en'; const zh=l==='zh',rows=[["catalogue no. 417 · github pages", "图录 417 · GitHub 页面"], ["Status lights for AI agents.", "AI 智能体的状态灯。"], ["Take a browser break. Explore LEDRING status lights and play with free AI, no key needed.", "在浏览器里休息片刻。探索 LEDRING 状态灯，用免费 AI 开玩，无需密钥。"], ["Start playing", "开玩"], ["Build with free AI, or try a demo preset.", "用免费 AI 构建，或体验演示预设。"], ["concept demo · fictional data", "概念演示 · 虚构数据"], ["View reports", "看报告"], ["Explore an agent run, branch by branch.", "沿着分支，回看智能体的一次运行。"], ["sample reports · synthetic fixtures", "示例报告 · 合成数据"], ["Claude Code · fix login bug", "Claude Code · 修复登录错误"], ["Same report, Chinese chrome", "同一报告的中文版"], ["OTel GenAI · weather agent", "OTel GenAI · 天气智能体"], ["Instability · six runs", "不稳定度 · 六次运行"], ["source", "源码"], ["open →", "打开 →"], ["A little light.", "一点光。"], ["A little play.", "一点乐趣。"], ["Play in the browser", "在浏览器里开玩"], ["Free AI. No key. A browser is enough.", "免费 AI，无需密钥。一个浏览器就够了。"]];document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=rows[+e.dataset.i18n][zh?1:0]);const sw=document.getElementById('langsw');sw.textContent=zh?'EN':'中文';sw.lang=zh?'en':'zh-CN';sw.setAttribute('aria-label',zh?'切换到英文':'Switch to Chinese');sw.onclick=()=>{const u=new URL(location.href);u.searchParams.set('lang',zh?'en':'zh');location.href=u};document.title=zh?'LEDRING — AI 智能体的状态灯':'ledring — status lights for AI agents';document.querySelectorAll('meta[name="description"],meta[property="og:description"]').forEach(e=>e.content=zh?'AI 智能体的状态灯。独立文件，离线回放分支。':'Status lights for AI agents. A self-contained branch replay report.');document.querySelector('meta[property="og:title"]').content=document.title;document.querySelectorAll('a[href="play/"],a[href="demo/"],a[href="/"],a[href="/play/"]').forEach(e=>e.href+='?lang='+l);if(zh)document.querySelectorAll('a[href^="examples/"]').forEach(e=>{if(e.getAttribute('href').endsWith('.html')&&!e.href.endsWith('-zh.html'))e.href=e.getAttribute('href').replace('.html','-zh.html')});document.documentElement.style.visibility='';})();</script></body></html>
