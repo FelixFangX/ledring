@@ -137,15 +137,109 @@ async function likeStrand(request: Request, store: StrandStore, id: string, now:
   return json(200, { likes: fresh.likes });
 }
 
+
+const OPENAPI = {
+  openapi: "3.0.3",
+  info: {
+    title: "ledring-play-strands",
+    version: "0.1.0",
+    description: "Strands, likes, and free AI chat for LEDRING Play. near is a 2-hex lexical bucket (00–ff), not an embedding.",
+  },
+  servers: [{ url: "https://api.ledring.dev" }],
+  paths: {
+    "/health": {
+      get: {
+        summary: "Health",
+        responses: { "200": { description: "ok" } },
+      },
+    },
+    "/strands": {
+      get: {
+        summary: "List strands near a bucket",
+        parameters: [
+          {
+            name: "near",
+            in: "query",
+            required: true,
+            schema: { type: "string", pattern: "^[0-9a-fA-F]{2}$" },
+            example: "a7",
+            description: "Center bucket (2 hex chars). Returns that bucket and its two neighbours.",
+          },
+        ],
+        responses: {
+          "200": { description: "strands list" },
+          "400": { description: "invalid near" },
+        },
+      },
+      post: {
+        summary: "Publish a strand (opt-in required)",
+        responses: {
+          "201": { description: "created" },
+          "400": { description: "invalid request" },
+          "403": { description: "opt-in required" },
+          "429": { description: "rate limited" },
+        },
+      },
+      options: { summary: "CORS preflight", responses: { "204": { description: "no content" } } },
+    },
+    "/strands/{id}/like": {
+      post: {
+        summary: "Like a strand",
+        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        responses: { "200": { description: "likes count" }, "404": { description: "not found" } },
+      },
+    },
+    "/ai/chat": {
+      post: {
+        summary: "Free AI chat (daily quota)",
+        responses: {
+          "200": { description: "chat completion" },
+          "429": { description: "quota exhausted" },
+        },
+      },
+      options: { summary: "CORS preflight", responses: { "204": { description: "no content" } } },
+    },
+    "/openapi.json": {
+      get: { summary: "OpenAPI document", responses: { "200": { description: "OpenAPI 3 JSON" } } },
+    },
+  },
+} as const;
+
+const DOCS_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ledring-play-strands</title><style>body{font:15px/1.5 system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;color:#16181A;background:#F3F2EE}a{color:#2F5BEA}code{font:13px ui-monospace,Menlo,monospace;background:#E8E6E0;padding:.1em .35em;border-radius:4px}pre{background:#E8E6E0;padding:12px;overflow:auto;border-radius:8px}h1{font-size:1.6rem;letter-spacing:-.02em}</style></head><body><h1>ledring-play-strands</h1><p>Play backend for strands, likes, and free AI chat.</p><ul><li><a href="/openapi.json">/openapi.json</a></li><li><code>GET /strands?near=a7</code> — 2-hex bucket + neighbours</li><li><code>POST /strands</code> · <code>POST /strands/:id/like</code> · <code>POST /ai/chat</code></li></ul><p><a href="https://ledring.dev/">ledring.dev</a> · <a href="https://play.ledring.dev/">play</a></p></body></html>`;
+
 export async function handleStrands(request: Request, store: StrandStore, now = Date.now(), ai?: WorkersAi): Promise<Response> {
   const url = new URL(request.url);
   if (url.pathname === "/ai/chat") return handleAiChat(request, store, now, ai);
-  if (request.method === "OPTIONS") return json(204, {});
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "access-control-allow-origin": "*",
+        "access-control-allow-methods": "GET, POST, OPTIONS",
+        "access-control-allow-headers": "content-type",
+        "cache-control": "no-store",
+      },
+    });
+  }
+  if (request.method === "GET" && (url.pathname === "/openapi.json")) {
+    return json(200, OPENAPI);
+  }
+  if (request.method === "GET" && (url.pathname === "/docs" || url.pathname === "/docs/")) {
+    return new Response(DOCS_HTML, {
+      status: 200,
+      headers: {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=300",
+        "access-control-allow-origin": "*",
+      },
+    });
+  }
   if (request.method === "GET" && (url.pathname === "/" || url.pathname === "/health")) {
     return json(200, {
       ok: true,
       service: "ledring-play-strands",
-      routes: ["GET /health", "GET /strands?near=<bucket>", "POST /strands", "POST /strands/:id/like", "POST /ai/chat"],
+      routes: ["GET /health", "GET /strands?near=<bucket>", "POST /strands", "POST /strands/:id/like", "POST /ai/chat", "GET /openapi.json", "GET /docs"],
+      nearExample: "/strands?near=a7",
     });
   }
   await store.purge(now);
