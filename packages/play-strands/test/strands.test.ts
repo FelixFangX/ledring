@@ -274,6 +274,31 @@ describe("free AI chat", () => {
     expect(strands.headers.get("access-control-allow-origin")).toBe("*");
   });
 
+  it("answers OPTIONS on /strands with empty 204", async () => {
+    const res = await handleStrands(new Request("https://strands.ledring.test/strands", { method: "OPTIONS", headers: { origin: "https://play.ledring.dev" } }), memoryStore());
+    expect(res.status).toBe(204);
+    expect(await res.text()).toBe("");
+    expect(res.headers.get("access-control-allow-origin")).toBe("*");
+  });
+
+  it("serves openapi.json and docs", async () => {
+    const openapi = await handleStrands(new Request("https://strands.ledring.test/openapi.json"), memoryStore());
+    expect(openapi.status).toBe(200);
+    const body = await openapi.json() as { openapi: string; paths: Record<string, unknown> };
+    expect(body.openapi).toMatch(/^3\./);
+    expect(body.paths["/strands"]).toBeTruthy();
+    const docs = await handleStrands(new Request("https://strands.ledring.test/docs"), memoryStore());
+    expect(docs.status).toBe(200);
+    expect(docs.headers.get("content-type")).toMatch(/text\/html/);
+  });
+
+  it("documents a valid near example on health", async () => {
+    const res = await handleStrands(new Request("https://strands.ledring.test/health"), memoryStore());
+    const body = await res.json() as { nearExample: string };
+    expect(body.nearExample).toBe("/strands?near=a7");
+  });
+
+
   it("rejects an oversized body before calling the model", async () => {
     const seen = { calls: 0 };
     const store = memoryStore();
