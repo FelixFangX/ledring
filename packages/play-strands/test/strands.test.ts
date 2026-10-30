@@ -234,6 +234,9 @@ describe("free AI chat", () => {
       ai(['data: {"response":"O"}\n\n', 'data: {"response":"OK"}\n\ndata: [DONE]\n\n'], seen),
     );
     expect(response.status).toBe(200);
+    expect(response.headers.get("x-ratelimit-limit")).toBe(String(AI_IP_DAY_LIMIT));
+    expect(response.headers.get("access-control-expose-headers")).toContain("X-RateLimit-Limit");
+    expect(response.headers.get("retry-after")).toBeNull();
     expect(response.headers.get("content-type")).toContain("text/event-stream");
     expect(response.headers.get("access-control-allow-origin")).toBe("https://felixfangx.github.io");
     const text = await response.text();
@@ -287,9 +290,16 @@ describe("free AI chat", () => {
     const body = await openapi.json() as { openapi: string; paths: Record<string, unknown> };
     expect(body.openapi).toMatch(/^3\./);
     expect(body.paths["/strands"]).toBeTruthy();
+    const chatDocs = body.paths["/ai/chat"] as { post: { responses: Record<string, { headers: Record<string, unknown> }> } };
+    for (const status of ["200", "400", "403", "405", "413", "429", "503"]) {
+      expect(chatDocs.post.responses[status]?.headers["X-RateLimit-Limit"]).toBeTruthy();
+    }
+    expect(chatDocs.post.responses["429"]?.headers["Retry-After"]).toBeTruthy();
     const docs = await handleStrands(new Request("https://strands.ledring.test/docs"), memoryStore());
     expect(docs.status).toBe(200);
     expect(docs.headers.get("content-type")).toMatch(/text\/html/);
+    const docsText = await docs.text();
+    for (const term of ["rate_limited", "quota_exhausted", "unavailable", "invalid_request", "origin", "method", "input_too_large", "X-RateLimit-Limit", "Retry-After", "Access-Control-Expose-Headers", "2-hex bucket + neighbours"]) expect(docsText).toContain(term);
   });
 
   it("documents a valid near example on health", async () => {
@@ -320,6 +330,9 @@ describe("free AI chat", () => {
     }
     const limited = await handleStrands(chat(okBody), store, 4_000, model);
     expect(limited.status).toBe(429);
+    expect(limited.headers.get("x-ratelimit-limit")).toBe(String(AI_IP_DAY_LIMIT));
+    expect(limited.headers.get("retry-after")).toBe("86396");
+    expect(limited.headers.get("access-control-expose-headers")).toContain("Retry-After");
     const limitedBody = (await limited.json()) as { error: { code: string; message: string } };
     expect(limitedBody.error.code).toBe("rate_limited");
     expect(limitedBody.error.message).toContain("your own key");
@@ -333,6 +346,8 @@ describe("free AI chat", () => {
     }
     const exhausted = await handleStrands(chat(okBody, { ip: "198.51.100.9" }), store, 4_000, model);
     expect(exhausted.status).toBe(429);
+    expect(exhausted.headers.get("x-ratelimit-limit")).toBe(String(AI_IP_DAY_LIMIT));
+    expect(exhausted.headers.get("retry-after")).toBe("86396");
     const exhaustedBody = (await exhausted.json()) as { error: { code: string; message: string } };
     expect(exhaustedBody.error.code).toBe("quota_exhausted");
     expect(exhaustedBody.error.message).toContain("shared quota");
@@ -348,6 +363,8 @@ describe("free AI chat", () => {
     };
     const response = await handleStrands(chat(okBody), store, 5_000, failing);
     expect(response.status).toBe(429);
+    expect(response.headers.get("x-ratelimit-limit")).toBe(String(AI_IP_DAY_LIMIT));
+    expect(response.headers.get("retry-after")).toBe("86395");
     const body = (await response.json()) as { error: { code: string; message: string } };
     expect(body.error.code).toBe("quota_exhausted");
     expect(body.error.message).not.toContain("account");

@@ -56,6 +56,8 @@ function drawFlow(anim){ft.forEach(clearTimeout);ft=[];let h=`<g class="grid-bg"
  const svg=$("#flowsvg");svg.innerHTML=h;
  const lit=$$("#flowsvg .fedge.lit");lit.forEach(p=>{const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=anim?L:0});
  $$("#flowsvg .fnode").forEach(g=>{g.onclick=()=>scanNode(N[g.dataset.id],g);g.onkeydown=e=>{if(e.key==="Enter")g.onclick()}});
+ const first=$("#flowsvg .fnode[data-id=\"b\"]")||$("#flowsvg .fnode");
+ if(first)scanNode(N[first.dataset.id],first);else $("#scan").innerHTML="";
  if(!anim){$$("#flowsvg .fnode").forEach(g=>{if(N[g.dataset.id].lit)g.classList.add("lit")});return}
  ["a","b","c","f","g","i"].forEach((id,k)=>ft.push(setTimeout(()=>{$(`.fnode[data-id="${id}"]`).classList.add("lit");
   lit.forEach(p=>{if(DATA.flow.edges[p.dataset.i][0]!==id)return;p.style.transition="stroke-dashoffset .5s linear";p.style.strokeDashoffset=0;ft.push(setTimeout(()=>{const l=$(`.pl[data-i="${p.dataset.i}"]`);if(l)l.style.opacity=1},450))})},k*480)))}

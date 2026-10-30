@@ -2,7 +2,7 @@ const DATA={
  run:{id:"run-17",agent:"CX-417",instruction:"Fix the login bug. Do not modify the tests.",runs:50},
  flow:{nodes:[
   {id:"a",x:20,y:210,t:"plan",lit:1,d:{kind:"plan",in:"Fix the login bug. Do not modify the tests.",model:"demo-model"}},
-  {id:"b",x:190,y:210,t:"read_file auth.ts",lit:1,d:{kind:"tool",tool:"read_file",args:'{"path":"src/auth.ts"}'}},
+  {id:"b",x:190,y:210,t:"read_file auth.ts",lit:1,d:{kind:"tool",tool:"read_file",args:'{"path":"src/auth.ts"}',result:'export function login(session) { return session.user.id; }'}},
   {id:"c",x:380,y:90,t:"edit auth.ts",lit:1,d:{kind:"tool",tool:"edit",args:'{"path":"src/auth.ts"}'}},
   {id:"d",x:380,y:230,t:"web_search",lock:1,d:{kind:"tool",tool:"web_search",note:"taken by other runs"}},
   {id:"e",x:380,y:370,t:"edit *.test.ts",lock:1,fail:1,d:{kind:"tool",tool:"edit",note:"constraint broken: test files edited"}},

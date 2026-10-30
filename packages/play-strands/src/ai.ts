@@ -44,6 +44,8 @@ function aiHeaders(origin: string | null, contentType: string): Headers {
     "content-type": contentType,
     "cache-control": "no-store",
     vary: "origin",
+    "X-RateLimit-Limit": String(AI_IP_DAY_LIMIT),
+    "Access-Control-Expose-Headers": "X-RateLimit-Limit, Retry-After",
   });
   if (origin) {
     headers.set("access-control-allow-origin", origin);
@@ -53,8 +55,10 @@ function aiHeaders(origin: string | null, contentType: string): Headers {
   return headers;
 }
 
-function aiJson(status: number, origin: string | null, body: unknown): Response {
-  return new Response(JSON.stringify(body), { status, headers: aiHeaders(origin, "application/json; charset=utf-8") });
+function aiJson(status: number, origin: string | null, body: unknown, now?: number): Response {
+  const headers = aiHeaders(origin, "application/json; charset=utf-8");
+  if (status === 429 && now !== undefined) headers.set("Retry-After", String(Math.ceil((DAY_MS - (now % DAY_MS)) / 1000)));
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 function clientIp(request: Request): string {
@@ -228,11 +232,11 @@ export async function handleAiChat(request: Request, store: StrandStore, now: nu
   const day = now - (now % DAY_MS);
   const ipHash = await blind(`ip:${clientIp(request)}`);
   if ((await store.takeQuota(ipHash, "ai", day, AI_IP_DAY_LIMIT)) === "limited") {
-    return aiJson(429, origin, { error: { message: RATE_MESSAGE, code: "rate_limited" } });
+    return aiJson(429, origin, { error: { message: RATE_MESSAGE, code: "rate_limited" } }, now);
   }
   const globalHash = await blind("global:ai");
   if ((await store.takeQuota(globalHash, "ai", day, AI_GLOBAL_DAY_LIMIT)) === "limited") {
-    return aiJson(429, origin, { error: { message: QUOTA_MESSAGE, code: "quota_exhausted" } });
+    return aiJson(429, origin, { error: { message: QUOTA_MESSAGE, code: "quota_exhausted" } }, now);
   }
 
   let result: unknown;
@@ -243,7 +247,7 @@ export async function handleAiChat(request: Request, store: StrandStore, now: nu
     const quota = /neuron|quota|429|capacity/i.test(text);
     return aiJson(quota ? 429 : 503, origin, {
       error: { message: quota ? QUOTA_MESSAGE : UNAVAILABLE_MESSAGE, code: quota ? "quota_exhausted" : "unavailable" },
-    });
+    }, now);
   }
   return new Response(toOpenAiSse(result), { status: 200, headers: aiHeaders(origin, "text/event-stream; charset=utf-8") });
 }

@@ -138,6 +138,28 @@ async function likeStrand(request: Request, store: StrandStore, id: string, now:
 }
 
 
+const AI_RATE_HEADERS = {
+  "X-RateLimit-Limit": { description: "Per-IP daily request cap (AI_IP_DAY_LIMIT); resets at midnight UTC.", schema: { type: "integer" } },
+  "Access-Control-Expose-Headers": { description: "Exposes X-RateLimit-Limit and Retry-After to browsers.", schema: { type: "string" } },
+} as const;
+
+function aiErrorDoc(description: string, codes: string[], retry = false) {
+  return {
+    description,
+    headers: {
+      ...AI_RATE_HEADERS,
+      ...(retry ? { "Retry-After": { description: "Seconds until the next midnight UTC daily window.", schema: { type: "integer", minimum: 1 } } } : {}),
+    },
+    content: { "application/json": { schema: {
+      type: "object", required: ["error"], properties: { error: {
+        type: "object", required: ["message", "code"], properties: {
+          message: { type: "string" }, code: { type: "string", enum: codes },
+        },
+      } },
+    } } },
+  };
+}
+
 const OPENAPI = {
   openapi: "3.0.3",
   info: {
@@ -193,8 +215,13 @@ const OPENAPI = {
       post: {
         summary: "Free AI chat (daily quota)",
         responses: {
-          "200": { description: "chat completion" },
-          "429": { description: "quota exhausted" },
+          "200": { description: "OpenAI-compatible SSE: choices[0].delta.content, then [DONE]. A failure after streaming begins emits an SSE error with code unavailable.", headers: AI_RATE_HEADERS, content: { "text/event-stream": { schema: { type: "string" } } } },
+          "400": aiErrorDoc("Invalid JSON, fields, messages, or parameters", ["invalid_request"]),
+          "403": aiErrorDoc("Origin not allowed (no Access-Control-Allow-Origin)", ["origin"]),
+          "405": aiErrorDoc("Method not allowed", ["method"]),
+          "413": aiErrorDoc("Body or message text too large", ["input_too_large"]),
+          "429": aiErrorDoc("Per-IP cap or shared/provider daily quota exhausted", ["rate_limited", "quota_exhausted"], true),
+          "503": aiErrorDoc("Workers AI missing or unavailable", ["unavailable"]),
         },
       },
       options: { summary: "CORS preflight", responses: { "204": { description: "no content" } } },
@@ -205,7 +232,7 @@ const OPENAPI = {
   },
 } as const;
 
-const DOCS_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ledring-play-strands</title><style>body{font:15px/1.5 system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;color:#16181A;background:#F3F2EE}a{color:#2F5BEA}code{font:13px ui-monospace,Menlo,monospace;background:#E8E6E0;padding:.1em .35em;border-radius:4px}pre{background:#E8E6E0;padding:12px;overflow:auto;border-radius:8px}h1{font-size:1.6rem;letter-spacing:-.02em}</style></head><body><h1>ledring-play-strands</h1><p>Play backend for strands, likes, and free AI chat.</p><ul><li><a href="/openapi.json">/openapi.json</a></li><li><code>GET /strands?near=a7</code> — 2-hex bucket + neighbours</li><li><code>POST /strands</code> · <code>POST /strands/:id/like</code> · <code>POST /ai/chat</code></li></ul><p><a href="https://ledring.dev/">ledring.dev</a> · <a href="https://play.ledring.dev/">play</a></p></body></html>`;
+const DOCS_HTML = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ledring-play-strands</title><style>body{font:15px/1.5 system-ui,sans-serif;max-width:42rem;margin:2rem auto;padding:0 1rem;color:#16181A;background:#F3F2EE}a{color:#2F5BEA}code{font:13px ui-monospace,Menlo,monospace;background:#E8E6E0;padding:.1em .35em;border-radius:4px}pre{background:#E8E6E0;padding:12px;overflow:auto;border-radius:8px}h1{font-size:1.6rem;letter-spacing:-.02em}</style></head><body><h1>ledring-play-strands</h1><p>Play backend for strands, likes, and free AI chat.</p><ul><li><a href="/openapi.json">/openapi.json</a></li><li><code>GET /strands?near=a7</code> — 2-hex bucket + neighbours</li><li><code>POST /strands</code> · <code>POST /strands/:id/like</code> · <code>POST /ai/chat</code></li></ul><h2>Free AI</h2><p><code>POST /ai/chat</code> returns OpenAI-compatible SSE. JSON errors use <code>{"error":{"message":"…","code":"…"}}</code>.</p><ul><li><code>400 invalid_request</code> — invalid JSON, fields, messages, or parameters</li><li><code>403 origin</code> — origin denied</li><li><code>405 method</code> — method denied</li><li><code>413 input_too_large</code> — body or message text too large</li><li><code>429 rate_limited</code> — IP daily cap; <code>quota_exhausted</code> — shared/provider quota</li><li><code>503 unavailable</code> — Workers AI unavailable; failures after streaming begins emit an SSE error with the same code</li></ul><p><code>X-RateLimit-Limit</code> gives the IP daily cap on success and errors. Every 429 includes <code>Retry-After</code>, seconds until midnight UTC. Both are browser-readable via <code>Access-Control-Expose-Headers</code>. Remaining requests are not reported.</p><p><a href="https://ledring.dev/">ledring.dev</a> · <a href="https://play.ledring.dev/">play</a></p></body></html>`;
 
 export async function handleStrands(request: Request, store: StrandStore, now = Date.now(), ai?: WorkersAi): Promise<Response> {
   const url = new URL(request.url);

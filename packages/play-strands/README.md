@@ -52,11 +52,13 @@ binding = "AI"
 Model: `@cf/openai/gpt-oss-120b`. Checked on 2026-10-15 against the Workers AI catalog: it is Cloudflare-hosted, it is not on the paid-only list (that list was Kimi K2.6, Kimi K2.7 Code, and GLM 5.2), and the published price is 31,818 neurons per million input tokens and 68,182 neurons per million output tokens. Workers Free includes 10,000 neurons per day. This route therefore caps each reply at 2,048 tokens, each address at 12 requests per day, and the whole worker at 40 requests per day. Past either cap it returns `429` and does not call the model:
 
 - per address: `error.code` `rate_limited`
-- shared daily quota, or a Workers AI failure: `error.code` `quota_exhausted`
+- shared daily quota, or a Workers AI quota failure: `error.code` `quota_exhausted`
+
+Success and error responses include `X-RateLimit-Limit` (the IP daily cap). Every `429` also includes `Retry-After` (seconds until midnight UTC). `Access-Control-Expose-Headers` exposes both to browsers; remaining requests are not reported. JSON errors keep `{ error: { message, code } }`: `400 invalid_request`, `403 origin`, `405 method`, `413 input_too_large`, `429 rate_limited` / `quota_exhausted`, and `503 unavailable`. A failure after streaming begins emits an SSE error with code `unavailable`.
 
 The body is an OpenAI chat request (`messages`, optional `max_tokens`, optional `temperature`). The response is OpenAI-compatible SSE (`choices[0].delta.content`, then `data: [DONE]`). The client model id is ignored; the worker always runs `@cf/openai/gpt-oss-120b`. Bodies over 48,000 bytes, or message text over 24,000 characters, return `413`.
 
-CORS allows `https://felixfangx.github.io`, plus `http://localhost` and `http://127.0.0.1` on any port (https on those hosts too). Any other `Origin` gets `403` and no `Access-Control-Allow-Origin`. Strand routes stay `*`.
+CORS allows `https://play.ledring.dev`, `https://felixfangx.github.io`, plus `http://localhost` and `http://127.0.0.1` on any port (https on those hosts too). Any other `Origin` gets `403` and no `Access-Control-Allow-Origin`. Strand routes stay `*`.
 
 ## Deploy Free AI (on your machine, after merge)
 

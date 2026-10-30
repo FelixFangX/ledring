@@ -1401,6 +1401,11 @@ const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provide
 function saveProv(){try{localStorage.setItem("ledring-provider",JSON.stringify(PROV))}catch(e){}}
 function provLabel(){if(PROV.mode==="demo")return LANG==="zh"?T.modeDemo:"demo";if(PROV.mode==="ledring")return T.modeLedring;if(PROV.mode==="chatgpt")return LANG==="zh"?T.modeChatgpt:(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)");return PROV[PROV.mode].model}
 function localizeErr(msg){const s=String(msg||"");if(LANG!=="zh"||/[\u3400-\u9fff]/.test(s))return s;const keep=[];const http=s.match(/HTTP\s+\d+/i);if(http)keep.push(http[0]);else{const code=s.match(/\b[45]\d\d\b/);if(code)keep.push(code[0]);}if(s.includes("[redacted]"))keep.push("[redacted]");return T.obFailPlain+(keep.length?" ("+keep.join(" ")+")":"");}
+function freeAiError(code){
+ const labels={rate_limited:["Limited","限流"],quota_exhausted:["Quota","配额"],unavailable:["Offline","离线"],origin:["Blocked","受限"],invalid_request:["Invalid","无效"],input_too_large:["Oversized","过长"],method:["Invalid","无效"]};
+ const label=labels[code]||["Error","错误"];
+ return Object.assign(new Error(label[LANG==="zh"?1:0]),{aiStatus:true});
+}
 function pingSystem(){return "Reply with the single word OK.\n"+languageDirective(LANG);}
 
 function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ollama"]){const key=PROV[k]&&PROV[k].key;if(key&&key.length>=6)out=out.split(key).join("[redacted]");}
@@ -1415,11 +1420,11 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
   const r=await strandsFetch("/ai/chat",{method:"POST",signal:ctl.signal,headers:{"content-type":"application/json"},
    body:JSON.stringify({stream:true,max_tokens:Math.min(2048,maxTokens||2048),temperature:0.6,messages:[{role:"system",content:system},{role:"user",content:user}]})});
   if(!r.ok){
-   let msg="HTTP "+r.status;
-   try{const j=await r.json();const e=j&&j.error;if(e&&(e.code==="quota_exhausted"||e.code==="rate_limited"))msg=T.obQuota;else if(e&&e.code==="input_too_large")msg=T.obTooBig;else if(e&&e.message)msg=localizeErr(e.message);else if(typeof e==="string"&&e)msg=localizeErr(e);}catch(parseErr){}
-   throw new Error(redactMsg(msg));
+   let code;
+   try{const j=await r.json();code=j&&j.error&&j.error.code;}catch(parseErr){}
+   throw freeAiError(code);
   }
-  await readSSE(r,j=>{const d=j.choices&&j.choices[0]&&(j.choices[0].delta||j.choices[0].message);if(d&&d.content){full+=d.content;onDelta(full)} if(j.error)throw new Error((j.error&&j.error.message)||j.error||"stream error")});
+  await readSSE(r,j=>{const d=j.choices&&j.choices[0]&&(j.choices[0].delta||j.choices[0].message);if(d&&d.content){full+=d.content;onDelta(full)} if(j.error)throw freeAiError(j.error.code)});
   return full;
  }
  if(BRIDGE&&(m==="chatgpt"||(c&&c.bridgeConfigured&&!c.key))){
@@ -2850,7 +2855,7 @@ addEventListener("keydown",e=>{
 $("#p-forget").onclick=()=>{PROV[PROV.mode].key="";PROV[PROV.mode].bridgeConfigured=false;saveProv();$("#p-key").value="";$("#p-key").placeholder="sk-…";const ks=$("#p-key-saved");if(ks)ks.textContent="";$("#p-status").textContent=T.pForgot;paintHints();};
 $("#p-test").onclick=async()=>{readFields();$("#p-status").textContent="…";
  try{const t=await streamChat(pingSystem(),"ping",()=>{},16);$("#p-status").innerHTML=`<span style="color:#116B36">${T.pOk}</span> ${esc(t.slice(0,30))}`}
- catch(e){$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(localizeErr(redactMsg(e.message||e)))}`}};
+ catch(e){if(e.aiStatus){$("#p-status").textContent=e.message;return;}$("#p-status").innerHTML=`<span style="color:#B8141E">${T.pFail}</span>${esc(localizeErr(redactMsg(e.message||e)))}`}};
 /* ================= ONBOARDING (PRE-FLIGHT CALIBRATION) ================= */
 Object.assign(DICT.en,{
  obEye:"CONNECTION",obCx:"CX-417 · your AI builder",
@@ -2872,8 +2877,6 @@ Object.assign(DICT.en,{
  obPrivSiwcSoon:"Sign in with ChatGPT is gated by LEDRING_SIWC. It is never faked on static pages.",
  obPrivFree:"No key is stored. This page calls LEDRING only when you check availability or start a build. The choice stays in this browser's localStorage.",
  obLimFree:"There is a shared daily quota. Replies are capped. When it is used up, use your own API key.",
- obQuota:"Today's free quota is used up. Try again tomorrow, or use your own API key.",
- obTooBig:"That request is too large for the free model. Shorten it, or use your own API key.",
  obPrivDemo:"Built-in examples respond to your choices. No AI calls and no key.",
  obTestBtn:"⚡ Check availability",obTesting:"Checking whether it responds…",obTestOk:"Available ✓",obTestDemoOk:"Built-in examples are ready, offline. No AI call ✓",
  obSkip:"Skip and find an idea →",obCont:"Continue to find an idea ▶",obReopen:"⇄ Choose the connection again"
@@ -2898,8 +2901,6 @@ Object.assign(DICT.zh,{
  obPrivSiwcSoon:"使用 ChatGPT 登录需要在本机桥接设置 LEDRING_SIWC。这个页面不会假装已经连上。",
  obPrivFree:"不保存密钥。只有在你检查是否可用或开始构建时，这个页面才会发出请求。选择保存在本机 localStorage。",
  obLimFree:"有共享每日额度。回复长度有上限。额度用尽后，请使用自己的 API 密钥。",
- obQuota:"今天的免费额度已经用完。请明天再试，或使用自己的 API 密钥。",
- obTooBig:"内容太长，免费 AI 放不下。请缩短，或使用自己的 API 密钥。",
  obPrivDemo:"内置示例会随你的选择变化，不调用 AI，也不需要密钥。",
  obTestBtn:"⚡ 检查是否可用",obTesting:"正在检查是否可用……",obTestOk:"可以用 ✓",obTestDemoOk:"内置示例可用，不会调用 AI ✓",
  obSkip:"跳过，先去寻找点子 →",obCont:"继续，寻找点子 ▶",obReopen:"⇄ 重新选择连接方式"
@@ -3038,7 +3039,7 @@ async function runObTest(){
   SFX.play("win");ringSVG($("#obring"),"calm");paintOnboard();return true;
  }catch(e){
   OB.testing=false;OB.tested=false;OB.testTone="err";
-  OB.testStatus=T.pFail+localizeErr(redactMsg(e&&e.message||e));
+  OB.testStatus=e.aiStatus?e.message:T.pFail+localizeErr(redactMsg(e&&e.message||e));
   SFX.play("lose");ringSVG($("#obring"),"crit");paintOnboard();return false;
  }
 }

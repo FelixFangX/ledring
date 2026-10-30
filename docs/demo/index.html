@@ -308,7 +308,7 @@ html:lang(zh-CN) #flowsvg text,html:lang(zh-CN) #mapsvg text{font-stretch:100%;t
   <div class="flowg">
     <div class="flowfig"><svg id="flowsvg" viewBox="0 44 960 412"></svg>
       <div class="fig"><span class="cap">fig. 1 — branch trie, run-set fix-auth, n = 50</span><div class="legend cap"><span><i></i>taken, #17</span><span class="l2"><i></i>other runs</span><span class="l3"><i></i>blocked</span></div></div></div>
-    <div class="flowside"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">selected plate</div><div id="scan"><div class="empty" style="margin-top:14px"><b>Nothing selected.</b>Click any plate in fig. 1 to see the tool call, its arguments and what happened next.</div></div></div>
+    <div class="flowside"><div class="cap" style="border-bottom:1px solid var(--ink);padding-bottom:8px">selected plate</div><div id="scan"></div></div>
   </div>
 </section>
 
@@ -439,7 +439,6 @@ const I18N_ROWS=[
 ["flow.p",'Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.',"五十次运行，汇为一图。粗线为 <b>#17</b>，虚线为他次所经。边上之数，为行至此岔者择此一路之比。点选铭牌，可究其详。"],
 ["flow.redraw","Redraw","重绘"],["flow.fig","fig. 1 — branch trie, run-set fix-auth, n = 50","图一　分支树，运行集 fix-auth，n = 50"],
 ["flow.taken","taken, #17","#17 所经"],["flow.others","other runs","他次运行"],["flow.blocked","blocked","受阻"],["flow.sel","selected plate","选中"],
-["flow.none","Nothing selected.","尚未选取。"],["flow.none2","Click any plate in fig. 1 to see the tool call, its arguments and what happened next.","点选图一任一铭牌，可见其工具调用、参数与后续。"],
 ["flow.tb","taken · blocked","已经 · 受阻"],["flow.t17","taken in #17","#17 所经"],["flow.lock","locked · taken by other runs","未经 · 他次曾至"],["flow.open","Open in Red Wall","移步红墙"],
 ["k.kind","kind","类型"],["k.in","in","输入"],["k.model","model","模型"],["k.tool","tool","工具"],["k.args","args","参数"],["k.note","note","附注"],["k.outcome","outcome","结局"],
 ["kind.tool","tool","工具"],["kind.end","end","终点"],
@@ -566,7 +565,7 @@ const DATA={
  run:{id:"run-17",agent:"CX-417",instruction:"Fix the login bug. Do not modify the tests.",runs:50},
  flow:{nodes:[
   {id:"a",x:20,y:210,t:"plan",lit:1,d:{kind:"plan",in:"Fix the login bug. Do not modify the tests.",model:"demo-model"}},
-  {id:"b",x:190,y:210,t:"read_file auth.ts",lit:1,d:{kind:"tool",tool:"read_file",args:'{"path":"src/auth.ts"}'}},
+  {id:"b",x:190,y:210,t:"read_file auth.ts",lit:1,d:{kind:"tool",tool:"read_file",args:'{"path":"src/auth.ts"}',result:'export function login(session) { return session.user.id; }'}},
   {id:"c",x:380,y:90,t:"edit auth.ts",lit:1,d:{kind:"tool",tool:"edit",args:'{"path":"src/auth.ts"}'}},
   {id:"d",x:380,y:230,t:"web_search",lock:1,d:{kind:"tool",tool:"web_search",note:"taken by other runs"}},
   {id:"e",x:380,y:370,t:"edit *.test.ts",lock:1,fail:1,d:{kind:"tool",tool:"edit",note:"constraint broken: test files edited"}},
@@ -661,6 +660,8 @@ function drawFlow(anim){ft.forEach(clearTimeout);ft=[];let h=`<g class="grid-bg"
  const svg=$("#flowsvg");svg.innerHTML=h;
  const lit=$$("#flowsvg .fedge.lit");lit.forEach(p=>{const L=p.getTotalLength();p.style.strokeDasharray=L;p.style.strokeDashoffset=anim?L:0});
  $$("#flowsvg .fnode").forEach(g=>{g.onclick=()=>scanNode(N[g.dataset.id],g);g.onkeydown=e=>{if(e.key==="Enter")g.onclick()}});
+ const first=$("#flowsvg .fnode[data-id=\"b\"]")||$("#flowsvg .fnode");
+ if(first)scanNode(N[first.dataset.id],first);else $("#scan").innerHTML="";
  if(!anim){$$("#flowsvg .fnode").forEach(g=>{if(N[g.dataset.id].lit)g.classList.add("lit")});return}
  ["a","b","c","f","g","i"].forEach((id,k)=>ft.push(setTimeout(()=>{$(`.fnode[data-id="${id}"]`).classList.add("lit");
   lit.forEach(p=>{if(DATA.flow.edges[p.dataset.i][0]!==id)return;p.style.transition="stroke-dashoffset .5s linear";p.style.strokeDashoffset=0;ft.push(setTimeout(()=>{const l=$(`.pl[data-i="${p.dataset.i}"]`);if(l)l.style.opacity=1},450))})},k*480)))}

@@ -29,7 +29,6 @@ const I18N_ROWS=[
 ["flow.p",'Fifty runs merged into one chart. The heavy line is run <b>#17</b>. Dashed plates are branches other runs took; the figure on each edge is the share of runs that chose it at that fork. Select a plate to read it.',"五十次运行，汇为一图。粗线为 <b>#17</b>，虚线为他次所经。边上之数，为行至此岔者择此一路之比。点选铭牌，可究其详。"],
 ["flow.redraw","Redraw","重绘"],["flow.fig","fig. 1 — branch trie, run-set fix-auth, n = 50","图一　分支树，运行集 fix-auth，n = 50"],
 ["flow.taken","taken, #17","#17 所经"],["flow.others","other runs","他次运行"],["flow.blocked","blocked","受阻"],["flow.sel","selected plate","选中"],
-["flow.none","Nothing selected.","尚未选取。"],["flow.none2","Click any plate in fig. 1 to see the tool call, its arguments and what happened next.","点选图一任一铭牌，可见其工具调用、参数与后续。"],
 ["flow.tb","taken · blocked","已经 · 受阻"],["flow.t17","taken in #17","#17 所经"],["flow.lock","locked · taken by other runs","未经 · 他次曾至"],["flow.open","Open in Red Wall","移步红墙"],
 ["k.kind","kind","类型"],["k.in","in","输入"],["k.model","model","模型"],["k.tool","tool","工具"],["k.args","args","参数"],["k.note","note","附注"],["k.outcome","outcome","结局"],
 ["kind.tool","tool","工具"],["kind.end","end","终点"],

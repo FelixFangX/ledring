@@ -73,8 +73,8 @@ describe("play page", () => {
     expect(html).toContain("LEDRING Free AI");
     expect(html).toContain("LEDRING 免费 AI");
     expect(html).toContain('strandsFetch("/ai/chat"');
-    expect(html).toContain("T.obQuota");
-    expect(html).toContain("今天的免费额度已经用完");
+    expect(html).toContain('rate_limited:["Limited","限流"]');
+    expect(html).toContain('quota_exhausted:["Quota","配额"]');
     expect(html).not.toContain("FREE_PRESETS");
     expect(html).not.toContain("ob-presets");
     expect(html).not.toContain("activeBridgePreset");
