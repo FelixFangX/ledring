@@ -2,47 +2,60 @@
 
 ```
  ◯  L E D R I N G
-    status lights for AI agents
 ```
 
-**[▶ Play](https://play.ledring.dev/play/)** · **[ledring.dev](https://ledring.dev)** · **[Sample reports](https://play.ledring.dev/)** · **[中文](https://play.ledring.dev/play/?lang=zh)**
+Review AI builders like a game: watch the branch tree, catch instruction drift.
+
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+[![CI](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml)
+
+**[▶ Play](https://play.ledring.dev/play/)**
+
+[![LEDRING Play: CX-417 builds one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
 
 </div>
 
-## ▶ LEDRING Play
+## Play
 
-**[Play it in your browser → play.ledring.dev/play/](https://play.ledring.dev/play/)**
+Open [play.ledring.dev/play/](https://play.ledring.dev/play/) and press **▶ Start**.
 
-[![LEDRING Play: you watch CX-417 build one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
-
-You watch **CX-417**, an AI builder, turn your idea into one self-contained web page in real time. It may take shortcuts. **You decide what gets through.** Every choice is a branch, and the end screen shows your path through the flowchart alongside the paths other builds took.
-
-### How to play
-1. Open **[/play/](https://play.ledring.dev/play/)** and press **▶ Start**.
-2. Pick an AI. The default needs nothing from you (see below).
-3. Give CX-417 an idea, or let it suggest one.
-4. Watch the build. Approve, push back, or stop it when it drifts.
-5. Reach one of the 7 endings, then replay to find the others.
+1. Pick an AI. The default needs no key and no sign-up.
+2. Give CX-417 an idea, or take one it suggests.
+3. It writes a plan, then one self-contained page. On each step a timer runs: approve a shortcut, ask for self-tests, ask for polish, cut scope, or stop and keep the file. If the page would use the network, storage, dynamic code, an external asset, or navigation, a Red Wall stays up until you Block or Allow. When the timer ends, the AI picks the next step.
+4. The ending is judged from the file that was written. There are 7. The end screen draws your path; grey nodes are the branches you did not take.
 
 ### AI options
+
 | Option | What you need |
 |---|---|
 | **LEDRING Free AI** (default) | Nothing. No key, no sign-up. It runs on a shared daily quota. |
 | Built-in demo | Nothing. Scripted examples, with no AI calls. |
 | Anthropic | Your own API key. The browser calls api.anthropic.com directly. |
-| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [Quickstart](#quickstart), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
+| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [From source](#from-source), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
 
 **Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://play.ledring.dev/play/?lang=zh).
 
----
+## From source
 
-## Under the hood: the trace toolkit
+Not on npm. Node ≥ 20, pnpm.
 
-The game runs on the same engine as LEDRING's CLI and GitHub Action, which you can point at your own agent runs.
+```sh
+git clone https://github.com/FelixFangX/ledring.git && cd ledring && pnpm install && pnpm build && node packages/cli/dist/bin.js flowchart fixtures/claude-code --title "fix login bug" --out report.html
+```
 
-**LEDRING reads agent traces from any stack, normalizes them to one schema, and turns them into views you can read at a glance:** where runs diverge, how often, and how far a run drifted from what you asked.
+Prints `Wrote report.html — 6 runs, 2 forks`. From that checkout:
 
-Inspired by a narrative game about androids, whose end-of-chapter flowcharts show the path you took, the branches you didn't, and how many players chose each one. LEDRING does that for agent runs. Blue: calm. Yellow: processing. Red: critical.
+```sh
+node packages/cli/dist/bin.js instability fixtures/claude-code
+
+node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out report.html
+```
+
+Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
+
+## Traces
+
+Claude Code session JSONL, OpenTelemetry GenAI spans, native `ledring.trace.v1`, or an adapter you pass in.
 
 ```
   SOURCE                 SCHEMA                 VIEWS
@@ -51,31 +64,9 @@ Inspired by a narrative game about androids, whose end-of-chapter flowcharts sho
   (your adapter)    ─┘                    └─▶ ledring instability drift score · ▲/▼ reasons
 ```
 
-**[Sample reports](https://play.ledring.dev/)** · **[Concept demo](https://play.ledring.dev/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`)
+Play can download the session as `ledring.trace.v1`. Score colors follow the instability bands: blue under 20, yellow from 20, red from 40.
 
----
-
-## Quickstart
-
-Not on npm yet. Run from source (Node ≥ 20, pnpm):
-
-```sh
-git clone https://github.com/FelixFangX/ledring.git && cd ledring
-pnpm install && pnpm build
-
-# Merge six runs of the same task into one branch tree
-node packages/cli/dist/bin.js flowchart fixtures/claude-code --title "fix login bug" --out report.html
-# → Wrote report.html — 6 runs, 2 forks
-
-# How far did each run drift from its instruction?
-node packages/cli/dist/bin.js instability fixtures/claude-code
-```
-
-Point it at your own sessions: Claude Code keeps them in `~/.claude/projects/<project>/<session>.jsonl`.
-
-```sh
-node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out report.html
-```
+**[Sample reports](https://play.ledring.dev/)** · **[Concept demo](https://play.ledring.dev/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`) · **[ledring.dev](https://ledring.dev)**
 
 ## `ledring flowchart`
 
