@@ -17,7 +17,7 @@
 
 - [Projects](https://ledring.dev/projects/)
 - [Notes](https://ledring.dev/notes/)
-- [Mind maps for me, Markdown for my agents](https://ledring.dev/notes/mind-maps-to-markdown/)
+- [Harness notes — Part 1](https://ledring.dev/notes/harness-notes-part-1/)
 - [Tools](https://ledring.dev/tools/)
 
 ## Tools

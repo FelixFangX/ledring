@@ -15,8 +15,8 @@ function label(key, name) { return text('span', key, data.labels[name].en, data.
 function links(items, prefix) {
   return `<div class="tl-actions wl">${items.map((link, i) => text('a', `${prefix}_link${i}`, link.en, link.zh, ` href="${escape(link.url)}" rel="noopener"`)).join('')}</div>`;
 }
-let content = '<div class="tl-intro">'+['title', 'lead'].map((key, i) => text(['h1','p'][i], key, data.intro.en[key], data.intro.zh[key], ['',' class="tl-lead"'][i])).join('')+'</div>\n';
-content += '<section id="case-studies" aria-labelledby="cases">'+text('h2','cases',data.labels.cases.en,data.labels.cases.zh,' id="cases" class="m"');
+// The projects fold (blend hero) is hand-authored above <!-- projects:start -->.
+let content = '<section id="case-studies" aria-labelledby="cases">'+text('h2','cases',data.labels.cases.en,data.labels.cases.zh,' id="cases" class="m"');
 content += data.caseStudies.map((item, i) => `<article class="tl-case" aria-labelledby="case${i}">${text('h3',`case${i}_title`,item.en.title,item.zh.title,` id="case${i}"`)}${text('p',`case${i}_body`,item.en.body,item.zh.body)}<p class="tl-stack">${label(`case${i}_stack`,'stack')} · ${escape(item.stack.join(' · '))}</p>${links(item.links,`case${i}`)}</article>`).join('\n')+'</section>\n';
 content += '<ol class="tl-grid">'+data.projects.map((item, i) => {
   const key = `project${i}`;
@@ -36,7 +36,12 @@ const machine = { site:'https://ledring.dev', projects:data.projects.map(({name,
 const notesSource = readFileSync('public/notes/index.html','utf8').match(/var NOTES=(\[[\s\S]*?\]);/);
 if (!notesSource) throw new Error('Missing NOTES data');
 const notes = vm.runInNewContext(notesSource[1]);
-const llms = ['# ledring.dev','',`> ${data.meta.en}`,'','## Projects','',...data.projects.map(p => `- [${p.name}](${p.url}): ${plain(p.en.pitch)} Source: [GitHub](${p.source})${p.mcp ? `. MCP: ${p.mcp}` : ''}`),'','## Pages','','- [Projects](https://ledring.dev/projects/)','- [Notes](https://ledring.dev/notes/)',...notes.map(n => `- [${n.en.title}](https://ledring.dev${n.url})`),'- [Tools](https://ledring.dev/tools/)','','## Tools','','- [Convert](https://convert.ledring.dev)','- [Research](https://research.ledring.dev)','- [LEDRING Play](https://play.ledring.dev/play/)','','## Machine-readable','','- [Projects JSON](https://ledring.dev/projects.json)','','## Elsewhere','','- [GitHub](https://github.com/FelixFangX)',''].join('\n');
+const llmsLink = p => {
+  // Published llms.txt sends maptaste to the demo. projects.json keeps the repo URL.
+  if (p.name === 'maptaste') return `- [maptaste](https://maptaste.ledring.dev) ([source](${p.source})): ${plain(p.en.pitch)} Source: [GitHub](${p.source})${p.mcp ? `. MCP: ${p.mcp}` : ''}`;
+  return `- [${p.name}](${p.url}): ${plain(p.en.pitch)} Source: [GitHub](${p.source})${p.mcp ? `. MCP: ${p.mcp}` : ''}`;
+};
+const llms = ['# ledring.dev','',`> ${data.meta.en}`,'','## Projects','',...data.projects.map(llmsLink),'','## Pages','','- [Projects](https://ledring.dev/projects/)','- [Notes](https://ledring.dev/notes/)',...notes.map(n => `- [${n.en.title}](https://ledring.dev${n.url})`),'- [Tools](https://ledring.dev/tools/)','','## Tools','','- [Convert](https://convert.ledring.dev)','- [Research](https://research.ledring.dev)','- [LEDRING Play](https://play.ledring.dev/play/)','','## Machine-readable','','- [Projects JSON](https://ledring.dev/projects.json)','','## Elsewhere','','- [GitHub](https://github.com/FelixFangX)',''].join('\n');
 let stale = false;
 for (const [path, output] of [['public/projects/index.html',html],['public/projects.json',JSON.stringify(machine,null,2)+'\n'],['public/llms.txt',llms]]) {
   if (process.argv.includes('--check')) {

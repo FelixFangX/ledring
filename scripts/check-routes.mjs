@@ -63,7 +63,7 @@ const sitemap = readFileSync('public/sitemap.xml', 'utf8');
 assert.match(sitemap, /<urlset\s[^>]*xmlns:xhtml="http:\/\/www.w3.org\/1999\/xhtml"[^>]*>/);
 assert(sitemap.trim().endsWith('</urlset>'));
 const urls = [...sitemap.matchAll(/<url>([\s\S]*?)<\/url>/g)].map(m => m[1]);
-const sitemapPaths = ['', 'tools/', 'projects/', 'notes/', 'notes/mind-maps-to-markdown/'];
+const sitemapPaths = ['', 'tools/', 'projects/', 'notes/', 'notes/harness-notes-part-1/'];
 assert.equal(urls.length, sitemapPaths.length);
 for (const path of sitemapPaths) {
   const url = 'https://ledring.dev/'+path;

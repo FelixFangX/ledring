@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Harness notes — Part 1 · Felix Fang</title>
+<meta name="description" content="Seven products and what each owns outside the model. Pick by the job.">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ebe7df">
+<script>(function(){var t="light";try{t=localStorage.getItem("theme")||"light"}catch(e){}if(t!=="dark")t="light";document.documentElement.dataset.theme=t;document.querySelector('meta[name=theme-color]').content=t==="dark"?"#131211":"#ebe7df"})()</script>
+<link rel="canonical" href="https://ledring.dev/notes/harness-notes-part-1/">
+<link rel="alternate" hreflang="en" href="https://ledring.dev/notes/harness-notes-part-1/?lang=en">
+<link rel="alternate" hreflang="zh-CN" href="https://ledring.dev/notes/harness-notes-part-1/?lang=zh">
+<link rel="alternate" hreflang="x-default" href="https://ledring.dev/notes/harness-notes-part-1/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://ledring.dev/notes/harness-notes-part-1/">
+<meta property="og:title" content="Harness notes — Part 1 · Felix Fang">
+<meta property="og:description" content="Seven products and what each owns outside the model. Pick by the job.">
+<meta property="og:image" content="https://ledring.dev/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@ColeFangX">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='5.5' fill='none' stroke='%2323406a' stroke-width='3' stroke-dasharray='.7 .5'/></svg>">
+<link rel="preload" href="/fonts/instrument-serif-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Instrument Serif";src:url(/fonts/instrument-serif-latin-400-normal.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"JetBrains Mono";src:url(/fonts/jetbrains-mono-latin-400-normal.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"JetBrains Mono";font-weight:500;src:url(/fonts/jetbrains-mono-latin-500-normal.woff2) format("woff2");font-display:swap}
+:root{
+  /* Bone paper, warm graphite ink, one ink-blue accent (LEDRING's "calm" light), chrome for highlights. */
+  --bg:#ebe7df;--ink:#1d1b18;--dim:#5b564e;--rule:#d2ccc1;--soft:#e2ddd3;--acc:#23406a;--acc-2:#3d5f8f;--chrome:#9aa3b0;--grain:.09;
+  --glow:rgba(35,64,106,.10);
+  --serif:"Instrument Serif","Songti SC","Noto Serif CJK SC","Source Han Serif SC",STSong,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SF Mono",Menlo,Consolas,"PingFang SC","Microsoft YaHei",monospace;
+  --pl:max(clamp(1.25rem,3.2vw,4rem),env(safe-area-inset-left));
+  --pr:max(clamp(1.25rem,3.2vw,4rem),env(safe-area-inset-right));
+  --ease:cubic-bezier(.16,.84,.24,1);--spring:cubic-bezier(.34,1.56,.64,1);
+  color-scheme:light;
+}
+:root[data-theme=dark]{--bg:#0b0b0b;--ink:#ebe5d9;--dim:#9c958a;--rule:#2a2724;--soft:#1b1a18;--acc:#8fb3e6;--acc-2:#5f86c0;--chrome:#c3cad4;--grain:.07;--glow:rgba(143,179,230,.10);color-scheme:dark}
+
+:root{--wallbg:#efe3df;--wallink:#a3241c}[data-theme=dark]{--wallbg:#170c0b;--wallink:#e5534b}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;font-size:clamp(15px,.66rem + .45vmin + .08vw,22px);background:var(--bg)}
+.wrap{width:min(100%,180rem);margin:0 auto;padding-left:var(--pl);padding-right:var(--pr)}
+.m{font:500 .75rem/1.3 var(--mono);letter-spacing:.08em;text-transform:uppercase}
+:lang(zh) .m{letter-spacing:.16em}
+::selection{background:var(--acc);color:var(--bg)}
+:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:2px}
+.skip{position:absolute;left:-999px;z-index:9}.skip:focus{left:1rem;top:1rem;background:var(--bg);padding:.6rem .9rem}
+.bar{position:fixed;inset:0 0 auto;z-index:10;padding-top:env(safe-area-inset-top);pointer-events:none}
+.bar .wrap{display:flex;justify-content:space-between;align-items:center;height:4.25rem}
+.bar a,.bar button{pointer-events:auto}
+.mark{display:inline-flex;align-items:center;gap:.6rem;min-height:44px;text-decoration:none}
+.tools{display:flex;gap:.5rem}
+.tools button{display:inline-grid;place-items:center;min-width:44px;height:44px;padding:0 .8rem;border:1px solid var(--rule);border-radius:999px;background:var(--bg);color:var(--ink);font:500 .75rem/1 var(--mono);letter-spacing:.06em;cursor:pointer;transition:border-color .3s,background-color .5s}
+#theme{display:inline-flex;gap:.5rem;padding:0 .9rem 0 .7rem}
+#theme svg{transition:transform .7s var(--ease)}
+[data-theme=dark] #theme svg{transform:rotate(180deg)}
+.btn{display:inline-flex;align-items:center;gap:.9rem;min-height:52px;padding:0 1.5rem 0 1.25rem;border-radius:999px;background:linear-gradient(180deg,color-mix(in srgb,var(--ink) 88%,#fff),var(--ink));box-shadow:0 1px 0 rgba(255,255,255,.18) inset,0 10px 30px -12px var(--acc);color:var(--bg);text-decoration:none;font:500 .8125rem/1 var(--mono);letter-spacing:.06em;transition:background-color .35s,color .35s}
+.btn .led{width:2px;height:.9rem;border-radius:2px;background:var(--acc);box-shadow:0 0 .6rem var(--acc);transition:transform .4s var(--ease)}
+[data-theme=dark] .btn{background:linear-gradient(180deg,#f4efe6,#d9d2c5);color:#151413;box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 -1px 0 rgba(0,0,0,.15) inset,0 0 0 1px rgba(143,179,230,.25),0 8px 24px -8px rgba(120,165,235,.45),0 24px 60px -20px rgba(120,165,235,.35)}
+[data-theme=dark] .btn .led{box-shadow:0 0 .5rem #8fb3e6,0 0 1.2rem rgba(143,179,230,.6)}
+.btn.btn-ink{position:relative;isolation:isolate;overflow:hidden;min-width:44px;background:linear-gradient(180deg,#1f1e1c 0%,#141414 55%,#0f0f0f 100%);color:#f3efe7;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.14),0 1px 2px rgba(0,0,0,.25),0 10px 24px -14px rgba(0,0,0,.55);transition:transform 120ms var(--ease),box-shadow 120ms var(--ease),filter 120ms var(--ease)}
+.btn.btn-ink::before{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;pointer-events:none;opacity:.12;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.btn.btn-ink>span{position:relative;z-index:1}
+.btn.btn-ink .led{background:#8fb3e6;box-shadow:0 0 .5rem rgba(143,179,230,.6)}
+[data-theme=dark] .btn.btn-ink{background:linear-gradient(180deg,#232220 0%,#1c1c1a 55%,#181817 100%);color:#f3efe7;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.12),0 0 0 1px rgba(0,0,0,.6),0 10px 24px -14px rgba(0,0,0,.65)}
+.btn.btn-ink:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.btn.btn-ink:active,[data-theme=dark] .btn.btn-ink:active{transform:translateY(0) scale(.98);filter:brightness(.95);box-shadow:inset 0 1px 2px rgba(0,0,0,.5),inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.14),0 1px 2px rgba(0,0,0,.25),0 10px 24px -14px rgba(0,0,0,.55);transition-duration:100ms}
+.wl a{display:inline-flex;align-items:center;min-height:44px;min-width:44px;justify-content:center;color:var(--ink);text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:.35em;font:500 .75rem/1 var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.wl{display:flex;gap:1.2rem}
+.links{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.2rem 2rem;margin-top:clamp(2rem,6vh,4rem);border-top:1px solid var(--rule);padding:1rem 0 max(1.4rem,env(safe-area-inset-bottom))}
+.links nav{display:flex;flex-wrap:wrap;gap:0 2rem}
+.links a,.links span{display:inline-flex;align-items:center;min-height:44px;min-width:44px;justify-content:center;color:var(--dim);text-decoration:none}
+[data-theme=dark] .tools button{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border-color:rgba(255,255,255,.1);box-shadow:0 1px 0 rgba(255,255,255,.06) inset}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--bg);font:1rem/1.5 var(--sans);-webkit-font-smoothing:antialiased}a{color:inherit}
+body::after{content:"";position:fixed;inset:0;z-index:20;pointer-events:none;opacity:var(--grain);mix-blend-mode:multiply;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}[data-theme=dark] body::after{mix-blend-mode:overlay}
+.bar{background:var(--bg)}.mark .tl-ring{width:22px;height:22px}.tl-ring{display:inline-block;flex:none;width:14px;height:14px;border-radius:50%;background:repeating-conic-gradient(var(--acc) 0 4deg,transparent 4deg 7.5deg);mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2px),#000 0)}
+main{padding-top:calc(8rem + env(safe-area-inset-top))}.tl-intro{padding-bottom:3rem}.tl-labels{display:flex;flex-wrap:wrap;justify-content:space-between;gap:1rem;color:var(--dim)}.lab{margin:0}.tl-check{font-size:max(.6875rem,11px)}h1,h2{font-synthesis:none;font-weight:400;font-family:var(--serif)}h1{font-size:clamp(2.5rem,1.6rem + 3.6vw,4.5rem);line-height:1;letter-spacing:-.01em;text-wrap:balance;max-width:16ch;margin:2rem 0 1.5rem}.dim,.tl-lead{color:var(--dim)}.tl-lead{max-width:34rem;margin:0;font-size:1.0625rem}
+.tl-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:clamp(1rem,2vw,2.5rem);padding:0;margin:0;list-style:none}.tl-grid>li{min-width:0;display:flex;animation:arrive 240ms var(--ease) both}.tl-grid>li:nth-child(2){animation-delay:30ms}.tl-card{position:relative;width:100%;display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:10px;padding:clamp(1.25rem,2.4vw,2.5rem);background:color-mix(in srgb,var(--soft) 22%,transparent)}
+.tl-card::before,.tl-card::after{content:"";position:absolute;left:-5px;right:-5px;height:9px;pointer-events:none;--cross:color-mix(in srgb,var(--dim) 45%,transparent);background:linear-gradient(var(--cross),var(--cross)) left center/9px 1px no-repeat,linear-gradient(var(--cross),var(--cross)) 4px center/1px 9px no-repeat,linear-gradient(var(--cross),var(--cross)) right center/9px 1px no-repeat,linear-gradient(var(--cross),var(--cross)) right 4px center/1px 9px no-repeat}.tl-card::before{top:-5px}.tl-card::after{bottom:-5px}
+.tl-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem;color:var(--dim);font-size:max(.6875rem,11px)}.tl-state{display:inline-flex;align-items:center;gap:.5rem;color:var(--ink);white-space:nowrap}.tl-state .tl-ring{background:var(--acc);box-shadow:0 0 0 3px var(--glow);mask:none;-webkit-mask:none;border:2px solid var(--acc);background:transparent}
+h2{font-size:2rem;line-height:1.1;margin:2rem 0 .5rem}.tl-host{font:400 .75rem/1.5 var(--mono);color:var(--dim);overflow-wrap:anywhere;margin:0}.tl-desc{margin:1.5rem 0}.tl-spec{list-style:none;padding:0;margin:0 0 2rem;color:var(--dim);font-size:max(.6875rem,11px)}.tl-spec li{border-top:1px solid var(--rule);padding:.75rem 0}.tl-actions{display:flex;align-items:center;flex-wrap:wrap;gap:1.25rem;margin-top:auto}.tl-note{color:var(--dim);font-size:max(.6875rem,11px);margin:1.75rem 0 0;max-width:48rem}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@keyframes arrive{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(min-width:56rem){.tl-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:960px){body::before{content:"";position:fixed;top:0;bottom:0;left:var(--pl);right:var(--pr);border-left:1px solid var(--rule);border-right:1px solid var(--rule);pointer-events:none;z-index:-0}main,footer{position:relative}}
+@media(max-width:48rem){.bar .wrap,.bar .tools{flex-wrap:nowrap;white-space:nowrap}.bar .tools{flex-shrink:0}}
+@media(max-width:400px){.tools button{padding:0 .55rem}#theme{padding:0 .55rem;gap:.35rem}.mark{gap:.4rem}.tools{gap:.35rem}}
+@media(hover:hover) and (pointer:fine){.tl-card{transition:border-color 120ms}.tl-card:hover,.tools button:hover{border-color:var(--ink)}.btn:hover .led{transform:scaleY(1.4)}.wl a:hover,.links a:hover{color:var(--acc)}}
+@media(hover:hover) and (pointer:fine){.btn.btn-ink:hover:not(:active),[data-theme=dark] .btn.btn-ink:hover:not(:active){transform:translateY(-1px);filter:brightness(1.12);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.14),0 2px 4px rgba(0,0,0,.25),0 14px 28px -14px rgba(0,0,0,.6)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}.btn.btn-ink:hover,.btn.btn-ink:active,[data-theme=dark] .btn.btn-ink:hover,[data-theme=dark] .btn.btn-ink:active{transform:none!important}.btn.btn-ink:hover .led{transform:none}}
+@media(prefers-contrast:more){body::after{display:none}:root{--rule:var(--dim)}}
+@media(forced-colors:active){body::after,.tl-card::before,.tl-card::after{display:none}.tl-ring,.tl-state .tl-ring{background:none;mask:none;-webkit-mask:none;border:2px solid CanvasText;box-shadow:none}.btn{border:1px solid ButtonText}.btn.btn-ink,[data-theme=dark] .btn.btn-ink{forced-color-adjust:auto;border:1px solid ButtonText;background:ButtonFace;color:ButtonText;box-shadow:none;filter:none}.btn.btn-ink::before{display:none}}
+
+h2{overflow-wrap:anywhere}.tags{display:flex;flex-wrap:wrap;gap:.5rem;list-style:none;padding:0;margin:0 0 1.5rem;color:var(--dim);font:400 .75rem/1.6 var(--mono)}.tl-actions a{min-height:44px;display:inline-flex;align-items:center}.notes-list{padding:0;list-style:none}.note-row{border-top:1px solid var(--rule);padding:1.5rem 0}.note-row a{display:inline-flex;align-items:center;min-height:44px}.note-body{max-width:48rem}.wl{flex-wrap:wrap}
+.note-body{max-width:38rem;margin-inline:auto;line-height:1.75;overflow-wrap:anywhere}
+.note-body header{margin-bottom:2rem}.note-body time{color:var(--dim);font:400 .8125rem/1.5 var(--mono)}
+.note-body h1{max-width:none}.note-body h2{margin:2.5rem 0 1rem;line-height:1.2}
+.note-body p{margin:1.25rem 0}.note-body ul,.note-body ol{padding-left:1.5rem;margin:1.25rem 0}.note-body li+li{margin-top:.5rem}
+.note-body .kicker{margin:1.75rem 0 .35rem}.note-body .kicker+ul,.note-body .kicker+ol{margin-top:.35rem}
+.note-body code{font:400 .85em/1.65 var(--mono);background:var(--soft);border-radius:3px;padding:.12em .3em}
+.note-body a{text-underline-offset:.2em;text-decoration-color:var(--acc)}
+.note-body .note-table{overflow-x:auto;margin:1.5rem 0}
+.note-body table{width:100%;border-collapse:collapse;font-size:.9375rem;min-width:26rem}
+.note-body th,.note-body td{border-top:1px solid var(--rule);text-align:start;vertical-align:top;padding:.75rem .8rem .75rem 0}
+.note-body th{color:var(--dim);font:500 .72rem/1.4 var(--mono);letter-spacing:.04em}
+</style>
+<link rel="stylesheet" href="/atelier.css">
+</head>
+<body>
+<a class="skip" href="#main" data-i18n="skip">Skip to content</a>
+<header class="bar">
+  <div class="wrap">
+    <a class="mark m" href="/" aria-label="ledring.dev"><span class="tl-ring" aria-hidden="true"></span>ledring.dev</a>
+    <div class="tools">
+      <button id="theme" type="button" aria-label="Switch to dark theme"><svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M9 2.5a6.5 6.5 0 0 1 0 13z" fill="currentColor"/></svg><span id="tlab">Dark</span></button>
+      <button id="lang" type="button" lang="zh-CN" aria-label="Switch to Chinese">中文</button>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="wrap"><article class="note-body"><header><p class="lab m" data-i18n="label">Note</p><h1 data-i18n="title">Harness notes — Part 1</h1><time datetime="2026-11-03" data-i18n="date">November 3, 2026</time></header><div>
+<p><span data-i18n="open1">For half a year I kept hearing people say "harness."</span></p>
+<p><span data-i18n="open2">Some meant a framework. Some meant a runtime. Some meant a whole agent product. After a while the word stopped meaning anything.</span></p>
+<p><span data-i18n="open3">They do different jobs. Pick the wrong one and you spend weeks solving the wrong problem.</span></p>
+<p><span data-i18n="open4">This note does one thing: walk seven common products one by one. For each, I say the everyday pain first, then what the product does, then when to use it and when to skip it.</span></p>
+<h2 data-i18n="hMean">What harness means here</h2>
+<p><span data-i18n="mean1">By harness I mean the system around the model.</span></p>
+<p><span data-i18n="mean2">It runs tools. It holds permissions. It recovers when a step fails.</span></p>
+<p><span data-i18n="mean3">The model thinks. The harness makes the thought land, and keeps going after a failure.</span></p>
+<p><span data-i18n="mean4">Frameworks, runtimes, and products can all taste a little like a harness. They are still not the same thing. Below I talk by product, not by brand.</span></p>
+<h2 data-i18n="hMap">A short map</h2>
+<p><span data-i18n="mapLead">A one-line map of the seven, for later reference.</span></p>
+<ul>
+<li><strong>LangGraph</strong><span data-i18n="map1">: durable graph runtime; resume after a crash.</span></li>
+<li><strong>Deep Agents</strong><span data-i18n="map2">: opinionated harness on top of LangGraph.</span></li>
+<li><strong>Claude Code</strong><span data-i18n="map3">: finished coding agent for a repo.</span></li>
+<li><strong>Codex</strong><span data-i18n="map4">: same product shape from another lab.</span></li>
+<li><strong>Pi</strong><span data-i18n="map5">: tiny harness you grow with extensions.</span></li>
+<li><strong>dsh</strong><span data-i18n="map6">: open-source harness where everything is a Cordis plugin.</span></li>
+<li><strong>Grok Bot</strong><span data-i18n="map7">: hosted multi-bot product with gates and routines.</span></li>
+</ul>
+<h2 data-i18n="hLg">1. LangGraph</h2>
+<p><span data-i18n="lg1">You run a long chain of business steps. It dies halfway. You cannot resume by guessing. Someone may need to review mid-run.</span></p>
+<p><span data-i18n="lg2">That is the problem LangGraph sells into.</span></p>
+<p><span data-i18n="lg3">It sells durable execution. You draw a graph of steps. You checkpoint state (a saved snapshot so you can continue from that point). You resume after a crash. You park for human review.</span></p>
+<p><span data-i18n="lg4">Its lineage is Pregel and Beam, not a chat wrapper. It owns workflow shape, durable state, interrupts, and streaming.</span></p>
+<p><span data-i18n="lg5">It does not ship a coding agent's filesystem UX, permission product, or "one feature then commit" discipline. You bring those.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="lgUse">A multi-step workflow must resume without guessing.</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="lgSkip">You only need model-plus-tools against a repo. You would pay for durable-workflow machinery you will not use.</span></li>
+</ul>
+<h2 data-i18n="hDa">2. Deep Agents</h2>
+<p><span data-i18n="da1">You want something that behaves like a coding agent. You still want to rewire it. You do not want to draw every graph edge by hand.</span></p>
+<p><span data-i18n="da2">Deep Agents is for that.</span></p>
+<p><span data-i18n="da3a">LangChain's stack says it plainly. LangGraph is the runtime. </span><code>create_agent</code><span data-i18n="da3b"> is a thin harness. Deep Agents is the thicker one: planning tools, filesystem backends, subagents, skills, context management, shell, human-in-the-loop.</span></p>
+<p><code>create_deep_agent()</code><span data-i18n="da4"> assembles those onto a LangGraph graph.</span></p>
+<p><span data-i18n="da5">Against the Claude Agent SDK, Deep Agents is model-provider agnostic. The agent can sit inside a sandbox or outside it and drive a remote sandbox as a tool. That seam (a clean cut between a capability's definition, provider, and consumer so you can swap the whole group) matters for multi-tenant hosts.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="daUse">You want a coding-shaped harness you can still rewire, without drawing every graph edge by hand.</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="daSkip1">You want a sealed CLI product tomorrow morning.</span></li>
+<li><span data-i18n="daSkip2">You want a Cordis-everything plugin tree.</span></li>
+</ul>
+<h2 data-i18n="hCc">3. Claude Code</h2>
+<p><span data-i18n="cc1">The everyday job is a developer and a repo. Edit files. Run commands. Preview servers. Ask before risky permissions. Recover a failed step.</span></p>
+<p><span data-i18n="cc2">Claude Code (and the Claude Agent SDK under related products) owns that loop against a real environment.</span></p>
+<p><span data-i18n="cc3">Anthropic's long-running agents write-up shows harness lessons learned the hard way: initializer plus feature list, progress file, one feature per session, verify like a human in a browser, leave git clean for the next window.</span></p>
+<p><span data-i18n="cc4">Compaction alone (folding older turns into a summary to free context space) did not fix one-shotting or early "done." The fix lived in artifacts and session roles, not in a longer system prompt.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="ccUse">The job is a developer and a repo.</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="ccSkip">You need a custom durable workflow graph that is not a coding session.</span></li>
+</ul>
+<h2 data-i18n="hCx">4. Codex</h2>
+<p><span data-i18n="cx1">Same product shape for day-to-day coding in a repo. Another lab.</span></p>
+<p><span data-i18n="cx2a">Codex CLI: local or sandboxed execution, tool loop, patches, tests, a developer in the loop. It is post-trained with its own tool surface (</span><code>apply_patch</code><span data-i18n="cx2b"> and friends). Harness and model co-evolve.</span></p>
+<p><span data-i18n="cx3">Swap the patch tool carelessly and quality drops, even if the prompt looks fine.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="cxUse">Same band as Claude Code. Finished harness you run, not a library you compose. Choose by model fit, sandbox rules, and which failure modes you already hit.</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="cxSkip">The job is not repo coding. Same reasons you would skip Claude Code.</span></li>
+</ul>
+<h2 data-i18n="hPi">5. Pi</h2>
+<p><span data-i18n="pi1">Every token of context stays under your control. "Missing feature" means you write an extension.</span></p>
+<p><a href="https://pi.dev/">Pi</a><span data-i18n="pi2"> keeps the harness small on purpose. Default tools are read, write, edit, bash.</span></p>
+<p><span data-i18n="pi3a">Interfaces share one loop: interactive TUI, print/JSON, RPC over stdio, TypeScript SDK (</span><code>createAgentSession</code><span data-i18n="pi3b">). A user message lands on the active branch of a JSONL session tree. Pi builds a request from system prompt, that branch, tools, and model settings. It streams the reply. It runs tools and records results. It continues or stops.</span></p>
+<p><span data-i18n="pi4a">Compaction inserts a summary entry. Originals stay on disk. Context is assembled from base instructions, </span><code>AGENTS.md</code><span data-i18n="pi4b">, optional </span><code>SYSTEM.md</code><span data-i18n="pi4c">, tool defs, and on-demand skills. Extensions can inject or filter context every turn.</span></p>
+<p><span data-i18n="pi5">What Pi refuses to bake in is the product. Sub-agents, plan mode, permission gates, path protection, SSH, sandboxing, heavier MCP: build as TypeScript extensions or install a Pi package. Extensions run in-process with the same OS permissions, so project trust comes before project resources.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="piUse">Every token of context must stay under your control, and "missing feature" means "write an extension."</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="piSkip1">You need a multi-surface app family.</span></li>
+<li><span data-i18n="piSkip2">You need a hosted multi-bot control plane with draft gates already welded in.</span></li>
+</ul>
+<h2 data-i18n="hDsh">6. dsh</h2>
+<p><span data-i18n="dsh0">One harness family across web, headless, and SDK surfaces. A tree you can dump and patch. A loop you can replace.</span></p>
+<p><a href="https://github.com/deepseek-ai/deepseek-harness">DeepSeek Harness</a><span data-i18n="dsh1a"> (</span><code>dsh</code><span data-i18n="dsh1b">) is DeepSeek's open-source harness (developer preview). Everything is a plugin on </span><a href="https://github.com/cordiverse/cordis">Cordis</a><span data-i18n="dsh1c">.</span></p>
+<p><span data-i18n="dsh2a">Model adapter, tool registry, session log, and the agent loop are all plugins. Unload a plugin and its registrations unwind. A </span><strong>profile</strong><span data-i18n="dsh2b"> (</span><code>web</code><span data-i18n="dsh2c">, </span><code>headless</code><span data-i18n="dsh2d">, </span><code>sdk</code><span data-i18n="dsh2e">, </span><code>sdk-minimal</code><span data-i18n="dsh2f">, </span><code>acp</code><span data-i18n="dsh2g">, desktop) stacks ordered </span><strong data-i18n="dshBundles">bundles</strong><span data-i18n="dsh2h">, then patches. </span><code>dsh --profile web --dump-config</code><span data-i18n="dsh2i"> prints the tree you boot.</span></p>
+<p><code>dsh-base</code><span data-i18n="dsh3"> shares adapters, tools, persistence, sandbox and approval policy, credentials, telemetry. Each surface adds transport.</span></p>
+<p><span data-i18n="dsh4a">Core map: </span><code>ctx.sessions</code><span data-i18n="dsh4b">, </span><code>ctx.systemPrompt</code><span data-i18n="dsh4c">, </span><code>ctx.tools</code><span data-i18n="dsh4d">, </span><code>ctx.agents</code><span data-i18n="dsh4e">, </span><code>ctx.agentLoop</code><span data-i18n="dsh4f">, </span><code>ctx.llm</code><span data-i18n="dsh4g">. A </span><strong>step</strong><span data-i18n="dsh4h"> is one model request plus its tools. A </span><strong>turn</strong><span data-i18n="dsh4i"> is zero or more steps.</span></p>
+<p><span data-i18n="dsh5a">Flow: claim inbox → assemble → </span><code>agent/pre-step</code><span data-i18n="dsh5b"> waterfall → freeze history from the log → stream → </span><code>tools/pre-execute → execute → post-execute</code><span data-i18n="dsh5c"> → next step or stop. The session log is the source of what the model sees. Capability seams let one provider swap move filesystem, bash, and LSP together, including onto a remote sandbox.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="dshUse">You need one harness family across surfaces, a dumpable patchable tree, and a replaceable loop.</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="dshSkip1">You want a fifty-line mental model.</span></li>
+<li><span data-i18n="dshSkip2">You want a hosted product with identity and connectors already productized. Read the safety notice; preview APIs break.</span></li>
+</ul>
+<h2 data-i18n="hGb">7. Grok Bot</h2>
+<p><span data-i18n="gb1">Many agents work under your identity. Gates, wake schedules, and connectors are already wired. You do not want to fork a minimal open loop from scratch.</span></p>
+<p><span data-i18n="gb2">Grok Bot is a hosted product harness: named bots, a shared bot computer, Temporal-hosted runs (Temporal: the layer that hosts long jobs as recoverable workflows), chat as the control plane.</span></p>
+<p><span data-i18n="gb3">Long jobs go to background workers. Repository PRs go to Cursor cloud agents. The parent stays available and delivers results.</span></p>
+<p><span data-i18n="gb4">Skills load by name with progressive disclosure. Routines wake bots on schedule or events with saved delivery rules. Memory keeps profile and journal facts outside one window. Consequential sends draft first. Auto-review can block risky calls. Credentials sit in a vault. Connectors and a signed-in browser are governed tools. Many bots share one computer with different envelopes.</span></p>
+<p><span data-i18n="gb5">Coding compute prefers Codex CLI or Cursor Models first. Chat, dispatch, verify, drafts, memory, and send gates stay on Grok Bot. That routing is harness policy written as a skill.</span></p>
+<p class="kicker"><strong data-i18n="useLabel">Use it when</strong></p>
+<ul>
+<li><span data-i18n="gbUse">Many agents must work under your identity with gates, routines, and connectors already wired.</span></li>
+</ul>
+<p class="kicker"><strong data-i18n="skipLabel">Skip it when</strong></p>
+<ul>
+<li><span data-i18n="gbSkip1">You need a minimal open loop to fork this weekend.</span></li>
+<li><span data-i18n="gbSkip2">You need a Cordis tree to dump and YAML-patch.</span></li>
+</ul>
+<h2 data-i18n="hPick">How to choose</h2>
+<div class="note-table"><table>
+<thead><tr><th data-i18n="thJob">Job</th><th data-i18n="thFit">Product that usually fits</th></tr></thead>
+<tbody>
+<tr><td data-i18n="row1j">Resume a crashed multi-step workflow</td><td data-i18n="row1p">LangGraph</td></tr>
+<tr><td data-i18n="row2j">Coding-shaped harness you can rewire on a graph runtime</td><td data-i18n="row2p">Deep Agents</td></tr>
+<tr><td data-i18n="row3j">Day-to-day coding in a repo with a sealed product</td><td data-i18n="row3p">Claude Code or Codex</td></tr>
+<tr><td data-i18n="row4j">Minimal loop, context engineering, TypeScript extensions</td><td data-i18n="row4p">Pi</td></tr>
+<tr><td data-i18n="row5j">Multi-surface app, everything replaceable via plugins</td><td data-i18n="row5p">dsh</td></tr>
+<tr><td data-i18n="row6j">Hosted multi-bot work under my accounts, with gates</td><td data-i18n="row6p">Grok Bot</td></tr>
+</tbody>
+</table></div>
+<h2 data-i18n="hCut">Harness and scaffold</h2>
+<p><span data-i18n="cut1">One last cut, so the words stop swapping.</span></p>
+<p><span data-i18n="cut2">A scaffold is the layer that composes many calls and keeps state across failures and restarts. A harness wraps model turns with tools, permissions, and per-step recovery.</span></p>
+<p><span data-i18n="cut3">Deep Agents sits on LangGraph because those layers compose. Pi, dsh, Claude Code, Codex, and Grok Bot are different products on the harness side of that cut. They are not substitutes for each other.</span></p>
+<h2 data-i18n="hTake">Takeaways</h2>
+<ol>
+<li><span data-i18n="take1">Name the product and the job before copying a feature.</span></li>
+<li><span data-i18n="take2">Prefer artifacts the next turn can read over a longer prompt.</span></li>
+<li><span data-i18n="take3">Keep the refusal point before the side effect.</span></li>
+<li><span data-i18n="take4">Steal on-demand skills from Pi, seam tables from dsh, progress files from Anthropic's long-running write-up, and chat/worker/cloud split from Grok Bot. Put each into the product that already matches the job.</span></li>
+</ol>
+<h2 data-i18n="hRef">References</h2>
+<ul>
+<li><span data-i18n="ref1">LangChain on Deep Agents / LangGraph and the Claude Agent SDK comparison</span></li>
+<li><span data-i18n="ref2">Anthropic on effective harnesses for long-running agents</span></li>
+<li><a href="https://pi.dev/docs/latest/how-pi-works">How Pi Works</a></li>
+<li><a data-i18n="refDsh" href="https://github.com/deepseek-ai/deepseek-harness/blob/master/docs/architecture.md">dsh architecture</a></li>
+<li><span data-i18n="ref5">Living inside Grok Bot</span></li>
+</ul>
+</div><p class="wl"><a href="/notes/" data-i18n="back">← All notes</a></p></article></main><footer class="wrap"><div class="links m"><nav aria-label="Elsewhere" data-i18n-aria="else"><a href="/tools/" data-i18n="navtools">Tools</a><a href="/projects/" data-i18n="navprojects">Projects</a><a href="/notes/" data-i18n="navnotes">Notes</a><a href="/" data-i18n="home">← ledring.dev</a><a href="https://play.ledring.dev/play/" data-i18n="play">LEDRING Play ↗</a><a href="https://github.com/FelixFangX">GitHub ↗</a><a href="https://x.com/ColeFangX">X ↗</a><a href="mailto:felix@ledring.dev">felix@ledring.dev ↗</a></nav><span>© 2026 Felix Fang</span></div></footer>
+<script>
+(function(){
+var D=document,R=D.documentElement,en={},cur,dark=R.dataset.theme==='dark',tb=D.getElementById('theme'),lb=D.getElementById('lang');
+D.querySelectorAll('[data-i18n]').forEach(function(e){en[e.dataset.i18n]=e.textContent});
+D.querySelectorAll('[data-i18n-aria]').forEach(function(e){en[e.dataset.i18nAria]=e.getAttribute('aria-label')});
+var zh={"skip":"跳到正文","else":"其他链接","home":"← ledring.dev","play":"LEDRING Play ↗","navtools":"工具","navprojects":"项目","navnotes":"笔记","label":"笔记","title":"Harness 心得 - Part 1","date":"2026年11月3日","back":"← 所有笔记","open1":"最近半年，我经常听到人说 harness。","open2":"有人把框架叫 harness，有人把 runtime 叫 harness，还有人把整个 Agent 产品也叫 harness。听多了就懵。","open3":"其实它们干的活不一样。用错了，你会花很多时间，却解决不了眼前的问题。","open4":"这篇笔记只做一件事：把七个常见产品拆开看。每个产品先说它解决什么日常问题，再说它怎么做，最后说什么时候该用、什么时候别用。","hMean":"什么是 harness","mean1":"我这里说的 harness，指模型外面那一层系统。","mean2":"它替模型跑工具，管权限，某一步挂了还能接着恢复。","mean3":"模型负责想。harness 负责让想法落地，并且在失败时还能继续。","mean4":"框架、runtime、产品，都可以带一点 harness 的味道。但它们不是同一种东西。下面按产品讲，不按牌子讲。","hMap":"一张短地图","mapLead":"先给一张短地图，方便后文对照。","map1":"：可持久化的图运行时，挂了能续跑。","map2":"：架在 LangGraph 上的有主见 harness。","map3":"：对着仓库写码的成品 Agent。","map4":"：另一家实验室出的同类成品。","map5":"：故意做小、靠扩展补齐的 harness。","map6":"：一切皆 Cordis 插件的开源 harness。","map7":"：托管的多 Bot 产品，带门禁和 routines。","hLg":"一、LangGraph","lg1":"你跑一长串业务步骤。跑到一半挂了。你不能靠猜接着干，中间还可能要人审一眼。","lg2":"这就是 LangGraph 要解决的问题。","lg3":"它卖的是耐久执行。你画步骤图，打 checkpoint（检查点：把当前状态落盘，方便之后从这里续跑），挂了能接着跑，中途还能给人审。","lg4":"它的谱系更像 Pregel / Beam，不像聊天套壳。它管得好的是流程形状、可恢复状态、中断、流式。","lg5":"它不当产品交出来的，是编码 Agent 那套文件系统交互、权限产品，以及「做完一个功能再提交」的纪律。那些要你自己补。","useLabel":"适用","lgUse":"跨很多步的流程半路死掉，还不能靠猜接着干。","skipLabel":"不适用","lgSkip":"只需要模型加工具，对着仓库转一圈。你是在为用不上的流程底座付钱。","hDa":"二、Deep Agents","da1":"你想要一个看起来像编码 Agent 的 harness。接线还要能改。又不想手画图上每条边。","da2":"Deep Agents 就是干这个的。","da3a":"LangChain 自己的分层说得很清楚。LangGraph 是 runtime。","da3b":" 是薄 harness。Deep Agents 更厚一截：规划工具、文件系统后端、子 Agent、skills、上下文管理、shell、人在回路。","da4":" 把这些装到一张 LangGraph 图上。","da5":"和 Claude Agent SDK 比，Deep Agents 不绑一家模型。Agent 可以待在沙箱里，也可以待在沙箱外，把远端沙箱当工具使。一旦要多租户，这条 seam（接缝：把一类能力的定义、提供者、消费者拆开，方便整组替换）就重要。","daUse":"要长得像编码 Agent、还能改接线的 harness，又不想手画每条边。","daSkip1":"明早就要封闭 CLI 产品。","daSkip2":"要 Cordis 式一切皆插件的树。","hCc":"三、Claude Code","cc1":"日常活是一个人和一个仓库。改文件，跑命令，预览服务。权限卡住时问人。单步失败要能收。","cc2":"Claude Code（以及相关产品里的 Claude Agent SDK）管的就是对着真实环境转的那一圈。","cc3":"Anthropic 写 long-running Agents 时，把吃过的亏讲直白了：initializer 加功能清单，进度文件，一会话只做一个功能，像人一样用浏览器验收，给下一窗留干净的 git。","cc4":"单靠 compaction（压缩：把旧对话收成摘要，给上下文腾位子）挡不住一口吃完整站，也挡不住过早喊完工。修好的位置在产物和会话角色，不在把 system prompt 写更长。","ccUse":"活是一个人和一个仓库。","ccSkip":"要的是自定义、可恢复的流程图，而且不是编码会话。","hCx":"四、Codex","cx1":"同样是「对着仓库写码」的成品产品。只是另一家实验室出的。","cx2a":"Codex CLI：本地或沙箱执行，工具循环，打补丁，跑测试，人在旁边。它和自己的工具面（比如 ","cx2b":"）一起后训练。harness 和模型共进化。","cx3":"换补丁工具若不当心，质量会掉，哪怕 prompt 看起来差不多。","cxUse":"和 Claude Code 同段。拿来跑的成品 harness，不是拿来拼的库。按模型合不合、沙箱规则、以及你已踩过的坑来选。","cxSkip":"活不是仓库写码。理由和「别选 Claude Code」同一类。","hPi":"五、Pi","pi1":"你要自己管上下文里的每一个 token。「缺功能」就等于「自己写扩展」。","pi2":" 故意把 harness 做小。默认工具是读、写、改、bash。","pi3a":"界面共用一条循环：交互 TUI、print/JSON、stdio 上的 RPC、TypeScript SDK（","pi3b":"）。用户消息落到 JSONL 会话树的当前分支。用 system prompt、该分支、工具和模型设置组请求。流式收回回复。跑工具并记账。再开一轮或停。","pi4a":"compaction 插入摘要节点，原条目仍留在磁盘。上下文由基础说明、","pi4b":"、可选 ","pi4c":"、工具定义和按需 skill 拼成。扩展可每轮注入或过滤上下文。","pi5":"故意不内置的东西就是产品。子 Agent、plan mode、权限门、路径保护、SSH、沙箱、更重的 MCP：写成 TypeScript 扩展或装 Pi package。扩展跑在 Pi 进程里，权限与进程相同，所以加载项目资源前先做信任决定。","piUse":"上下文里每个 token 都要自己管，「缺功能」等于「写扩展」。","piSkip1":"要多表面应用家族。","piSkip2":"托管多 Bot 控制面、草稿门禁已经焊好。","hDsh":"六、dsh","dsh0":"你要同一套 harness 覆盖网页、无头、SDK 多种表面。树能 dump，能 patch。loop 也能换。","dsh1a":"（","dsh1b":"）是 DeepSeek 的开源 harness（开发者预览）。一切皆插件，底座是 ","dsh1c":"。","dsh2a":"模型适配器、工具注册表、会话日志、Agent loop 都是插件。卸载则注册撤销。","dsh2b":"（","dsh2c":"、","dsh2d":"、","dsh2e":"、","dsh2f":"、","dsh2g":"、桌面）按序叠 ","dshBundles":"bundle","dsh2h":"，再叠 patch。","dsh2i":" 打出真正启动的树。","dsh3":" 共享适配器、工具、持久化、沙箱与审批、凭证、遥测。各表面只加传输层。","dsh4a":"核心对照：","dsh4b":"、","dsh4c":"、","dsh4d":"、","dsh4e":"、","dsh4f":"、","dsh4g":"。","dsh4h":" 是一次模型请求加工具。","dsh4i":" 是零到多步。","dsh5a":"流程：inbox → 组装 → ","dsh5b":" 瀑布 → 从日志冻结历史 → 流式生成 → ","dsh5c":" → 下一步或停。会话日志是模型所见的源。能力 seam 让一次换提供者就能连带搬动文件系统、bash、LSP，包括远端沙箱。","dshUse":"要同一套 harness 覆盖多表面，树能 dump、能 patch，loop 可换。","dshSkip1":"只要五十行心智模型。","dshSkip2":"要托管产品，身份和连接器已经产品化。先看安全说明；预览 API 会破。","hGb":"七、Grok Bot","gb1":"你要许多 Agent 挂在自己的身份下干活。门禁、定时唤醒、连接器已经接好。而不是从零搭开源循环。","gb2":"Grok Bot 是托管的产品级 harness：具名 Bot、共享 Bot 电脑、Temporal 托管运行（Temporal：把长任务托管成可恢复工作流的那层）、聊天作控制面。","gb3":"长任务进后台工人。仓库 PR 进 Cursor 云端 Agent。父 Bot 在线，结果再递回来。","gb4":"Skills 按名加载、渐进展开。Routines 按定时或事件唤醒，投递规则挂在 routine 上。记忆把 profile / journal 留在窗口外。后果性发送先出草稿。Auto-review 可拦风险调用。凭证进 vault。连接器和已登录浏览器是受治理的工具。多 Bot 共用一台电脑、不同信封。","gb5":"写码算力优先 Codex CLI 或 Cursor Models。聊天、派发、验收、草稿、记忆、发送门禁留在 Grok Bot。这是写成 skill 的 harness 策略。","gbUse":"许多 Agent 要挂在我的身份下干活，门禁、routines、连接器已经接好。","gbSkip1":"要周末就能 fork 的最小开源循环。","gbSkip2":"要能 dump、能 YAML patch 的 Cordis 树。","hPick":"怎么选","thJob":"活","thFit":"通常更合适的产品","row1j":"多步流程挂了还能续","row1p":"LangGraph","row2j":"编码形态 harness，还要能在图运行时上改接线","row2p":"Deep Agents","row3j":"日常对着仓库写码，要封闭成品","row3p":"Claude Code 或 Codex","row4j":"最小循环、抠上下文、TypeScript 扩展","row4p":"Pi","row5j":"多表面应用，一切可插件替换","row5p":"dsh","row6j":"托管多 Bot，挂我账号，带门禁","row6p":"Grok Bot","hCut":"harness 和 scaffold","cut1":"最后补一句分界，免得再混。","cut2":"Scaffold（脚手架）把多次调用拼成流程，并在失败和重启后还握着状态。Harness 包住模型回合：工具、权限、逐步恢复。","cut3":"Deep Agents 架在 LangGraph 上，是因为这两层组合。Pi、dsh、Claude Code、Codex、Grok Bot 都在 harness 这一侧。但是不同产品，彼此替不了。","hTake":"小结","take1":"抄功能前，先点名产品和活。","take2":"优先留下一轮能接着读的产物，少靠加长 prompt。","take3":"拒绝点放在副作用之前。","take4":"按需 skill 向 Pi 学，seam 表向 dsh 学，进度文件向 Anthropic 的 long-running 文学，聊天/工人/云端拆分向 Grok Bot 学。各自偷进已经匹配该活的产品里。","hRef":"参考","ref1":"LangChain 对 Deep Agents / LangGraph 与 Claude Agent SDK 的分层说明","ref2":"Anthropic：effective harnesses for long-running Agents","refDsh":"dsh 架构","ref5":"人在 Grok Bot 里的日常"};
+function tlabel(){var z=cur==='zh';D.getElementById('tlab').textContent=dark?(z?'浅色':'Light'):(z?'深色':'Dark');tb.setAttribute('aria-label',dark?(z?'切换到浅色':'Switch to light theme'):(z?'切换到深色':'Switch to dark theme'))}
+function metadata(l){var z=l==='zh';document.title=z?'Harness 心得 - Part 1 · Felix Fang':'Harness notes — Part 1 · Felix Fang';D.querySelectorAll('meta[name="description"],meta[property="og:description"]').forEach(function(e){if(!e.dataset.en)e.dataset.en=e.content;e.content=z?'七个产品各管模型外面的哪一块活，按活选就行。':e.dataset.en});D.querySelector('meta[property="og:title"]').content=document.title}
+function set(l){cur=l;var d=l==='zh'?zh:en;D.querySelectorAll('[data-i18n]').forEach(function(e){e.textContent=d[e.dataset.i18n]});D.querySelectorAll('[data-i18n-aria]').forEach(function(e){e.setAttribute('aria-label',d[e.dataset.i18nAria])});R.lang=l==='zh'?'zh-CN':'en';metadata(l);lb.textContent=l==='zh'?'EN':'中文';lb.lang=l==='zh'?'en':'zh-CN';lb.title=l==='zh'?'切换到英文':'Switch to Chinese';lb.setAttribute('aria-label',l==='zh'?'切换到英文':'Switch to Chinese');tlabel()}
+tb.onclick=function(){dark=!dark;R.dataset.theme=dark?'dark':'light';try{localStorage.setItem('theme',R.dataset.theme)}catch(e){}D.querySelector('meta[name=theme-color]').content=dark?'#0b0b0b':'#ebe7df';tlabel()};
+lb.onclick=function(){set(cur==='zh'?'en':'zh');try{localStorage.setItem('lang',cur)}catch(e){}var u=new URL(location.href);u.searchParams.set('lang',cur);history.replaceState(null,'',u)};
+var ql=new URLSearchParams(location.search).get('lang'),sl;try{sl=localStorage.getItem('lang')}catch(e){}if(ql==='zh'||ql==='en'){try{localStorage.setItem('lang',ql)}catch(e){}}set(ql==='zh'||ql==='en'?ql:sl==='zh'||sl==='en'?sl:R.dataset.geoLang||(/^zh/i.test(navigator.language)?'zh':'en'));
+})();
+</script>
+</body></html>
