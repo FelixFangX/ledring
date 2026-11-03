@@ -1,5 +1,5 @@
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { createMcpServer } from "./mcp.js";
+import { createMcpServer, packageVersion } from "./mcp.js";
 export { createMcpServer } from "./mcp.js";
 import { homedir } from "node:os";
 import { basename } from "node:path";
@@ -16,7 +16,8 @@ import { nodeIO, type IO } from "./io.js";
 
 export type { IO } from "./io.js";
 
-const HELP = `ledring — status lights for AI agents
+function helpText(): string {
+  return `ledring ${packageVersion()} — see where runs split, and which steps left the instruction.
 
 Usage:
   ledring inspect <traces...> [--adapter name]       Print normalized ledring.trace.v1 runs as JSON
@@ -34,16 +35,21 @@ Usage:
   ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
                                                      What the agent did after a guardrail blocked it
   ledring play [--port n] [--no-open] [--print-config] [--home dir]
-                                                     Local Play bridge on 127.0.0.1. --print-config never prints secrets.
+                                                     Local Play bridge on 127.0.0.1. Not in the npm package; build this repo from source.
+                                                     --print-config never prints secrets.
                                                      Sign in with ChatGPT stays off unless LEDRING_SIWC=1 and both
                                                      LEDRING_SIWC_AUTH_BASE and LEDRING_SIWC_API_BASE are set.
   ledring mcp                                        Start the read-only stdio MCP server
   ledring help
 
+Install: npm install -g ledring@beta (the beta tag, not latest).
+The package includes flowchart, instability, trust, card, redwall, and mcp.
+
 Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
 claude-code (session JSONL), otel-genai (OTLP/JSON GenAI spans),
 ledring-trace (native ledring.trace.v1 JSON/JSONL), ledring-decisions (decisions JSONL).
 `;
+}
 
 export function loadRuns(io: IO, paths: string[], adapter?: string): Run[] {
   if (paths.length === 0) throw new Error("No trace files given.");
@@ -348,12 +354,12 @@ async function loadPlayBridge(): Promise<typeof import("@ledring/play-bridge")> 
 export async function run(argv: string[], io: IO = nodeIO): Promise<number> {
   const [cmd, ...rest] = argv;
   if (!cmd || cmd === "help" || cmd === "--help" || cmd === "-h") {
-    io.out(HELP);
+    io.out(helpText());
     return 0;
   }
   const command = commands[cmd];
   if (!command) {
-    io.err(`Unknown command "${cmd}".\n\n${HELP}`);
+    io.err(`Unknown command "${cmd}".\n\n${helpText()}`);
     return 2;
   }
   try {

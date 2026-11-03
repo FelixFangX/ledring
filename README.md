@@ -13,9 +13,13 @@ Same task, several agent runs, and no picture of where they split or which steps
 
 [Play](https://play.ledring.dev/play/) · [Sample reports](https://play.ledring.dev/)
 
+The demo runs in the browser. No install.
+
 ```sh
 npm install -g ledring@beta
 ```
+
+Node ≥ 20. One command: the `beta` tag, not `latest`. It installs the trace CLI. The local Play bridge is not in that package.
 
 </div>
 
@@ -41,18 +45,16 @@ Open [play.ledring.dev/play/](https://play.ledring.dev/play/) and press **▶ St
 
 ## Install
 
-Node ≥ 20. One command, the `beta` dist-tag:
-
-```sh
-npm install -g ledring@beta
-```
+The command above is the only install. It tracks the npm `beta` dist-tag (`0.2.0-beta.0` today). It does not install `latest`.
 
 ```sh
 ledring flowchart ~/.claude/projects/<project>/ --out report.html
 ledring instability ~/.claude/projects/<project>/
 ```
 
-`flowchart` prints `Wrote report.html — N runs, M forks`. Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`. This Beta is `0.2.0-beta.0`. Notes: [CHANGELOG.md](CHANGELOG.md). Publish steps: [docs/beta.md](docs/beta.md).
+`flowchart` prints `Wrote report.html — N runs, M forks`. Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
+
+That package includes `flowchart`, `instability`, `trust`, `card`, `redwall`, and read-only `mcp`. It does not include the local Play bridge or Playwright. Notes: [CHANGELOG.md](CHANGELOG.md). Publish steps: [docs/beta.md](docs/beta.md).
 
 ## From source
 

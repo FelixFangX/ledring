@@ -42,7 +42,7 @@ Package name `ledring`, from `packages/cli`. `pnpm pack` writes a tarball whose 
 - `publishConfig.access`: `public` (applied at pack time)
 - `dependencies`: `@modelcontextprotocol/sdk` and `zod` only
 
-`dist/bin.js` inlines the workspace libraries from source. `@ledring/play-bridge` is left external, so `ledring flowchart`, `ledring instability`, and `ledring mcp` do not install Playwright.
+`dist/bin.js` inlines flowchart, instability, trust, card, redwall, and the read-only MCP server. `@ledring/play-bridge` is left external, so the install does not pull in Playwright. `ledring play` is not in the package.
 
 ## Verify before you publish
 

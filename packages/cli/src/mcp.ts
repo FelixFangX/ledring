@@ -23,7 +23,7 @@ const nodeSchema: z.ZodType<BranchNode> = z.lazy(() => z.object({
   outcomes: z.object({ success: count, failure: count, unknown: count }), children: z.array(nodeSchema),
 }));
 
-function packageVersion(): string {
+export function packageVersion(): string {
   const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
   const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { version?: string };
   if (!pkg.version) throw new Error("ledring package.json has no version");
