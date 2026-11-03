@@ -27,7 +27,10 @@ describe("ledring inspect", () => {
   it("shows help and rejects unknown commands", async () => {
     const io = nodeIOForTest();
     expect(await run(["help"], io)).toBe(0);
+    expect(io.stdout()).toMatch(/ledring 0\.2\.0-beta\.0 — see where runs split/);
     expect(io.stdout()).toMatch(/ledring inspect/);
+    expect(io.stdout()).toMatch(/npm install -g ledring@beta \(the beta tag, not latest\)/);
+    expect(io.stdout()).toMatch(/Not in the npm package/);
     expect(await run(["nope"], io)).toBe(2);
   });
 });

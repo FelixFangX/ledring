@@ -39,6 +39,13 @@ async function revealEndingRecord(page: Page) {
   if (await more.isVisible()) await more.click();
 }
 
+/** Anthropic, OpenAI, and Sign in with ChatGPT live in the closed own-provider disclosure. */
+async function showOwnProvider(page: Page) {
+  await page.locator("#ob-settings").evaluate((el: HTMLDetailsElement) => {
+    el.open = true;
+  });
+}
+
 function serve(dir: string): Promise<{ url: string; close: () => Promise<void> }> {
   const server = createServer((req, res) => {
     const pathname = new URL(req.url ?? "/", "http://127.0.0.1").pathname;
@@ -1570,24 +1577,29 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         await page.screenshot({ path: join(diffDir, `onboard-initial-1280-${lang}.png`) });
 
         const cardIds = await page.locator("#ob-cards .ob-card").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.choice));
-        expect(cardIds).toEqual(["ledring", "anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo"]);
+        expect(cardIds).toEqual(["ledring", "demo"]);
+        const ownIds = await page.locator("#ob-other-cards .ob-card").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.choice));
+        expect(ownIds).toEqual(["anthropic", "openai-bridge", "openai-custom", "chatgpt"]);
         expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
         expect(externalBeforeAction.some((url) => url.includes("/ai/chat"))).toBe(false);
 
         if (lang === "zh") {
           expect(await page.locator("#ob-eye").textContent()).toBe("连接方式");
-          expect(await page.locator("#ob-title").textContent()).toBe("选择 CX-417 使用的 AI 模型");
+          expect(await page.locator("#ob-title").textContent()).toBe("和 CX-417 一起构建");
+          expect(await page.locator("#ob-settings-label").textContent()).toBe("使用自己的模型服务");
           expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 免费 AI");
           expect(await page.locator("#ob-priv").textContent()).toContain("不保存密钥");
         } else {
           expect(await page.locator("#ob-eye").textContent()).toBe("CONNECTION");
-          expect(await page.locator("#ob-title").textContent()).toBe("Choose an AI model for CX-417");
+          expect(await page.locator("#ob-title").textContent()).toBe("Build with CX-417");
+          expect(await page.locator("#ob-settings-label").textContent()).toBe("Use your own provider");
           expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING Free AI");
           expect(await page.locator("#ob-priv").textContent()).toContain("localStorage");
         }
 
         // 2. Sign in with ChatGPT is Coming Soon when LEDRING_SIWC is not enabled, and becomes active when enabled
         userActed = true;
+        await showOwnProvider(page);
         await page.locator('.ob-card[data-choice="chatgpt"]').click();
         expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
           lang === "zh" ? "敬请期待" : "COMING SOON",
@@ -1790,7 +1802,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
 
       await page.locator("#ob-test").click();
       await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
-      expect(await page.locator("#ob-test-status").textContent()).toContain("Try again tomorrow");
+      expect(await page.locator("#ob-test-status").textContent()).toBe("Quota");
       expect(external.filter((entry) => entry.startsWith("POST"))).toEqual(["POST api.ledring.dev/ai/chat"]);
 
       quota = false;
@@ -1809,6 +1821,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         "POST api.ledring.dev/ai/chat",
       ]);
 
+      await showOwnProvider(page);
       await page.locator('.ob-card[data-choice="openai-custom"]').click();
       expect(await page.locator("#ob-presets").count()).toBe(0);
       expect(await page.locator("#ob-fields").isVisible()).toBe(true);
@@ -1966,7 +1979,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       expect(hnExp).toMatchObject({ lang: "en", pack: "dev", src: "hn", onboard: "full", ending: "dev" });
       await hnPage.locator("#m-play").click();
       await hnPage.locator("#onboard.on").waitFor();
-      expect(await hnPage.locator("#ob-title").textContent()).toBe("Choose an AI model for CX-417");
+      expect(await hnPage.locator("#ob-title").textContent()).toBe("Build with CX-417");
       await hn.close();
     } finally {
       await browser?.close();
@@ -2047,6 +2060,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       });
       await page.locator("#onboard.on").waitFor();
       expect(await violations(), "onboard").toEqual([]);
+      await showOwnProvider(page);
       for (const choice of ["anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo", "ledring"]) {
         await page.locator(`.ob-card[data-choice="${choice}"]`).click();
         expect(await violations(), `onboard ${choice}`).toEqual([]);

@@ -4,14 +4,22 @@
  ◯  L E D R I N G
 ```
 
-Review AI builders like a game: watch the branch tree, catch instruction drift.
+Same task, several agent runs, and no picture of where they split or which steps left the instruction.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 [![CI](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml)
 
-**[▶ Play](https://play.ledring.dev/play/)**
-
 [![LEDRING Play: CX-417 builds one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
+
+[Play](https://play.ledring.dev/play/) · [Sample reports](https://play.ledring.dev/)
+
+The demo runs in the browser. No install.
+
+```sh
+npm install -g ledring@beta
+```
+
+Node ≥ 20. One command: the `beta` tag, not `latest`. It installs the trace CLI. The local Play bridge is not in that package.
 
 </div>
 
@@ -35,23 +43,30 @@ Open [play.ledring.dev/play/](https://play.ledring.dev/play/) and press **▶ St
 
 **Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://play.ledring.dev/play/?lang=zh).
 
+## Install
+
+The command above is the only install. It tracks the npm `beta` dist-tag (`0.2.0-beta.0` today). It does not install `latest`.
+
+```sh
+ledring flowchart ~/.claude/projects/<project>/ --out report.html
+ledring instability ~/.claude/projects/<project>/
+```
+
+`flowchart` prints `Wrote report.html — N runs, M forks`. Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
+
+That package includes `flowchart`, `instability`, `trust`, `card`, `redwall`, and read-only `mcp`. It does not include the local Play bridge or Playwright. Notes: [CHANGELOG.md](CHANGELOG.md). Publish steps: [docs/beta.md](docs/beta.md).
+
 ## From source
 
-Not on npm. Node ≥ 20, pnpm.
+<a id="quickstart"></a>
+
+Contributors, and the local Play bridge (`ledring play`), build from this repo. Node ≥ 20, pnpm. The npm package does not include that bridge.
 
 ```sh
 git clone https://github.com/FelixFangX/ledring.git && cd ledring && pnpm install && pnpm build && node packages/cli/dist/bin.js flowchart fixtures/claude-code --title "fix login bug" --out report.html
 ```
 
-Prints `Wrote report.html — 6 runs, 2 forks`. From that checkout:
-
-```sh
-node packages/cli/dist/bin.js instability fixtures/claude-code
-
-node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out report.html
-```
-
-Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
+Prints `Wrote report.html — 6 runs, 2 forks`. From that checkout, `node packages/cli/dist/bin.js play` serves the bridge on 127.0.0.1.
 
 ## Traces
 
@@ -95,7 +110,7 @@ A small stdio MCP server, so an agent can look at its own traces and ask how far
 | `get_redwall` | Red Wall results and outcome counts; optional local `scenarios` file |
 | `get_branch_summary` | Run count, fork count and top fork points with divergence percentages; `full: true` includes the metadata tree |
 
-Build locally with `pnpm build`. The CLI is not on npm yet. Replace `/path/to/ledring` below with the absolute checkout path, and pass absolute trace paths in tool calls.
+Install with `npm install -g ledring@beta`, then point the client at the `ledring` command. Pass absolute trace paths in tool calls.
 
 For Claude Code (`.mcp.json`), Claude Desktop (`claude_desktop_config.json`) or Cursor (`.cursor/mcp.json`), merge this configuration:
 
@@ -103,8 +118,8 @@ For Claude Code (`.mcp.json`), Claude Desktop (`claude_desktop_config.json`) or 
 {
   "mcpServers": {
     "ledring": {
-      "command": "node",
-      "args": ["/path/to/ledring/packages/cli/dist/bin.js", "mcp"]
+      "command": "ledring",
+      "args": ["mcp"]
     }
   }
 }
@@ -114,8 +129,8 @@ For Codex, add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.ledring]
-command = "node"
-args = ["/path/to/ledring/packages/cli/dist/bin.js", "mcp"]
+command = "ledring"
+args = ["mcp"]
 ```
 
 The server uses stdout only for the MCP protocol. To render a branch tree as HTML, use `ledring flowchart <paths> --out report.html` separately.
@@ -210,7 +225,9 @@ Outputs: `report-dir` and `failed`. The repository's own [Action workflow](.gith
 | [`@ledring/trust`](packages/trust) | `ruleOf()`, `learnPolicy()`, `toClaudeCodePermissions()`, `diffPermissions()` |
 | [`@ledring/cards`](packages/cards) | `cardFromConfig()`, `renderCardSvg()` |
 | [`@ledring/redwall`](packages/redwall) | `evaluateRun()`, `runScenarios()`, built-in walls |
-| [`@ledring/cli`](packages/cli) | the `ledring` command |
+| [`ledring`](packages/cli) | the `ledring` command, published to npm. The libraries above are bundled into it for Beta and are not separate npm packages |
+
+From a checkout (these imports are not on npm in this Beta):
 
 ```ts
 import { parseTrace } from "@ledring/trace";

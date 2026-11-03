@@ -1,4 +1,6 @@
-import { basename } from "node:path";
+import { readFileSync } from "node:fs";
+import { basename, dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { parseTrace } from "@ledring/trace";
@@ -21,9 +23,16 @@ const nodeSchema: z.ZodType<BranchNode> = z.lazy(() => z.object({
   outcomes: z.object({ success: count, failure: count, unknown: count }), children: z.array(nodeSchema),
 }));
 
+export function packageVersion(): string {
+  const pkgPath = join(dirname(fileURLToPath(import.meta.url)), "..", "package.json");
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as { version?: string };
+  if (!pkg.version) throw new Error("ledring package.json has no version");
+  return pkg.version;
+}
+
 /** Read-only projections: never serialize a normalized run or step directly. */
 export function createMcpServer(io: IO): McpServer {
-  const server = new McpServer({ name: "ledring", version: "0.1.0" });
+  const server = new McpServer({ name: "ledring", version: packageVersion() });
   const load = (paths: string[], adapter?: string) => io.expand(paths).flatMap((file) =>
     parseTrace(io.readFile(file), { filename: basename(file), ...(adapter ? { adapter } : {}) }).map((run) => ({ run, file })));
   const annotations = { readOnlyHint: true, openWorldHint: false };

@@ -1,5 +1,7 @@
 node_modules/
 dist/
+packages/cli/package.json.pack-backup
+packages/cli/*.tmp
 *.tsbuildinfo
 coverage/
 .env
