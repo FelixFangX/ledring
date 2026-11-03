@@ -76,7 +76,8 @@ describe("content packs", () => {
     expect(CN_PRESETS.map((p) => p.id)).toEqual(["confess", "slack", "bday", "fortune"]);
     expect(CN_MEMES.fortune.zh).toBe("AI 删库");
     expect(wallLine("zh", "fortune", "网络请求")).toContain("AI 删库");
-    expect(wallLine("zh", "fortune", "网络请求")).toContain("拦截");
+    expect(wallLine("zh", "fortune", "网络请求")).not.toContain("超时");
+    expect(wallLine("en", "fortune", "network call")).not.toContain("allowed");
     expect(wallLine("en", "snake", "network call")).toBeNull();
     expect(page.CN_VERDICTS).toEqual(CN_VERDICTS);
     for (const preset of CN_PRESETS) {

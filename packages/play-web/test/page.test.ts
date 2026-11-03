@@ -30,6 +30,15 @@ describe("play page", () => {
     expect(html).toContain("window.__ledringWithHarness");
   });
 
+  it("holds the red wall until Block or Allow", () => {
+    expect(html).toContain('id="wa"');
+    expect(html).toContain('id="wb"');
+    expect(html).not.toContain('fin("allow","unknown")');
+    expect(html).not.toContain("or it will be allowed");
+    expect(html).not.toContain("超时将放行");
+    expect(html).toContain("only Block or Allow continues");
+  });
+
   it("never uses getUserMedia, geolocation, or clipboard read/write in play-web", () => {
     expect(html).not.toMatch(/getUserMedia|geolocation|navigator\.clipboard/i);
   });

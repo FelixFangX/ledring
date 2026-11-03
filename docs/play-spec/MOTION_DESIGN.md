@@ -46,7 +46,7 @@
 | **Run** | **Step banner** "v2 · WRITING" and **decision banner** "DECISION · Add polish" (crit edge for shortcut/plug) | Detroit chapter card × P5 call-out | `banner(text,tone)`: 1.5 s, skewed, translate only |
 | Run | Instability and trust **count up**; LED ring colour and speed | Hades numbers; DS diegetic device | `Motion.count`; the v1 ring remains |
 | **QTE** | Box **slams** up; options deal from the left; key caps rotate on hover; last 3 s → red timer + **urgency pulse**; pick → option inks black, others fall away, **spark burst**; timeout → **AUTO** stamp | Detroit timer; Juice | `qte()`: slam keyframes, `stagger`, `.urgent`, `.picked`, `burst`, `.stampmark` |
-| **Red Wall** | **Hit-stop 90 ms** → shake → box slam; **hazard bands** crawl at top and bottom; BLOCK → **shatter** (22 shards, red/ink/white) + "⛔ BLOCKED" stamp; miss → **MISSED** stamp | Returnal telegraph; Vlambeer hit-stop | `Motion.hitstop`, `#choicelayer.wall .hz` (translate loop), `burst`, `stamp` |
+| **Red Wall** | **Hit-stop 90 ms** → shake → full-screen hold; **hazard bands** crawl at top and bottom; timer expiry freezes the hold; BLOCK → **shatter** (22 shards, red/ink/white) + BLOCKED stamp; ALLOW → ALLOWED stamp. Expiry does not let the item through | Returnal telegraph; Vlambeer hit-stop | `Motion.hitstop`, `#choicelayer.wall .hz` (translate loop), `burst`, `stamp` |
 | Run → End | Wipe "VERDICT · POLISHED" | — | `show("end", caption)` |
 | **Ending** | Title split; ending **tag stamps** with overshoot; the flow path **draws** column by column; recap numbers count up; artifact frame pops; good endings → **ink confetti** from the tag; bad endings → a short shake | P5 results screen; Juice | `paintEnd` hook: `split`, `stamp`, `stroke-dashoffset`, `count`, `burst` |
 

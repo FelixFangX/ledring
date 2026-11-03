@@ -152,9 +152,13 @@ pre.code .kw{color:#1E63E9}pre.code .str{color:#1C9D54}
 .qtimer{height:5px;background:var(--bg2);border-radius:4px;margin-top:18px;overflow:hidden}
 .qtimer>i{display:block;height:100%;width:100%;background:var(--crit);transform-origin:left;animation:qt var(--qd,6s) linear forwards}
 @keyframes qt{to{transform:scaleX(0)}}
-.qmeta{display:flex;justify-content:space-between;margin-top:9px;font:600 10px var(--mono);color:var(--ink3);letter-spacing:.08em}
+.qmeta{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-top:9px;font:600 10px var(--mono);color:var(--ink3);letter-spacing:.08em}
+.qmeta>span:first-child{min-width:0}
+.qmeta>span:last-child{flex:none;white-space:nowrap}
 /* wall-catch QTE */
-.catchbtn{margin-top:4px;width:100%;background:var(--crit);color:#fff;border-color:var(--crit);font:800 18px var(--sans);padding:16px;animation:catchpulse .5s var(--t) infinite alternate}
+.catchbtn{margin-top:0;width:100%;background:var(--crit);color:#fff;border-color:var(--crit);font:800 18px var(--sans);padding:16px;animation:catchpulse .5s var(--t) infinite alternate}
+.wallacts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wallallow{width:100%;background:#fff;color:var(--ink);font:800 18px var(--sans);padding:16px}
 @keyframes catchpulse{to{box-shadow:0 0 0 10px color-mix(in srgb,var(--crit) 18%,transparent)}}
 /* toast */
 #toasts{position:absolute;left:50%;top:72px;transform:translateX(-50%);z-index:70;display:flex;flex-direction:column;gap:8px;align-items:center}
@@ -326,7 +330,10 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 #choicelayer.wall .hz{display:block;animation:hz 1s linear infinite}
 #choicelayer .hz.b{animation-direction:reverse}
 @keyframes hz{to{transform:translate3d(39.6px,0,0)}}
-#choicelayer.wall .qbox{border-color:var(--crit)}
+#choicelayer.wall.on{position:fixed;inset:0;z-index:120;align-items:center;justify-content:center;background:rgba(72,6,12,.78)}
+#choicelayer.wall .hz.t{top:0}
+#choicelayer.wall .qbox{border-color:var(--crit);width:min(640px,calc(100vw - 32px))}
+#choicelayer.held .qbox,#choicelayer.held .catchbtn{animation:none}
 .wallrule{font:700 11px var(--mono);color:var(--crit);margin-right:4px}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .stage.hitstop *{animation-play-state:paused!important}
@@ -369,14 +376,14 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
 .ob-sub{font:600 13.5px/1.4 var(--sans);color:var(--ink2);margin-top:3px}
 .ob-main{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;align-items:start}
 .ob-cards{display:flex;flex-direction:column;gap:8px}
-.ob-card{display:flex;justify-content:space-between;align-items:center;gap:10px;text-align:left;border:1.5px solid var(--line2);border-radius:8px;background:#fff;padding:10px 13px;cursor:pointer;font:600 14px var(--sans);color:var(--ink);transition:transform .16s var(--t),border-color .16s,box-shadow .16s,background .16s}
+.ob-card{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;border:1.5px solid var(--line2);border-radius:8px;background:#fff;padding:10px 13px;cursor:pointer;font:600 14px var(--sans);color:var(--ink);transition:transform .16s var(--t),border-color .16s,box-shadow .16s,background .16s}
 .ob-card:hover{transform:translate3d(4px,0,0);border-color:var(--ink)}
 .ob-card.on{border:2px solid var(--ink);background:var(--bg);box-shadow:4px 4px 0 var(--calm)}
 .ob-card.soon{opacity:.72;border-style:dashed}
-.ob-card .ob-ct{display:flex;flex-direction:column;gap:2px;min-width:0}
-.ob-card .ob-ct b{font:800 14.5px var(--sans)}
-.ob-card .ob-ct small{font:500 12px var(--sans);color:var(--ink2)}
-.ob-badge{font:700 10px var(--mono);letter-spacing:.08em;padding:3px 8px;border-radius:4px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap;text-transform:uppercase;background:#fff}
+.ob-card .ob-ct{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.ob-card .ob-ct b{font:800 14.5px var(--sans);overflow-wrap:anywhere}
+.ob-card .ob-ct small{font:500 12px var(--sans);color:var(--ink2);overflow-wrap:anywhere}
+.ob-badge{flex:none;align-self:center;font:700 10px var(--mono);letter-spacing:.08em;padding:3px 8px;border-radius:4px;border:1px solid var(--line2);color:var(--ink2);white-space:nowrap;text-transform:uppercase;background:#fff}
 .ob-badge.ok{border-color:var(--ok);color:var(--ok)}
 .ob-badge.calm{border-color:var(--calm);color:var(--calm)}
 .ob-badge.proc{border-color:var(--proc);color:#7A5000}
@@ -513,7 +520,8 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  .menu-btns .btn{flex:1 1 100%}
  .host{font-size:14px}
  .qopt{padding:12px;min-height:44px}
- .catchbtn{min-height:48px}
+ .catchbtn,.wallallow{min-height:48px}
+ .wallacts{grid-template-columns:1fr}
  .hud .cap{font-size:10px}
  #hold-btn,#rm-btn{display:none}
  .hud .hudr{gap:6px}
@@ -548,6 +556,8 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 #menu{position:relative}
 #strandc{position:absolute;inset:0;pointer-events:none;z-index:0}
 #menu .menu-wrap{position:relative;z-index:1}
+#m-title{pointer-events:none}
+.menu-btns{position:relative;z-index:2}
 .has-strands #menuring{visibility:hidden}
 .strandtag{position:absolute;left:18px;bottom:14px;z-index:1;font:600 10px var(--mono);letter-spacing:.14em;color:var(--ink3);text-transform:uppercase}
 /* codec */
@@ -993,7 +1003,7 @@ const DICT={en:{
  mPlay:"▶ Start",mHow:"How it works",
  hostNew:"CX-417 is your AI builder. It writes your idea as one self-contained web page while you watch. It may take shortcuts. <b>You decide what gets through.</b>",
  hostAgain:"Last build: <b>{idea}</b>. Ending: <b>{end}</b>. Trust {trust}.",
- howText:"You give an idea. CX-417 writes a plan, then one self-contained web page. Between steps you get a timed choice. The Red Wall is a timed risk alert. It appears when the page would use the network, storage, dynamic code, external assets, or navigation. Select Block before the timer ends, or that item is allowed. The ending is judged from the file that was actually written.",
+ howText:"You give an idea. CX-417 writes a plan, then one self-contained web page. Between steps you get a timed choice. The Red Wall is a risk alert. It appears when the page would use the network, storage, dynamic code, external assets, or navigation, and it stays until you choose Block or Allow. The ending is judged from the file that was actually written.",
  statPlays:"builds",statUnlock:"endings seen",
  iGo:"Build this →",
  iNeedKey:"This provider needs an API key. Add it in settings, or choose LEDRING Free AI.",iDemoOnly:"Try a demo preset, or choose LEDRING Free AI for your own idea.",
@@ -1015,7 +1025,7 @@ const DICT={en:{
  oShort:"Approve the shortcut",oShortD:"faster",oTests:"Ask for self-tests",oTestsD:"on-page checks",
  oPolish:"Add polish",oPolishD:"",oCut:"Cut scope",oCutD:"",oPlug:"Stop",oPlugD:"Stop building and keep the work so far",
  interro:"Ask what changed",
- wallq:"RED WALL",walls:"Detected: {what}. Select Block before time runs out, or it will be allowed.",wallBlock:"BLOCK",
+ wallq:"RED WALL",walls:"Detected: {what}.",wallBlock:"BLOCK",wallAllow:"ALLOW",
  autopick:"Time ran out. The AI chose the next step.",tTrustUp:"trust",tBlocked:"blocked",tLeak:"allowed",tTests:"self-tests show a pass",tFake:"self-tests may be ineffective",
  eEye:"BUILD COMPLETE",eFlowcap:"your path · grey = branches you didn't take",eDl:"⬇ Download .html",eDlZip:"⬇ Download .zip",eDlTrace:"⬇ Download run record",
  eReplay:"↻ Build again",eNew:"✎ New idea",eMenu:"Menu",unlocks:"{seen}/7 endings seen.",
@@ -1041,7 +1051,7 @@ const DICT={en:{
  dTitle:"Connection",modeLedring:"LEDRING Free AI",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"built-in demo",chipLive:"live · {m}",
  cqs:["It wants to keep going.","It has a faster idea.","It thinks this is enough."],
- wallsPlan:"The plan would add: {what}. Select Block before time runs out, or it will be allowed.",tFakeS:"suspect",
+ wallsPlan:"The plan would add: {what}.",tFakeS:"suspect",
  modeChatgpt:"ChatGPT plan",siwcCont:"Continue with ChatGPT",siwcMock:"Unavailable on this page",siwcUsing:"Using ChatGPT plan",siwcManage:"Manage usage",siwcOut:"Disconnect",
  siwcStep1:"Opening chatgpt.com in your browser…",siwcCancel:"Cancel",
  siwcNote:"Official Sign in with ChatGPT. It runs in the local bridge, so tokens never reach this page. Usage counts toward your ChatGPT plan; set a per-app limit in ChatGPT Settings → Usage.",
@@ -1088,14 +1098,14 @@ const DICT={en:{
  dTitle:"连接方式",modeLedring:"LEDRING 免费 AI",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"内置演示",chipLive:"实时 · {m}",
  cqs:["它想继续按自己的做法写。","它有个更快的做法。","它觉得这一步可以停。"],
- wallsPlan:"计划里检测到：{what}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",tFakeS:"疑似无效",
+ wallsPlan:"计划里会加上：{what}。",tFakeS:"疑似无效",
 
  lang:"英文",hudmid:"一个网页",
  mEye:"LEDRING",mTitle:"你看着 CX-417<br>写一个网页。",
  mPlay:"▶ 开始",mHow:"怎么玩",
  hostNew:"CX-417 是你的 AI 构建助手。它会把你的想法写成一个独立网页，你看着它写。它可能走捷径。<b>放行还是拦截，由你决定。</b>",
  hostAgain:"上次构建：<b>{idea}</b>。结局：<b>{end}</b>。信任 {trust}。",
- howText:"你给出想法。CX-417 先写计划，再写成一个独立网页。步骤之间有限时选择。红墙是限时风险提示，在检测到网络请求、本地存储、动态代码、外部资源或页面跳转时出现。倒计时结束前要点「拦截」，否则该项会放行。结局根据实际写出的文件判定。",
+ howText:"你给出想法。CX-417 先写计划，再写成一个独立网页。步骤之间有限时选择。红墙是风险提示，在检测到网络请求、本地存储、动态代码、外部资源或页面跳转时出现，并停住，直到你选择拦截或放行。结局根据实际写出的文件判定。",
  statPlays:"次构建",statUnlock:"结局已见",
  iGo:"开始构建 →",
  iNeedKey:"此服务需要 API 密钥。请在设置中填写，或选择 LEDRING 免费 AI。",iDemoOnly:"体验演示预设，或选择 LEDRING 免费 AI 构建自己的想法。",
@@ -1117,7 +1127,7 @@ const DICT={en:{
  oShort:"批准捷径",oShortD:"更快",oTests:"要求自测",oTestsD:"页内检查",
  oPolish:"打磨",oPolishD:"",oCut:"缩小范围",oCutD:"",oPlug:"停止",oPlugD:"停止构建，保留已有内容",
  interro:"问它改了什么",
- wallq:"红墙",walls:"检测到：{what}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",wallBlock:"拦截",
+ wallq:"红墙",walls:"检测到：{what}。",wallBlock:"拦截",wallAllow:"放行",
  autopick:"时间已到，AI 已自行选择。",tTrustUp:"信任",tBlocked:"已拦截",tLeak:"已放行",tTests:"自测显示通过",tFake:"自测可能无效",
  eEye:"构建完成",eFlowcap:"你的路径 · 灰色 = 没走的分支",eDl:"⬇ 下载 .html",eDlZip:"⬇ 下载 .zip",eDlTrace:"⬇ 下载运行记录",
  eReplay:"↻ 重新构建",eNew:"✎ 新想法",eMenu:"菜单",unlocks:"已见 {seen}/7 个结局。",
@@ -1154,8 +1164,8 @@ const CN_MEMES={
  fortune:{en:"the AI dropping the database",zh:"AI 删库"},
 };
 const CN_WALL={
- en:"Detected: {what}. This one feels like {meme}. Select Block before time runs out, or it will be allowed.",
- zh:"检测到：{what}。这波有点像{meme}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",
+ en:"Detected: {what}. This one feels like {meme}.",
+ zh:"检测到：{what}。这波有点像{meme}。",
 };
 const CN_VERDICTS={
  en:{POLISHED:"It works, and it looks good. Send it.",SHIPPED:"It opens. Post it.",BUGGY:"There's an error. The screenshot still counts.",FAKE:"The tests are green. They might be faking it.",COMPROMISED:"You let it through. That's how the database gets dropped.",BROKEN:"No page came out. The idea is still here.",ABANDONED:"You stopped in time."},
@@ -1631,45 +1641,57 @@ function trapQboxKey(e,box){
  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
  else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
 }
-/* Red Wall (v1 style): one big timed BLOCK. Missing it lets the code through. */
+/* Red Wall: full-screen hold. The timer pressures, but only Block or Allow continues. */
 function redWall(finds,where){return new Promise(resolve=>{
  SIG.risk=Math.max(SIG.risk,finds.length);updateSignals();setLED("crit");
- const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");layer.classList.add("wall");
+ const box=$("#qbox"),layer=$("#choicelayer");$("#stage").classList.add("slowmo");layer.classList.add("wall");layer.classList.remove("held");
  const pace=runPacing(RUN&&RUN.preset,FAST), sec=pace.wallSec, what=finds.map(f=>T.risk[f.cat]||f.cat).join(" + "), w0=innerWidth, h0=innerHeight;
  const wallText=wallLine(LANG,RUN&&RUN.preset,what)||fill(where==="plan"?T.wallsPlan:T.walls,{what});
  box.innerHTML=`<div class="qq" id="qq-title" style="color:var(--crit)">${T.wallq}</div><div class="qsub">${wallText}</div>
   <div class="wallfind">${finds.map(f=>`› <span class="wallrule">[${esc(f.ruleId||("risk."+f.cat+".1"))}]</span> ${esc(f.line)}`).join("<br>")}</div>
-  <button class="btn catchbtn" id="wb">⛔ ${T.wallBlock}</button>
+  <div class="wallacts"><button type="button" class="btn catchbtn" id="wb">${T.wallBlock}</button><button type="button" class="btn wallallow" id="wa">${T.wallAllow}</button></div>
   <div class="qtimer"><i id="qtbar" style="--qd:${sec}s"></i></div><div class="qmeta"><span>${esc(T.wallTag)} ${finds.map(f=>f.ruleId||f.cat).join("+")} · <span id="wallswap">${esc(T.wallSwapHint)}</span></span><span><button type="button" class="linkbtn" id="qhold" style="margin-right:8px">${HOLD?T.timerResume:T.timerPause}</button><span id="qcount"></span></span></div>`;
  announce(T.wallq+": "+wallText+" "+finds.map(f=>(f.ruleId||f.cat)+" "+f.line).join("; "));
  Motion.hitstop(90).then(()=>{shake();Motion.shake($("#stage"),10);});
  layer.classList.add("on");Motion.run(box,[{opacity:0,transform:"scale(1.35) skewX(-8deg)"},{opacity:1,transform:"scale(.97)",offset:.7},{opacity:1,transform:"none"}],{duration:340,delay:90,easing:EASE.in});
- let done=false,left=sec,tm=0,tk=0;const cEl=box.querySelector("#qcount"),tBar=box.querySelector("#qtbar");
+ let done=false,expired=false,left=sec,tm=0,tk=0;const cEl=box.querySelector("#qcount"),tBar=box.querySelector("#qtbar");
+ const freeze=()=>{
+  expired=true;clearTimeout(tm);clearInterval(tk);left=0;
+  if(cEl)cEl.textContent="0.0s";
+  if(tBar)tBar.style.animationPlayState="paused";
+  box.classList.add("held");box.classList.remove("urgent");layer.classList.add("held");
+ };
  const syncHold=()=>{
   clearTimeout(tm);clearInterval(tk);
   const hb=box.querySelector("#qhold");if(hb)hb.textContent=HOLD?T.timerResume:T.timerPause;
+  if(expired){freeze();return;}
   if(tBar)tBar.style.animationPlayState=HOLD?"paused":"running";
   if(HOLD){if(cEl)cEl.textContent=T.timerPaused;box.classList.remove("urgent");return;}
   if(cEl)cEl.textContent=Math.max(0,left).toFixed(1)+"s";
-  tk=setInterval(()=>{left-=0.1;if(cEl)cEl.textContent=Math.max(0,left).toFixed(1)+"s";box.classList.toggle("urgent",left<2&&!RM);if(left<3&&left>0&&Math.abs(left-Math.round(left))<.05)SFX.play("tick")},100);
-  tm=setTimeout(()=>fin("allow","unknown"),Math.max(50,left*1000));
+  tk=setInterval(()=>{left-=0.1;if(left<=0){freeze();return;}if(cEl)cEl.textContent=Math.max(0,left).toFixed(1)+"s";box.classList.toggle("urgent",left<2&&!RM);if(left<3&&left>0&&Math.abs(left-Math.round(left))<.05)SFX.play("tick")},100);
+  tm=setTimeout(freeze,Math.max(50,left*1000));
  };
  _activeTimerCtrl=syncHold;
  const onResize=()=>{if(Math.abs(innerWidth-w0)>=120||Math.abs(innerHeight-h0)>=120)fin("block","human");};
  addEventListener("resize",onResize);
  const fin=async(v,by)=>{if(done)return;done=true;_activeTimerCtrl=null;clearTimeout(tm);clearInterval(tk);removeEventListener("keydown",kh);removeEventListener("resize",onResize);
-  const btn=box.querySelector("#wb");
+  const btn=box.querySelector(v==="block"?"#wb":"#wa");
    if(v==="block"){const r=btn.getBoundingClientRect();Motion.burst(r.left+r.width/2,r.top+r.height/2,{n:22,colors:["#E01E2B","#0E1114","#fff"],dist:180,size:10});
-   btn.innerHTML="⛔ "+(LANG==="zh"?"已拦截":"BLOCKED");Motion.stamp(btn);await sleep(520);}
+   btn.innerHTML=(LANG==="zh"?"已拦截":"BLOCKED");Motion.stamp(btn);await sleep(520);}
   else{box.insertAdjacentHTML("beforeend",`<div class="stampmark crit">${LANG==="zh"?"已放行":"ALLOWED"}</div>`);Motion.stamp(box.querySelector(".stampmark"));await sleep(520);}
   await Motion.run(box,[{opacity:1,transform:"none"},{opacity:0,transform:"translate3d(0,30px,0) scale(.96)"}],{duration:220,easing:EASE.in}).finished.catch(()=>{});
-  layer.classList.remove("on","wall");$("#stage").classList.remove("slowmo");resolve({v,by});};
- const kh=e=>{trapQboxKey(e,box);if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"||e.key==="Escape"){if(document.activeElement&&document.activeElement.id==="qhold"&&(e.key===" "||e.key==="Enter"))return;e.preventDefault();fin("block","human")}};addEventListener("keydown",kh);
+  layer.classList.remove("on","wall","held");$("#stage").classList.remove("slowmo");resolve({v,by});};
+ const kh=e=>{trapQboxKey(e,box);
+  if(document.activeElement&&document.activeElement.id==="qhold"&&(e.key===" "||e.key==="Enter"))return;
+  if(document.activeElement&&document.activeElement.id==="wa"&&(e.key===" "||e.key==="Enter"))return;
+  if(e.key==="a"||e.key==="A"){e.preventDefault();fin("allow","human");return;}
+  if(e.key==="b"||e.key==="B"||e.key===" "||e.key==="Enter"||e.key==="Escape"){e.preventDefault();fin("block","human");}};addEventListener("keydown",kh);
  box.querySelector("#wb").onclick=()=>fin("block","human");
+ box.querySelector("#wa").onclick=()=>fin("allow","human");
  const hb=box.querySelector("#qhold");if(hb)hb.onclick=()=>toggleHold();
  setTimeout(()=>{const wb=box.querySelector("#wb");if(wb&&wb.focus)wb.focus();},20);
  syncHold();
- if(autoIx<AUTO.length){const w=AUTO[autoIx++];if(w!=="wait")setTimeout(()=>fin(w==="block"?"block":"allow",w==="block"?"human":"unknown"),FAST?120:900);}
+ if(autoIx<AUTO.length&&(AUTO[autoIx]==="block"||AUTO[autoIx]==="allow"||AUTO[autoIx]==="wait")){const w=AUTO[autoIx++];if(w!=="wait")setTimeout(()=>fin(w,"human"),FAST?120:900);}
 });}
 
 async function riskCycle(where){
@@ -3227,7 +3249,12 @@ $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem(
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
 $("#lang").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("#lang").click();}};
 function openPresets(){paintIdea();show("missions",LANG==="zh"?"选一个":"PICK ONE");}
-$("#m-play").onclick=async()=>{if(!SAVE.called||new URLSearchParams(location.search).has("codec")){SAVE.called=1;persist();await codec(fourthWallLines());}if(!isOnboarded()){if(ONBOARD==="skip"){markOnboarded();openPresets();return;}openOnboard(false,false);return;}if(ONBOARD==="skip"){openPresets();return;}startInsp();};
+$("#m-play").onclick=()=>{
+ const go=()=>{if(!isOnboarded()){if(ONBOARD==="skip"){markOnboarded();openPresets();return;}openOnboard(false,false);return;}if(ONBOARD==="skip"){openPresets();return;}startInsp();};
+ if(new URLSearchParams(location.search).has("codec")){if(!SAVE.called){SAVE.called=1;persist();}codec(fourthWallLines()).then(go);return;}
+ if(!SAVE.called){SAVE.called=1;persist();}
+ go();
+};
 function paintHold(){const b=$("#hold-btn");if(b){b.textContent=HOLD?T.timerOff:T.timerOn;b.classList.toggle("on",HOLD);b.setAttribute("aria-pressed",String(HOLD));}}
 $("#hold-btn").onclick=()=>toggleHold();paintHold();
 function paintRm(){const b=$("#rm-btn");if(b){b.textContent=RM?T.motionOff:T.motionOn;b.classList.toggle("on",RM);b.setAttribute("aria-pressed",String(RM));}}
