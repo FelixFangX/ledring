@@ -11,7 +11,6 @@ import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, typ
 import { dirname, join, resolve } from "node:path";
 import { cardFromConfig, cardFromPlayTrace, renderCardSvg } from "@ledring/cards";
 import { defaultScenarios, OUTCOMES, parseScenarios, runScenarios, type Outcome, type RedWallReport } from "@ledring/redwall";
-import { formatProviderConfig, readProviderHome, startBridge } from "@ledring/play-bridge";
 import { spawn } from "node:child_process";
 import { nodeIO, type IO } from "./io.js";
 
@@ -238,6 +237,7 @@ const commands: Record<string, Command> = {
       },
     });
     const home = values.home ?? join(homedir(), ".ledring", "play");
+    const { formatProviderConfig, readProviderHome, startBridge } = await loadPlayBridge();
     const loaded = readProviderHome(home);
     const authBase = process.env.LEDRING_SIWC_AUTH_BASE;
     const apiBase = process.env.LEDRING_SIWC_API_BASE;
@@ -327,6 +327,21 @@ function readTokens(text: string): { tokens?: Partial<Tokens>; darkTokens?: Part
   if (t.color && typeof t.color === "object") return { tokens: fromDesignTokens(t) };
   if (t.light || t.dark) return { tokens: (t.light ?? {}) as Partial<Tokens>, darkTokens: (t.dark ?? {}) as Partial<Tokens> };
   return { tokens: t as Partial<Tokens> };
+}
+
+/** The npm package bundles the review commands. Playwright stays in the source checkout. */
+async function loadPlayBridge(): Promise<typeof import("@ledring/play-bridge")> {
+  try {
+    return await import("@ledring/play-bridge");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    // A published install has no @ledring/play-bridge package. A source checkout
+    // that has not been built fails on dist/index.js instead, and should show that path.
+    if (message.includes("Cannot find package '@ledring/play-bridge'")) {
+      throw new Error("the local Play bridge ships with the source checkout, not the npm package. Open https://play.ledring.dev/play/ or build from source and run node packages/cli/dist/bin.js play");
+    }
+    throw error;
+  }
 }
 
 /** Run the CLI. Returns the process exit code. */

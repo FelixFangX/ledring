@@ -6,7 +6,7 @@ export default tseslint.config(
   { ignores: ["**/dist/**", "**/node_modules/**", "docs/**", "packages/play-web/public/vendor/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
-  { files: ["scripts/**"], languageOptions: { globals: globals.node } },
+  { files: ["scripts/**", "packages/cli/scripts/**"], languageOptions: { globals: globals.node } },
   {
     rules: {
       "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
