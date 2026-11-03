@@ -4,21 +4,16 @@
  ◯  L E D R I N G
 ```
 
-</div>
+Review AI builders like a game: watch the branch tree, catch instruction drift.
 
-Same task, several agent runs, and no picture of where they split or which steps left the instruction. LEDRING reads those traces and writes a branch tree plus a drift score.
+[![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
+[![CI](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml)
 
-**[▶ Play](https://play.ledring.dev/play/)** · [中文](https://play.ledring.dev/play/?lang=zh) · [Sample reports](https://play.ledring.dev/) · [ledring.dev](https://ledring.dev)
-
-Watch CX-417 write your idea as one web page. You get a timed choice between steps, and a Red Wall waits for Block or Allow.
+**[▶ Play](https://play.ledring.dev/play/)**
 
 [![LEDRING Play: CX-417 builds one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
 
-```sh
-git clone https://github.com/FelixFangX/ledring.git && cd ledring && pnpm install && pnpm build && node packages/cli/dist/bin.js flowchart fixtures/claude-code --title "fix login bug" --out report.html
-```
-
-Node ≥ 20, pnpm. Not on npm. Prints `Wrote report.html — 6 runs, 2 forks`.
+</div>
 
 ## Play
 
@@ -36,9 +31,27 @@ Open [play.ledring.dev/play/](https://play.ledring.dev/play/) and press **▶ St
 | **LEDRING Free AI** (default) | Nothing. No key, no sign-up. It runs on a shared daily quota. |
 | Built-in demo | Nothing. Scripted examples, with no AI calls. |
 | Anthropic | Your own API key. The browser calls api.anthropic.com directly. |
-| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [Quickstart](#quickstart), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
+| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [From source](#from-source), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
 
 **Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://play.ledring.dev/play/?lang=zh).
+
+## From source
+
+Not on npm. Node ≥ 20, pnpm.
+
+```sh
+git clone https://github.com/FelixFangX/ledring.git && cd ledring && pnpm install && pnpm build && node packages/cli/dist/bin.js flowchart fixtures/claude-code --title "fix login bug" --out report.html
+```
+
+Prints `Wrote report.html — 6 runs, 2 forks`. From that checkout:
+
+```sh
+node packages/cli/dist/bin.js instability fixtures/claude-code
+
+node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out report.html
+```
+
+Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
 
 ## Traces
 
@@ -53,19 +66,7 @@ Claude Code session JSONL, OpenTelemetry GenAI spans, native `ledring.trace.v1`,
 
 Play can download the session as `ledring.trace.v1`. Score colors follow the instability bands: blue under 20, yellow from 20, red from 40.
 
-**[Sample reports](https://play.ledring.dev/)** · **[Concept demo](https://play.ledring.dev/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`)
-
-## Quickstart
-
-The install line above builds from source and writes the fixture branch tree. From that checkout:
-
-```sh
-node packages/cli/dist/bin.js instability fixtures/claude-code
-
-node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out report.html
-```
-
-Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
+**[Sample reports](https://play.ledring.dev/)** · **[Concept demo](https://play.ledring.dev/demo/)** (fictional demo data: all planned modules on one run; English and 中文, `?lang=zh`) · **[ledring.dev](https://ledring.dev)**
 
 ## `ledring flowchart`
 
