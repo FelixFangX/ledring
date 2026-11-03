@@ -6,6 +6,7 @@ import { INSTABILITY_SCHEMA, scoreInstability } from "@ledring/instability";
 import { buildBranchTree, type BranchNode } from "@ledring/flowchart";
 import { defaultScenarios, OUTCOMES, parseScenarios, REDWALL_SCHEMA, runScenarios } from "@ledring/redwall";
 import type { IO } from "./io.js";
+import { VERSION } from "./version.js";
 
 const short = (s: string): string => s.slice(0, 200);
 const str = z.string().max(200);
@@ -23,7 +24,7 @@ const nodeSchema: z.ZodType<BranchNode> = z.lazy(() => z.object({
 
 /** Read-only projections: never serialize a normalized run or step directly. */
 export function createMcpServer(io: IO): McpServer {
-  const server = new McpServer({ name: "ledring", version: "0.1.0" });
+  const server = new McpServer({ name: "ledring", version: VERSION });
   const load = (paths: string[], adapter?: string) => io.expand(paths).flatMap((file) =>
     parseTrace(io.readFile(file), { filename: basename(file), ...(adapter ? { adapter } : {}) }).map((run) => ({ run, file })));
   const annotations = { readOnlyHint: true, openWorldHint: false };

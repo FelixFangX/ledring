@@ -1,4 +1,4 @@
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -6,6 +6,7 @@ import { spawnSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import { checkContracts } from "../../../scripts/capability-contracts.mjs";
 import { packablePackageDirs, pagesBuildError } from "../../../scripts/release-dry-run.mjs";
+import { ledringManifestErrors, ledringPackageManifest, publishedManifestErrors, smokeLedring, stageLedring } from "../../../scripts/stage-beta.mjs";
 import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
@@ -60,12 +61,31 @@ describe("release dry-run", () => {
   it("packs public packages and requires the Pages build", () => {
     const dirs = packablePackageDirs(root);
     expect(dirs).toContain("play-core");
-    expect(dirs).toContain("cli");
+    expect(dirs).toContain("trace");
+    expect(dirs).not.toContain("cli");
     expect(dirs).not.toContain("play-web");
     expect(pagesBuildError(root)).toBeNull();
     const empty = mkdtempSync(join(tmpdir(), "ledring-pages-"));
     mkdirSync(join(empty, "packages"), { recursive: true });
     expect(pagesBuildError(empty)).toBe("release dry-run failed: docs/play/index.html is missing");
+  });
+
+  it("rejects a published manifest that still uses the workspace protocol", () => {
+    expect(publishedManifestErrors({ name: "@ledring/trace", version: "0.2.0-beta.0", dependencies: { zod: "^3.23.8" } })).toEqual([]);
+    expect(publishedManifestErrors({ name: "@ledring/flowchart", version: "0.1.0", dependencies: { "@ledring/trace": "workspace:*" } })).toEqual([
+      "manifest contains workspace:",
+      "version is 0.1.0, expected 0.2.0-beta.0",
+    ]);
+    expect(ledringManifestErrors({ ...ledringPackageManifest("0.2.0-beta.0"), dependencies: { "@ledring/trace": "0.2.0-beta.0" } })).toEqual([
+      "dependencies must be empty (@ledring/trace)",
+    ]);
+  });
+
+  it("smoke-tests the bundled ledring package", async () => {
+    const stage = mkdtempSync(join(tmpdir(), "ledring-stage-"));
+    rmSync(stage, { recursive: true, force: true });
+    await stageLedring(root, stage);
+    expect(smokeLedring(stage, root)).toEqual([]);
   });
 });
 

@@ -11,21 +11,25 @@ import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, typ
 import { dirname, join, resolve } from "node:path";
 import { cardFromConfig, cardFromPlayTrace, renderCardSvg } from "@ledring/cards";
 import { defaultScenarios, OUTCOMES, parseScenarios, runScenarios, type Outcome, type RedWallReport } from "@ledring/redwall";
-import { formatProviderConfig, readProviderHome, startBridge } from "@ledring/play-bridge";
 import { spawn } from "node:child_process";
 import { nodeIO, type IO } from "./io.js";
+import { VERSION } from "./version.js";
 
 export type { IO } from "./io.js";
 
-const HELP = `ledring — status lights for AI agents
+const HELP = `ledring ${VERSION} — branch tree and instability for AI agent traces
 
-Usage:
-  ledring inspect <traces...> [--adapter name]       Print normalized ledring.trace.v1 runs as JSON
+Public Beta. Read-only over local traces. No model calls.
+
   ledring flowchart <traces...> [--out report.html] [--json] [--highlight runId]
                     [--title text] [--tokens tokens.json] [--lang en|zh] [--adapter name]
-                                                     Merge runs into a branch tree with divergence %
-  ledring instability <traces...> [--json] [--instruction text] [--fail-above n]
-                                                     Heuristic drift-from-instruction score per run
+                                                     Branch tree and divergence % at every fork
+  ledring instability <traces...> [--json] [--instruction text] [--fail-above n] [--adapter name]
+                                                     Drift-from-instruction score, with ▲/▼ reasons
+  ledring inspect <traces...> [--adapter name]       Normalized ledring.trace.v1 runs as JSON
+  ledring mcp                                        Read-only stdio MCP server
+
+Experimental (shipped; the interface can change):
   ledring trust <traces...> [--json] [--settings .claude/settings.json] [--out suggested.json]
                 [--threshold 0.6] [--min-samples 5]
                                                      Learn auto-approve rules from allow/deny history
@@ -35,16 +39,31 @@ Usage:
   ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
                                                      What the agent did after a guardrail blocked it
   ledring play [--port n] [--no-open] [--print-config] [--home dir]
-                                                     Local Play bridge on 127.0.0.1. --print-config never prints secrets.
+                                                     Local bridge on 127.0.0.1. Not in the npm package.
+                                                     Hosted demo: https://play.ledring.dev/play/
+                                                     --print-config never prints secrets.
                                                      Sign in with ChatGPT stays off unless LEDRING_SIWC=1 and both
                                                      LEDRING_SIWC_AUTH_BASE and LEDRING_SIWC_API_BASE are set.
-  ledring mcp                                        Start the read-only stdio MCP server
   ledring help
 
-Traces may be files or directories (*.jsonl, *.json). Formats are auto-detected:
-claude-code (session JSONL), otel-genai (OTLP/JSON GenAI spans),
-ledring-trace (native ledring.trace.v1 JSON/JSONL), ledring-decisions (decisions JSONL).
+Traces may be files or directories (*.jsonl, *.json). Adapters are auto-detected:
+  claude-code          Claude Code session JSONL
+  otel-genai           OTLP/JSON GenAI spans
+  ledring-trace        native ledring.trace.v1 JSON or JSONL
+  ledring-decisions    ledring.decisions.v1 JSONL
 `;
+
+async function loadPlayBridge(): Promise<typeof import("@ledring/play-bridge")> {
+  try {
+    return await import("@ledring/play-bridge");
+  } catch (error) {
+    const code = typeof error === "object" && error && "code" in error ? String((error as { code: unknown }).code) : "";
+    if (code === "ERR_MODULE_NOT_FOUND" || code === "MODULE_NOT_FOUND") {
+      throw new Error("local Play bridge is not in the Beta npm package. Open https://play.ledring.dev/play/ or, from a checkout, run node packages/cli/dist/bin.js play");
+    }
+    throw error;
+  }
+}
 
 export function loadRuns(io: IO, paths: string[], adapter?: string): Run[] {
   if (paths.length === 0) throw new Error("No trace files given.");
@@ -237,6 +256,7 @@ const commands: Record<string, Command> = {
         home: { type: "string" },
       },
     });
+    const { formatProviderConfig, readProviderHome, startBridge } = await loadPlayBridge();
     const home = values.home ?? join(homedir(), ".ledring", "play");
     const loaded = readProviderHome(home);
     const authBase = process.env.LEDRING_SIWC_AUTH_BASE;

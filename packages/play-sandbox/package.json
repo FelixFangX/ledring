@@ -1,16 +1,33 @@
 {
   "name": "@ledring/play-sandbox",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.0",
   "description": "Offline artifact frame for LEDRING Play: CSP, iframe sandbox, and a per-render harness nonce.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
-  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "test": "vitest run --root ../.. packages/play-sandbox/test"
   },
-  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-sandbox" }
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FelixFangX/ledring.git",
+    "directory": "packages/play-sandbox"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

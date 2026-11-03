@@ -26,8 +26,18 @@ describe("ledring inspect", () => {
 
   it("shows help and rejects unknown commands", async () => {
     const io = nodeIOForTest();
-    expect(await run(["help"], io)).toBe(0);
-    expect(io.stdout()).toMatch(/ledring inspect/);
+    expect(await run(["--help"], io)).toBe(0);
+    const help = io.stdout();
+    expect(help).toMatch(/ledring 0\.2\.0-beta\.0/);
+    expect(help).toMatch(/ledring flowchart/);
+    expect(help).toMatch(/ledring instability <traces\.\.\.> \[--json\] \[--instruction text\] \[--fail-above n\] \[--adapter name\]/);
+    expect(help).toMatch(/ledring inspect/);
+    expect(help).toMatch(/ledring mcp/);
+    expect(help).toMatch(/claude-code/);
+    expect(help).toMatch(/otel-genai/);
+    expect(help).toMatch(/ledring-trace/);
+    expect(help).toMatch(/ledring-decisions/);
+    expect(help).toMatch(/Experimental/);
     expect(await run(["nope"], io)).toBe(2);
   });
 });

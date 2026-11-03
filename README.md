@@ -4,18 +4,68 @@
  ◯  L E D R I N G
 ```
 
-Review AI builders like a game: watch the branch tree, catch instruction drift.
+Agents drift off the instruction. The fork is the part you don't review.
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 [![CI](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml/badge.svg)](https://github.com/FelixFangX/ledring/actions/workflows/ci.yml)
 
+Public Beta. A branch tree, the divergence at every fork, and an instability score. Read-only. No model calls.
+
 **[▶ Play](https://play.ledring.dev/play/)**
 
-[![LEDRING Play: CX-417 builds one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
+LEDRING draws the branch tree of an agent run and scores how far it drifted from the instruction. Public Beta. https://play.ledring.dev
+
+[![Branch tree for six Claude Code runs](docs/assets/flowchart.png)](https://play.ledring.dev/)
 
 </div>
 
+The lit path is the run you are looking at. Every other branch is locked. The number on a fork is the share of runs that took it.
+
+```
+◐  20 PROCESSING peak 20  run-5.jsonl#00000000-0000-4000-8000-000000000005
+    ▲ +20  Edit(login.test.ts)        edited tests (“Don't change the tests.”)
+```
+
+Calm is under 20, processing from 20, critical from 40. The score is a heuristic over the trace. It does not call a model.
+
+## Public Beta
+
+`0.2.0-beta.0`, npm dist-tag `beta`. Node.js 20 or newer.
+
+**In Beta**
+
+- `ledring flowchart` merges runs into a branch tree and shows the divergence at every fork. The HTML report is one file, with no network requests.
+- `ledring instability` scores how far a run drifts from its instruction, with a per-step delta and a reason.
+- `ledring inspect` prints normalized `ledring.trace.v1` JSON.
+- `ledring mcp` is a read-only stdio server. Tools: `list_sessions`, `get_drift`, `get_redwall`, `get_branch_summary`. They return text and structured results, and they do not return step raw, input, or output bodies.
+- Adapters that ship: `claude-code` (Claude Code session JSONL), `otel-genai` (OTLP/JSON GenAI spans), `ledring-trace` (native `ledring.trace.v1`), `ledring-decisions` (`ledring.decisions.v1` JSONL).
+
+**Experimental**
+
+These ship in the repository. Their interfaces can change, and they are not what the Beta npm package promises.
+
+- `ledring trust`, `ledring card`, and `ledring redwall`
+- Local `ledring play` (the bridge on 127.0.0.1). Hosted Play is the demo above. The npm package does not include the bridge.
+- The GitHub Action, which builds this repo from its own checkout
+- `@ledring/*` libraries, for `import` users, published at the same version
+
+Maintainer publish steps: [docs/beta.md](docs/beta.md).
+
+## Quickstart
+
+```sh
+npx ledring@beta flowchart path/to/traces --title "fix login bug" --out report.html
+npx ledring@beta instability path/to/traces
+npx ledring@beta --help
+```
+
+A global install is `npm install -g ledring@beta`, which puts `ledring` on your PATH. Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`. Pass that directory as the trace path.
+
+The fixtures in this repository are synthetic. From a checkout, after `pnpm install && pnpm build`, the same commands run as `node packages/cli/dist/bin.js`. That checkout is also how the local Play bridge and the GitHub Action run.
+
 ## Play
+
+[![LEDRING Play: CX-417 builds one page](docs/assets/play.gif)](https://play.ledring.dev/play/)
 
 Open [play.ledring.dev/play/](https://play.ledring.dev/play/) and press **▶ Start**.
 
@@ -31,27 +81,9 @@ Open [play.ledring.dev/play/](https://play.ledring.dev/play/) and press **▶ St
 | **LEDRING Free AI** (default) | Nothing. No key, no sign-up. It runs on a shared daily quota. |
 | Built-in demo | Nothing. Scripted examples, with no AI calls. |
 | Anthropic | Your own API key. The browser calls api.anthropic.com directly. |
-| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge (build from source per [From source](#from-source), then `node packages/cli/dist/bin.js play`) or a custom `/v1` URL |
+| OpenAI / any OpenAI-compatible endpoint | Your own key, via a local bridge from a [checkout](#quickstart) (`node packages/cli/dist/bin.js play`) or a custom `/v1` URL. The bridge is not in the Beta npm package. |
 
 **Languages:** English and 中文. Use the toggle in the top bar, or open [`?lang=zh`](https://play.ledring.dev/play/?lang=zh).
-
-## From source
-
-Not on npm. Node ≥ 20, pnpm.
-
-```sh
-git clone https://github.com/FelixFangX/ledring.git && cd ledring && pnpm install && pnpm build && node packages/cli/dist/bin.js flowchart fixtures/claude-code --title "fix login bug" --out report.html
-```
-
-Prints `Wrote report.html — 6 runs, 2 forks`. From that checkout:
-
-```sh
-node packages/cli/dist/bin.js instability fixtures/claude-code
-
-node packages/cli/dist/bin.js flowchart ~/.claude/projects/<project>/ --out report.html
-```
-
-Claude Code keeps sessions in `~/.claude/projects/<project>/<session>.jsonl`.
 
 ## Traces
 
@@ -95,16 +127,14 @@ A small stdio MCP server, so an agent can look at its own traces and ask how far
 | `get_redwall` | Red Wall results and outcome counts; optional local `scenarios` file |
 | `get_branch_summary` | Run count, fork count and top fork points with divergence percentages; `full: true` includes the metadata tree |
 
-Build locally with `pnpm build`. The CLI is not on npm yet. Replace `/path/to/ledring` below with the absolute checkout path, and pass absolute trace paths in tool calls.
-
-For Claude Code (`.mcp.json`), Claude Desktop (`claude_desktop_config.json`) or Cursor (`.cursor/mcp.json`), merge this configuration:
+Pass absolute trace paths in tool calls. For Claude Code (`.mcp.json`), Claude Desktop (`claude_desktop_config.json`) or Cursor (`.cursor/mcp.json`), merge this configuration:
 
 ```json
 {
   "mcpServers": {
     "ledring": {
-      "command": "node",
-      "args": ["/path/to/ledring/packages/cli/dist/bin.js", "mcp"]
+      "command": "npx",
+      "args": ["-y", "ledring@beta", "mcp"]
     }
   }
 }
@@ -114,8 +144,8 @@ For Codex, add to `~/.codex/config.toml`:
 
 ```toml
 [mcp_servers.ledring]
-command = "node"
-args = ["/path/to/ledring/packages/cli/dist/bin.js", "mcp"]
+command = "npx"
+args = ["-y", "ledring@beta", "mcp"]
 ```
 
 The server uses stdout only for the MCP protocol. To render a branch tree as HTML, use `ledring flowchart <paths> --out report.html` separately.
@@ -135,7 +165,7 @@ A heuristic 0–100 score of how far a run drifts from its instruction, with a p
 Hard drift is never forgiven by later good behaviour; soft drift can calm down. Levels: `calm` < 20 ≤ `processing` < 40 ≤ `critical`.
 
 ```
-ledring instability <traces...> [--json] [--instruction <text>] [--fail-above <n>]
+ledring instability <traces...> [--json] [--instruction <text>] [--fail-above <n>] [--adapter <name>]
 ```
 
 `--fail-above` exits with code 3 when any run scores above `n`, so you can gate CI on it.
@@ -187,7 +217,7 @@ Built-in walls: `force-push`, `recursive-delete`, `protected-path` (with `paths`
 
 ## GitHub Action
 
-Renders the branch-tree report, instability scores and Red Wall results for traces in your repository. It writes a job summary, uploads the reports as an artifact and can gate the job. The action builds LEDRING from its own checkout, so it needs no registry access and no token.
+Experimental. Renders the branch-tree report, instability scores and Red Wall results for traces in your repository. It writes a job summary, uploads the reports as an artifact and can gate the job. The action builds LEDRING from its own checkout, so it needs no registry access and no token.
 
 ```yaml
 - uses: FelixFangX/ledring@main
@@ -210,7 +240,9 @@ Outputs: `report-dir` and `failed`. The repository's own [Action workflow](.gith
 | [`@ledring/trust`](packages/trust) | `ruleOf()`, `learnPolicy()`, `toClaudeCodePermissions()`, `diffPermissions()` |
 | [`@ledring/cards`](packages/cards) | `cardFromConfig()`, `renderCardSvg()` |
 | [`@ledring/redwall`](packages/redwall) | `evaluateRun()`, `runScenarios()`, built-in walls |
-| [`@ledring/cli`](packages/cli) | the `ledring` command |
+| [`ledring`](packages/cli) | the `ledring` command on npm (workspace package `@ledring/cli` is private; the tarball is bundled) |
+
+The libraries publish as `0.2.0-beta.0`. The Beta command is the bundled `ledring` package, which does not install them.
 
 ```ts
 import { parseTrace } from "@ledring/trace";
