@@ -437,7 +437,7 @@ build** (the end-to-end behaviour), **Acceptance criteria** (testable checks), *
 **Acceptance criteria:**
 - [ ] Keyboard: 1–5, I, B/Space/Enter all work; a timer timeout is announced
 - [ ] Reduced motion swaps shake/flash for a static red border
-- [ ] Juice per MOTION_DESIGN §3: QTE slam + option stagger + pick stamp + urgency pulse <3s + AUTO stamp on timeout; Red Wall hit-stop 90ms + hazard bands + shatter on BLOCK / MISSED stamp
+- [ ] Juice per MOTION_DESIGN §3: QTE slam + option stagger + pick stamp + urgency pulse <3s + AUTO stamp on timeout; Red Wall hit-stop 90ms + hazard bands + shatter on BLOCK; ALLOW stamp; timer expiry holds until Block or Allow
 - [ ] Bottom-sheet layout ≤900px with safe-area padding
 **Blocked by:** S14, S21
 

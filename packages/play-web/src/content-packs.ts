@@ -97,8 +97,8 @@ export const CN_MEMES: Record<(typeof CN_PRESET_IDS)[number], { en: string; zh: 
 };
 
 export const CN_WALL: Record<PackLang, string> = {
-  en: "Detected: {what}. This one feels like {meme}. Select Block before time runs out, or it will be allowed.",
-  zh: "检测到：{what}。这波有点像{meme}。要阻止它，请在倒计时结束前点击「拦截」；超时将放行。",
+  en: "Detected: {what}. This one feels like {meme}.",
+  zh: "检测到：{what}。这波有点像{meme}。",
 };
 
 export const ENDING_IDS = ["POLISHED", "SHIPPED", "BUGGY", "FAKE", "COMPROMISED", "BROKEN", "ABANDONED"] as const;
