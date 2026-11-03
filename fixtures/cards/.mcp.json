@@ -1,0 +1,6 @@
+{
+  "mcpServers": {
+    "issues": { "command": "npx", "args": ["-y", "example-issues-mcp"], "env": { "ISSUES_TOKEN": "${ISSUES_TOKEN}" } },
+    "docs": { "type": "http", "url": "https://docs.example.com/mcp", "headers": { "Authorization": "Bearer ${DOCS_TOKEN}" } }
+  }
+}

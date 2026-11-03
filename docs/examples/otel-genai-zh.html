@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="ledring"><meta name="color-scheme" content="light dark">
+<title>OTel GenAI · 天气智能体 — LEDRING</title>
+<style>
+:root{--lr-bg:#F3F2EE;--lr-sunken:#ECEAE4;--lr-panel:#FBFAF7;--lr-raised:#FFFFFF;--lr-line:#E3E1DA;--lr-line-2:#CFCDC6;--lr-line-3:#16181A;--lr-text:#16181A;--lr-text-2:#6B6E70;--lr-text-3:#8C8E8A;--lr-text-4:#A3A49F;--lr-accent:#16181A;--lr-accent-tint:rgba(22,24,26,.06);--lr-accent-glow:rgba(47,91,234,.45);--lr-calm:#2F5BEA;--lr-processing:#E8B10A;--lr-critical:#D7261E;--lr-ok:#2F7A3E;--lr-font-sans:'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;--lr-font-mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;--lr-font-display:Archivo, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;--lr-radius-sm:0;--lr-radius-md:0;--lr-ease:cubic-bezier(.2,1,.3,1);--lr-ease-reveal:linear}
+@media (prefers-color-scheme:dark){:root{--lr-bg:#111213;--lr-sunken:#0B0C0D;--lr-panel:#18191B;--lr-raised:#1E2022;--lr-line:#26282B;--lr-line-2:#3A3D40;--lr-line-3:#E9E7E1;--lr-text:#E9E7E1;--lr-text-2:#A3A49F;--lr-text-3:#7C7E7B;--lr-text-4:#55585A;--lr-accent:#E9E7E1;--lr-accent-tint:rgba(233,231,225,.06);--lr-accent-glow:rgba(90,130,255,.5);--lr-calm:#5A82FF;--lr-processing:#F0BE2A;--lr-critical:#F0473E;--lr-ok:#5BB06C;--lr-font-sans:'IBM Plex Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;--lr-font-mono:'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;--lr-font-display:Archivo, 'Arial Narrow', 'Helvetica Neue', Arial, sans-serif;--lr-radius-sm:0;--lr-radius-md:0;--lr-ease:cubic-bezier(.2,1,.3,1);--lr-ease-reveal:linear}}
+*{box-sizing:border-box;margin:0}
+body{background:var(--lr-bg);color:var(--lr-text);font:14px/1.5 var(--lr-font-sans);padding:28px 40px 40px;min-height:100vh;-webkit-font-smoothing:antialiased}
+.mono,.cap,select,.kv{font-family:var(--lr-font-mono);font-variant-numeric:tabular-nums}
+.cap{font-size:11px;color:var(--lr-text-2)}
+.cap b{color:var(--lr-text);font-weight:500}
+.disp{font-family:var(--lr-font-display);font-stretch:68%;font-weight:600;text-transform:uppercase;letter-spacing:.005em;line-height:.9}
+header{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:12px;border-bottom:1px solid var(--lr-line-3)}
+.mark{font:700 20px/1 var(--lr-font-display);font-stretch:110%;letter-spacing:-.03em}
+.ring{display:inline-block;width:11px;height:11px;border-radius:50%;border:3px solid var(--lr-calm);margin-right:8px;vertical-align:-1px}
+.head{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:24px;align-items:end;padding:28px 0 22px;border-bottom:1px solid var(--lr-line-3)}
+.idx{font-size:64px}
+h1{font-size:52px}
+.instr{color:var(--lr-text-2);max-width:720px;margin-top:10px}
+.kpis{display:flex;border-left:1px solid var(--lr-line-2)}
+.kpi{padding:0 18px;border-right:1px solid var(--lr-line-2)}
+.kpi b{display:block;font-size:40px;margin-top:4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;align-items:start;margin-top:28px}
+.canvas{overflow:auto;background:var(--lr-panel);border:1px solid var(--lr-line-3);background-image:linear-gradient(var(--lr-line) 1px,transparent 1px),linear-gradient(90deg,var(--lr-line) 1px,transparent 1px);background-size:24px 24px}
+.canvas svg{display:block;max-width:100%;height:auto}
+.fig{display:flex;justify-content:space-between;gap:16px;margin-top:8px;flex-wrap:wrap}
+aside .rule{border-bottom:1px solid var(--lr-line-3);padding-bottom:8px}
+select{width:100%;margin:10px 0 24px;font-size:12px;background:var(--lr-panel);color:var(--lr-text);border:1px solid var(--lr-line-3);border-radius:0;padding:7px 8px}
+select:focus-visible,.n:focus-visible{outline:2px solid var(--lr-calm);outline-offset:2px}
+.e{fill:none;stroke:var(--lr-text-4);stroke-width:1;stroke-dasharray:3 3}
+.e-lit{fill:none;stroke:var(--lr-accent);stroke-width:2;stroke-dasharray:1;stroke-dashoffset:1;opacity:0}
+.e-lit.on{opacity:1;animation:draw .5s var(--lr-ease-reveal) forwards;animation-delay:calc(var(--i) * 140ms)}
+.e-lit.bad{stroke:var(--lr-critical)}
+@keyframes draw{to{stroke-dashoffset:0}}
+.pill rect{fill:var(--lr-panel)}
+.pill text{font:500 10.5px var(--lr-font-mono);fill:var(--lr-text-4)}
+.pill.on text{fill:var(--lr-text)}
+.n{cursor:pointer}
+.n .b{fill:var(--lr-panel);stroke:var(--lr-text-4);stroke-width:1}
+.n .tab{fill:var(--lr-sunken)}
+.n .no,.n .k,.n .m{font:500 9px var(--lr-font-mono);fill:var(--lr-text-3)}
+.n .t{font:400 12px var(--lr-font-mono);fill:var(--lr-text-2)}
+.n.taken .b{stroke:var(--lr-line-3);stroke-width:1.5}
+.n.taken .tab{fill:var(--lr-line-3)}.n.taken .no,.n.taken .k{fill:var(--lr-bg)}.n.taken .t{fill:var(--lr-text)}.n.taken .m{fill:var(--lr-text-2)}
+.n.locked .b{stroke-dasharray:2 3}
+.n.error .m{fill:var(--lr-critical)}
+.n.error.taken .tab{fill:var(--lr-critical)}
+.n:hover .b{stroke:var(--lr-line-3)}
+.n.sel .b{stroke:var(--lr-calm);stroke-width:2}
+.kv{display:grid;grid-template-columns:84px 1fr;gap:8px 12px;font-size:12px;margin-top:14px;word-break:break-word}
+.kv b{font-weight:400;color:var(--lr-text-2)}.kv span{color:var(--lr-text)}
+.empty{color:var(--lr-text-2);margin-top:14px;padding:18px 0;border-top:1px dashed var(--lr-text-4);border-bottom:1px dashed var(--lr-text-4);font-size:13px}
+.legend{display:flex;gap:18px}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:20px;border-top:2px solid var(--lr-accent)}.legend .l2 i{border-top:1px dashed var(--lr-text-4)}.legend .l3 i{border-color:var(--lr-critical)}
+footer{margin-top:32px;padding-top:10px;border-top:1px solid var(--lr-line-2);display:flex;justify-content:space-between}
+body{font-family:var(--lr-font-sans),'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;line-height:1.75;text-spacing-trim:normal;text-autospace:normal}h1.disp{font-stretch:100%;text-transform:none;letter-spacing:.02em;line-height:1.15;font-family:'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Source Han Sans SC', 'Microsoft YaHei', sans-serif;font-weight:600}.cap{letter-spacing:0}.empty{line-height:1.8}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.e-lit.on{stroke-dashoffset:0}}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.head{grid-template-columns:1fr}}
+</style></head><body>
+<header><span class="mark"><span class="ring"></span>ledring</span><span class="cap">分支树 · ledring.branch-tree.v1</span></header>
+<div class="head"><div class="disp idx">01</div><div><h1 class="disp">OTel GenAI · 天气智能体</h1>
+<p data-user-content class="instr">“What should I wear in Paris tomorrow?”</p></div>
+<div class="kpis"><div class="kpi"><span class="cap">运行</span><b class="disp">4</b></div><div class="kpi"><span class="cap">分支点</span><b class="disp">1</b></div><div class="kpi"><span class="cap">出错</span><b class="disp" style="color:var(--lr-critical)">1</b></div></div></div>
+<div class="layout">
+<div><div class="canvas"><svg width="652" height="178" viewBox="0 0 652 178" role="img" aria-label="分支树"><path class="e" d="M200 89 C221 89 221 55 242 55"/><path class="e" d="M200 89 C221 89 221 123 242 123"/><path class="e" d="M410 55 C431 55 431 55 452 55"/><path class="e" d="M410 123 C431 123 431 123 452 123"/><path class="e-lit on bad" data-to="0.0" style="--i:1" pathLength="1" d="M200 89 C221 89 221 55 242 55"/><path class="e-lit" data-to="0.1" style="--i:1" pathLength="1" d="M200 89 C221 89 221 123 242 123"/><path class="e-lit on" data-to="0.0.0" style="--i:2" pathLength="1" d="M410 55 C431 55 431 55 452 55"/><path class="e-lit" data-to="0.1.0" style="--i:2" pathLength="1" d="M410 123 C431 123 431 123 452 123"/><g class="pill on" data-to="0.0"><rect x="207.1" y="64" width="27.799999999999997" height="16"/><text x="221" y="75.5" text-anchor="middle">75%</text></g><g class="pill" data-to="0.1"><rect x="207.1" y="98" width="27.799999999999997" height="16"/><text x="221" y="109.5" text-anchor="middle">25%</text></g><g class="n taken" data-id="0" tabindex="0" transform="translate(32 66)"><title data-user-content>开始 — 4/4 运行</title><rect class="b" width="168" height="46"/><rect class="tab" width="39.6" height="15"/><text class="no" x="5" y="11">01</text><text class="k" x="22.4" y="11">开始</text><text data-user-content class="t" x="10" y="35">开始</text><text class="m" x="160" y="11" text-anchor="end">4/4</text></g><g class="n taken error" data-id="0.0" tabindex="0" transform="translate(242 32)"><title data-user-content>get_forecast — 3/4 运行</title><rect class="b" width="168" height="46"/><rect class="tab" width="39.6" height="15"/><text class="no" x="5" y="11">02</text><text class="k" x="22.4" y="11">工具</text><text data-user-content class="t" x="10" y="35">get_forecast</text><text class="m" x="160" y="11" text-anchor="end">1 出错</text></g><g class="n locked" data-id="0.1" tabindex="0" transform="translate(242 100)"><title data-user-content>web_search — 1/4 运行</title><rect class="b" width="168" height="46"/><rect class="tab" width="39.6" height="15"/><text class="no" x="5" y="11">03</text><text class="k" x="22.4" y="11">工具</text><text data-user-content class="t" x="10" y="35">web_search</text><text class="m" x="160" y="11" text-anchor="end">1/4</text></g><g class="n taken" data-id="0.0.0" tabindex="0" transform="translate(452 32)"><title data-user-content>suggest_outfit — 2/4 运行</title><rect class="b" width="168" height="46"/><rect class="tab" width="67.6" height="15"/><text class="no" x="5" y="11">04</text><text class="k" x="22.4" y="11">工具 · 结束</text><text data-user-content class="t" x="10" y="35">suggest_outfit</text><text class="m" x="160" y="11" text-anchor="end">2/4</text></g><g class="n locked" data-id="0.1.0" tabindex="0" transform="translate(452 100)"><title data-user-content>suggest_outfit — 1/4 运行</title><rect class="b" width="168" height="46"/><rect class="tab" width="67.6" height="15"/><text class="no" x="5" y="11">05</text><text class="k" x="22.4" y="11">工具 · 结束</text><text data-user-content class="t" x="10" y="35">suggest_outfit</text><text class="m" x="160" y="11" text-anchor="end">1/4</text></g></svg></div>
+<div class="fig cap"><span>图 1 — 分支树，共 4 次运行；边上的数字表示选择该分支的运行比例</span><span class="legend"><span><i></i>所选路径</span><span class="l2"><i></i>其他运行</span><span class="l3"><i></i>出错步骤</span></span></div></div>
+<aside><div class="cap rule">高亮运行</div><select id="run" aria-label="高亮运行"><option data-user-content value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1" selected>aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1 · 成功</option><option data-user-content value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2 · 成功</option><option data-user-content value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3 · 成功</option><option data-user-content value="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4">aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4 · 失败</option></select>
+<div class="cap rule">选中</div><div id="info"><p class="empty">尚未选择。点击图 1 中的节点，查看签名、运行和结果。</p></div></aside>
+</div>
+<footer class="cap"><span>由 ledring 生成</span><span>独立文件 · 可离线查看</span></footer>
+<script type="application/json" id="lr-data">{"labels":{"title":"分支回放","branchTree":"分支树","err":"出错","start":"开始","end":"结束","tool":"工具","llm":"模型","plan":"计划","handoff":"交接","human":"人工","agent":"智能体","success":"成功","failure":"失败","unknown":"未知","section":"分支树 · ledring.branch-tree.v1","runs":"运行","forks":"分支点","errored":"出错","figure":"图 1 — 分支树，共 {n} 次运行；边上的数字表示选择该分支的运行比例","taken":"所选路径","others":"其他运行","erroredStep":"出错步骤","highlighted":"高亮运行","selected":"选中","empty":"尚未选择。点击图 1 中的节点，查看签名、运行和结果。","generated":"由 ledring 生成","offline":"独立文件 · 可离线查看","kSignature":"签名","kKind":"类型","kRuns":"运行","kDivergence":"分流","ofParent":"%（较上一步）","kErrors":"出错","kEnded":"在此结束","kOutcomes":"结果","ok":"成功","fail":"失败"},"runs":[{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1","source":"otel-genai","outcome":"success","path":["0","0.0","0.0.0"]},{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2","source":"otel-genai","outcome":"success","path":["0","0.0","0.0.0"]},{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3","source":"otel-genai","outcome":"success","path":["0","0.1","0.1.0"]},{"id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4","source":"otel-genai","outcome":"failure","path":["0","0.0"]}],"nodes":[{"id":"0","signature":"start","kind":"start","count":4,"share":1,"errors":0,"ends":0,"outcomes":{"success":3,"failure":1,"unknown":0}},{"id":"0.0","signature":"get_forecast","kind":"tool","count":3,"share":0.75,"errors":1,"ends":1,"outcomes":{"success":2,"failure":1,"unknown":0}},{"id":"0.1","signature":"web_search","kind":"tool","count":1,"share":0.25,"errors":0,"ends":0,"outcomes":{"success":1,"failure":0,"unknown":0}},{"id":"0.0.0","signature":"suggest_outfit","kind":"tool","count":2,"share":0.6666666666666666,"errors":0,"ends":2,"outcomes":{"success":2,"failure":0,"unknown":0}},{"id":"0.1.0","signature":"suggest_outfit","kind":"tool","count":1,"share":1,"errors":0,"ends":1,"outcomes":{"success":1,"failure":0,"unknown":0}}]}</script>
+<script>
+(function(){var d=JSON.parse(document.getElementById("lr-data").textContent);
+var byId={};d.nodes.forEach(function(n){byId[n.id]=n});
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function light(id){var r=d.runs.find(function(x){return x.id===id});if(!r)return;var t={};r.path.forEach(function(p){t[p]=1});
+document.querySelectorAll(".n").forEach(function(g){var on=!!t[g.dataset.id];g.classList.toggle("taken",on);g.classList.toggle("locked",!on)});
+document.querySelectorAll("[data-to]").forEach(function(e){var to=e.dataset.to,from=to.slice(0,to.lastIndexOf(".")),on=!!(t[to]&&t[from]);
+if(e.classList.contains("e-lit")){e.classList.remove("on");void e.getBoundingClientRect();}e.classList.toggle("on",on)})}
+function show(id){var n=byId[id];document.querySelectorAll(".n.sel").forEach(function(g){g.classList.remove("sel")});var g=document.querySelector('.n[data-id="'+id+'"]');g&&g.classList.add("sel");
+var L=d.labels;document.getElementById("info").innerHTML='<div class="kv"><b>'+L.kSignature+'</b><span data-user-content>'+esc(n.signature)+'</span><b>'+L.kKind+'</b><span>'+esc(L[n.kind]||n.kind)+'</span><b>'+L.kRuns+'</b><span>'+n.count+' / '+d.runs.length+'</span><b>'+L.kDivergence+'</b><span>'+Math.round(n.share*100)+L.ofParent+'</span><b>'+L.kErrors+'</b><span>'+n.errors+'</span><b>'+L.kEnded+'</b><span>'+n.ends+'</span><b>'+L.kOutcomes+'</b><span>'+n.outcomes.success+' '+L.ok+' · '+n.outcomes.failure+' '+L.fail+' · '+n.outcomes.unknown+' ?</span></div>'}
+document.getElementById("run").addEventListener("change",function(e){light(e.target.value)});
+document.querySelectorAll(".n").forEach(function(g){g.addEventListener("click",function(){show(g.dataset.id)});g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();show(g.dataset.id)}})});
+})();
+</script>
+</body></html>

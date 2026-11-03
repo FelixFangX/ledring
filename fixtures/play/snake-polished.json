@@ -1,0 +1,36 @@
+{
+  "id": "snake-polished",
+  "idea": "A small snake game on a canvas",
+  "lang": "en",
+  "provenance": {
+    "kind": "synthetic",
+    "note": "DEMO · synthetic cassette, not a live model recording"
+  },
+  "plan": "1. Draw a grid\n2. Move a snake with arrow keys\n3. Eat food and grow\n4. Add real self-tests",
+  "choices": [
+    "tests",
+    "polish"
+  ],
+  "artifacts": [
+    {
+      "html": "<!doctype html>\n<html>\n<head><meta charset=\"utf-8\"><title>Snake</title>\n<style>body{margin:0;font:14px sans-serif;background:#EEF1F3;color:#0E1114}h1{font-size:20px}canvas{background:#fff;border:1px solid #D4DADE}</style>\n</head>\n<body>\n<h1>Snake</h1>\n<canvas id=\"c\" width=\"160\" height=\"160\"></canvas>\n<script>\nfunction step(snake, dir) {\n  const head = snake[0];\n  return [[head[0] + dir[0], head[1] + dir[1]]].concat(snake.slice(0, -1));\n}\nfunction draw() {\n  const canvas = document.getElementById(\"c\");\n  const pen = canvas.getContext(\"2d\");\n  pen.fillStyle = \"#1E63E9\";\n  pen.fillRect(0, 0, 16, 16);\n}\ndraw();\nwindow.__ledringTests = [\n  { name: \"step moves the head\", pass: step([[1, 1], [0, 1]], [1, 0])[0][0] === 2 }\n];\n</script>\n</body>\n</html>"
+    },
+    {
+      "html": "<!doctype html>\n<html>\n<head><meta charset=\"utf-8\"><title>Snake</title>\n<style>body{margin:0;font:14px sans-serif;background:#EEF1F3;color:#0E1114}h1{font-size:20px}canvas{background:#fff;border:1px solid #D4DADE}</style>\n</head>\n<body>\n<h1>Snake</h1>\n<canvas id=\"c\" width=\"160\" height=\"160\"></canvas>\n<script>\nfunction step(snake, dir) {\n  const head = snake[0];\n  return [[head[0] + dir[0], head[1] + dir[1]]].concat(snake.slice(0, -1));\n}\nfunction draw() {\n  const canvas = document.getElementById(\"c\");\n  const pen = canvas.getContext(\"2d\");\n  pen.fillStyle = \"#1E63E9\";\n  pen.fillRect(0, 0, 16, 16);\n}\ndraw();\nwindow.__ledringTests = [\n  { name: \"step moves the head\", pass: step([[1, 1], [0, 1]], [1, 0])[0][0] === 2 }\n];\n</script>\n</body>\n</html>"
+    },
+    {
+      "html": "<!doctype html>\n<html>\n<head><meta charset=\"utf-8\"><title>Snake</title>\n<style>body{margin:0;font:14px sans-serif;background:#EEF1F3;color:#0E1114}h1{font-size:20px}canvas{background:#fff;border:1px solid #D4DADE}</style>\n</head>\n<body>\n<h1>Snake</h1>\n<canvas id=\"c\" width=\"160\" height=\"160\"></canvas>\n<script>\nfunction step(snake, dir) {\n  const head = snake[0];\n  return [[head[0] + dir[0], head[1] + dir[1]]].concat(snake.slice(0, -1));\n}\nfunction draw() {\n  const canvas = document.getElementById(\"c\");\n  const pen = canvas.getContext(\"2d\");\n  pen.fillStyle = \"#1E63E9\";\n  pen.fillRect(0, 0, 16, 16);\n}\ndraw();\nwindow.__ledringTests = [\n  { name: \"step moves the head\", pass: step([[1, 1], [0, 1]], [1, 0])[0][0] === 2 }\n];\n</script>\n</body>\n</html>"
+    }
+  ],
+  "preview": {
+    "errs": [],
+    "tests": [
+      {
+        "name": "step moves the head",
+        "pass": true
+      }
+    ],
+    "els": 6,
+    "text": 12
+  }
+}

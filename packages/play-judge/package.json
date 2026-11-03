@@ -1,0 +1,25 @@
+{
+  "name": "@ledring/play-judge",
+  "version": "0.1.0",
+  "description": "Headless judge for LEDRING Play artifacts. Static facts plus an offline Playwright pass.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --root ../.. packages/play-judge/test"
+  },
+  "dependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "@ledring/play-core": "workspace:*",
+    "@ledring/play-risk": "workspace:*",
+    "@ledring/play-sandbox": "workspace:*",
+    "acorn": "^8.14.0",
+    "parse5": "^7.2.1",
+    "playwright": "^1.55.0"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-judge" }
+}

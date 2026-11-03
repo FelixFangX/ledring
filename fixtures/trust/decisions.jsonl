@@ -1,0 +1,4 @@
+{"schema":"ledring.decisions.v1","run":"r1","tool":"send_email","input":{"to":"team@example.com"},"verdict":"allow","by":"human","at":"2026-10-06T10:00:00Z"}
+{"schema":"ledring.decisions.v1","run":"r2","tool":"send_email","input":{"to":"team@example.com"},"verdict":"allow","by":"human","at":"2026-10-06T10:01:00Z"}
+{"schema":"ledring.decisions.v1","run":"r3","tool":"send_email","input":{"to":"unknown@example.org"},"verdict":"deny","by":"human","at":"2026-10-06T10:02:00Z"}
+{"schema":"ledring.decisions.v1","run":"r1","tool":"create_ticket","input":{"title":"x"},"verdict":"allow","by":"human","at":"2026-10-06T10:03:00Z"}

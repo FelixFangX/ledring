@@ -1,2 +1,13 @@
-node_modules
+node_modules/
+dist/
+*.tsbuildinfo
+coverage/
+.env
+.env.*
+report.html
+*.report.html
+.DS_Store
+play-visual-diff/
+play-perf-trace/
+
 .wrangler

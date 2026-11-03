@@ -1,0 +1,36 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @ledring/play-judge exec playwright install --with-deps chromium
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: node docs/demo/test-i18n.mjs
+      - run: node scripts/capability-contracts.mjs
+      - run: node scripts/motion-lint.mjs
+      - run: pnpm build
+      - run: node scripts/release-dry-run.mjs
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: play-visual-diff-node-${{ matrix.node }}
+          path: |
+            play-visual-diff/
+            play-perf-trace/
+          if-no-files-found: ignore

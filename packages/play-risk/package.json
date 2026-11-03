@@ -1,0 +1,21 @@
+{
+  "name": "@ledring/play-risk",
+  "version": "0.1.0",
+  "description": "AST risk detector for LEDRING Play artifacts. Shared by the browser fast pass and the bridge.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --root ../.. packages/play-risk/test"
+  },
+  "dependencies": {
+    "acorn": "^8.14.0",
+    "acorn-loose": "^8.5.2",
+    "parse5": "^7.2.1"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-risk" }
+}

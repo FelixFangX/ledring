@@ -1,0 +1,710 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "weather-demo"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "ledring-fixture"
+          },
+          "spans": [
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+              "spanId": "bbbbbbbbbbbbbbb1",
+              "name": "invoke_agent weather-agent",
+              "kind": 1,
+              "startTimeUnixNano": "1790935260000000000",
+              "endTimeUnixNano": "1790935269000000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "invoke_agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.agent.name",
+                  "value": {
+                    "stringValue": "weather-agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.provider.name",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.input.messages",
+                  "value": {
+                    "stringValue": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"What should I wear in Paris tomorrow?\"}]}]"
+                  }
+                }
+              ],
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+              "spanId": "ccccccccccccc10c",
+              "parentSpanId": "bbbbbbbbbbbbbbb1",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935260100000000",
+              "endTimeUnixNano": "1790935260700000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+              "spanId": "ddddddddddddd10d",
+              "parentSpanId": "bbbbbbbbbbbbbbb1",
+              "name": "execute_tool get_forecast",
+              "kind": 1,
+              "startTimeUnixNano": "1790935260800000000",
+              "endTimeUnixNano": "1790935261100000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "get_forecast"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_1_0"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{\"city\":\"Paris\"}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+              "spanId": "ccccccccccccc11c",
+              "parentSpanId": "bbbbbbbbbbbbbbb1",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935261200000000",
+              "endTimeUnixNano": "1790935261800000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1",
+              "spanId": "ddddddddddddd11d",
+              "parentSpanId": "bbbbbbbbbbbbbbb1",
+              "name": "execute_tool suggest_outfit",
+              "kind": 1,
+              "startTimeUnixNano": "1790935261900000000",
+              "endTimeUnixNano": "1790935262200000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "suggest_outfit"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_1_1"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+              "spanId": "bbbbbbbbbbbbbbb2",
+              "name": "invoke_agent weather-agent",
+              "kind": 1,
+              "startTimeUnixNano": "1790935320000000000",
+              "endTimeUnixNano": "1790935329000000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "invoke_agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.agent.name",
+                  "value": {
+                    "stringValue": "weather-agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.provider.name",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.input.messages",
+                  "value": {
+                    "stringValue": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"What should I wear in Paris tomorrow?\"}]}]"
+                  }
+                }
+              ],
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+              "spanId": "ccccccccccccc20c",
+              "parentSpanId": "bbbbbbbbbbbbbbb2",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935320100000000",
+              "endTimeUnixNano": "1790935320700000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+              "spanId": "ddddddddddddd20d",
+              "parentSpanId": "bbbbbbbbbbbbbbb2",
+              "name": "execute_tool get_forecast",
+              "kind": 1,
+              "startTimeUnixNano": "1790935320800000000",
+              "endTimeUnixNano": "1790935321100000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "get_forecast"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_2_0"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{\"city\":\"Paris\"}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+              "spanId": "ccccccccccccc21c",
+              "parentSpanId": "bbbbbbbbbbbbbbb2",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935321200000000",
+              "endTimeUnixNano": "1790935321800000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2",
+              "spanId": "ddddddddddddd21d",
+              "parentSpanId": "bbbbbbbbbbbbbbb2",
+              "name": "execute_tool suggest_outfit",
+              "kind": 1,
+              "startTimeUnixNano": "1790935321900000000",
+              "endTimeUnixNano": "1790935322200000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "suggest_outfit"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_2_1"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+              "spanId": "bbbbbbbbbbbbbbb3",
+              "name": "invoke_agent weather-agent",
+              "kind": 1,
+              "startTimeUnixNano": "1790935380000000000",
+              "endTimeUnixNano": "1790935389000000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "invoke_agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.agent.name",
+                  "value": {
+                    "stringValue": "weather-agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.provider.name",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.input.messages",
+                  "value": {
+                    "stringValue": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"What should I wear in Paris tomorrow?\"}]}]"
+                  }
+                }
+              ],
+              "status": {
+                "code": 1
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+              "spanId": "ccccccccccccc30c",
+              "parentSpanId": "bbbbbbbbbbbbbbb3",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935380100000000",
+              "endTimeUnixNano": "1790935380700000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+              "spanId": "ddddddddddddd30d",
+              "parentSpanId": "bbbbbbbbbbbbbbb3",
+              "name": "execute_tool web_search",
+              "kind": 1,
+              "startTimeUnixNano": "1790935380800000000",
+              "endTimeUnixNano": "1790935381100000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "web_search"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_3_0"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{\"q\":\"Paris weather\"}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+              "spanId": "ccccccccccccc31c",
+              "parentSpanId": "bbbbbbbbbbbbbbb3",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935381200000000",
+              "endTimeUnixNano": "1790935381800000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa3",
+              "spanId": "ddddddddddddd31d",
+              "parentSpanId": "bbbbbbbbbbbbbbb3",
+              "name": "execute_tool suggest_outfit",
+              "kind": 1,
+              "startTimeUnixNano": "1790935381900000000",
+              "endTimeUnixNano": "1790935382200000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "suggest_outfit"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_3_1"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 0
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4",
+              "spanId": "bbbbbbbbbbbbbbb4",
+              "name": "invoke_agent weather-agent",
+              "kind": 1,
+              "startTimeUnixNano": "1790935440000000000",
+              "endTimeUnixNano": "1790935449000000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "invoke_agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.agent.name",
+                  "value": {
+                    "stringValue": "weather-agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.provider.name",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.input.messages",
+                  "value": {
+                    "stringValue": "[{\"role\":\"user\",\"parts\":[{\"type\":\"text\",\"content\":\"What should I wear in Paris tomorrow?\"}]}]"
+                  }
+                }
+              ],
+              "status": {
+                "code": 2,
+                "message": "tool failed"
+              }
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4",
+              "spanId": "ccccccccccccc40c",
+              "parentSpanId": "bbbbbbbbbbbbbbb4",
+              "name": "chat gpt-4o-mini",
+              "kind": 3,
+              "startTimeUnixNano": "1790935440100000000",
+              "endTimeUnixNano": "1790935440700000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.request.model",
+                  "value": {
+                    "stringValue": "gpt-4o-mini"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.input_tokens",
+                  "value": {
+                    "intValue": "300"
+                  }
+                },
+                {
+                  "key": "gen_ai.usage.output_tokens",
+                  "value": {
+                    "intValue": "20"
+                  }
+                }
+              ]
+            },
+            {
+              "traceId": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa4",
+              "spanId": "ddddddddddddd40d",
+              "parentSpanId": "bbbbbbbbbbbbbbb4",
+              "name": "execute_tool get_forecast",
+              "kind": 1,
+              "startTimeUnixNano": "1790935440800000000",
+              "endTimeUnixNano": "1790935441100000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "get_forecast"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_4_0"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "stringValue": "{\"city\":\"Paris\"}"
+                  }
+                }
+              ],
+              "status": {
+                "code": 2,
+                "message": "upstream 503"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@ledring/play-strands",
+  "private": true,
+  "version": "0.1.0",
+  "description": "LEDRING Play strands worker. Ready to deploy to Cloudflare Workers and D1. Not deployed from this repo.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "files": ["dist", "schema.sql", "wrangler.toml", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run --root ../.. packages/play-strands/test"
+  },
+  "dependencies": {
+    "@ledring/play-risk": "workspace:*"
+  },
+  "repository": { "type": "git", "url": "git+https://github.com/FelixFangX/ledring.git", "directory": "packages/play-strands" }
+}

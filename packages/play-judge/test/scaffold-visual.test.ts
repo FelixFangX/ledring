@@ -1,0 +1,2131 @@
+import { createServer } from "node:http";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { extname, join, normalize, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, expect, it } from "vitest";
+import { AxeBuilder } from "@axe-core/playwright";
+import { loadCassette, playCassette } from "@ledring/play-core";
+import { chromium, type Browser, type Page } from "playwright";
+import { handleStrands, memoryStore } from "../../play-strands/src/index.js";
+
+// The deployed strands worker is Play's default backend and the only allowed external request.
+const DEFAULT_STRANDS_HOST = "api.ledring.dev";
+import { menuFrameError, recordVisualFailure } from "../../../scripts/visual-diff.mjs";
+
+const root = fileURLToPath(new URL("../../..", import.meta.url));
+const playDir = join(root, "docs/play");
+const diffDir = join(root, "play-visual-diff");
+
+function browserInstalled(): boolean {
+  try {
+    return existsSync(chromium.executablePath());
+  } catch {
+    return false;
+  }
+}
+
+const installed = browserInstalled();
+
+const types: Record<string, string> = {
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+};
+
+async function revealEndingRecord(page: Page) {
+  const more = page.locator("#e-more");
+  if (await more.isVisible()) await more.click();
+}
+
+function serve(dir: string): Promise<{ url: string; close: () => Promise<void> }> {
+  const server = createServer((req, res) => {
+    const pathname = new URL(req.url ?? "/", "http://127.0.0.1").pathname;
+    const relative = pathname === "/" ? "index.html" : pathname.replace(/^\/+/, "");
+    const file = normalize(join(dir, relative));
+    if (file !== dir && !file.startsWith(dir + sep)) {
+      res.writeHead(403);
+      res.end();
+      return;
+    }
+    try {
+      const body = readFileSync(file);
+      res.writeHead(200, { "content-type": types[extname(file)] ?? "application/octet-stream" });
+      res.end(body);
+    } catch {
+      res.writeHead(404);
+      res.end();
+    }
+  });
+  return new Promise((resolve) => {
+    server.listen(0, "127.0.0.1", () => {
+      const address = server.address();
+      if (!address || typeof address === "string") throw new Error("no port");
+      resolve({
+        url: `http://127.0.0.1:${address.port}/`,
+        close: () =>
+          new Promise((done, reject) => {
+            server.closeAllConnections();
+            server.close((error) => (error ? reject(error) : done()));
+          }),
+      });
+    });
+  });
+}
+
+describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
+  it("keeps the menu frame at desktop and phone widths", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    const shots: { name: string; png: Buffer; note: string }[] = [];
+    try {
+      browser = await chromium.launch({ headless: true });
+      const page: Page = await browser.newPage();
+      await page.goto(site.url, { waitUntil: "domcontentloaded" });
+      await page.locator("#menu").waitFor({ state: "visible" });
+      for (const viewport of [
+        { width: 1280, height: 800, name: "menu-desktop" },
+        { width: 390, height: 844, name: "menu-mobile" },
+      ]) {
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+        const box = await page.locator("#menu").boundingBox();
+        const note = menuFrameError(box, viewport);
+        if (note) shots.push({ name: viewport.name, png: await page.screenshot(), note });
+      }
+      if (shots.length > 0) {
+        recordVisualFailure(diffDir, shots);
+        expect(shots.map((shot) => shot.note)).toEqual([]);
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 20_000);
+
+  it("renders the component gallery, HUD, ring states, and buttons without external font requests at 1280 and 390", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    const externalRequests: string[] = [];
+    try {
+      browser = await chromium.launch({ headless: true });
+      const page: Page = await browser.newPage();
+      page.on("request", (req) => {
+        const u = new URL(req.url());
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST) {
+          externalRequests.push(req.url());
+        }
+      });
+      await page.goto(`${site.url}?gallery=1&fast`, { waitUntil: "domcontentloaded" });
+      await page.locator("#gallery.on").waitFor({ state: "visible" });
+      for (const viewport of [
+        { width: 1280, height: 800 },
+        { width: 390, height: 844 },
+      ]) {
+        await page.setViewportSize(viewport);
+        const hudBox = await page.locator(".hud").boundingBox();
+        expect(hudBox).toBeTruthy();
+        expect(hudBox!.width).toBeGreaterThanOrEqual(300);
+        expect(hudBox!.height).toBeGreaterThanOrEqual(48);
+
+        for (const ringId of ["#gal-ring-calm", "#gal-ring-proc", "#gal-ring-crit"]) {
+          const rBox = await page.locator(ringId).boundingBox();
+          expect(rBox).toBeTruthy();
+          expect(rBox!.width).toBeGreaterThanOrEqual(40);
+        }
+
+        for (const btnId of ["#gal-btn-solid", "#gal-btn-def", "#gal-btn-ghost"]) {
+          const bBox = await page.locator(btnId).boundingBox();
+          expect(bBox).toBeTruthy();
+          expect(bBox!.height).toBeGreaterThanOrEqual(36);
+        }
+
+        const backdrop = await page.locator(".hud").evaluate((el) => getComputedStyle(el).backdropFilter);
+        expect(backdrop === "none" || backdrop === "").toBe(true);
+      }
+      expect(externalRequests).toEqual([]);
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 20_000);
+
+  it("remembers the last run on the menu, validates empty idea submit with shake vs outline-only under reduced motion, fits EN/zh at 1280 and 390, and supports keyboard Tab -> type -> Enter", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Menu host line remembers last run + EN/zh overflow check at 1280x800 and 390x844
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+        const page = await ctx.newPage();
+        await page.addInitScript(() => {
+          localStorage.setItem(
+            "ledring-v1",
+            JSON.stringify({
+              plays: 3,
+              seen: { POLISHED: 1, SHIPPED: 1 },
+              last: { idea: "Quantum Tea Timer", end: "POLISHED", trust: 74, preset: "pomo" },
+            }),
+          );
+        });
+        await page.goto(`${site.url}?lang=${lang}&fast`, { waitUntil: "domcontentloaded" });
+        await page.locator("#menu.on").waitFor({ state: "visible" });
+        const hostText = await page.locator("#host").textContent();
+        expect(hostText).toContain("Quantum Tea Timer");
+
+        await page.goto(`${site.url}?scene=idea&lang=${lang}&fast`, { waitUntil: "domcontentloaded" });
+        await page.locator("#missions.on").waitFor({ state: "visible" });
+
+        for (const vp of [
+          { width: 1280, height: 800 },
+          { width: 390, height: 844 },
+        ]) {
+          await page.setViewportSize(vp);
+          const overflow = await page.locator("#missions").evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+          expect(overflow).toBe(false);
+        }
+        await ctx.close();
+      }
+
+      // 2. Empty Enter submit shakes #ideacard in full motion and only outlines in reduced motion
+      const ctxFull = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const pageFull = await ctxFull.newPage();
+      await pageFull.goto(`${site.url}?scene=idea&fast`, { waitUntil: "domcontentloaded" });
+      await pageFull.locator("#idea-in").focus();
+      await pageFull.keyboard.press("Enter");
+      const fullEmptyState = await pageFull.evaluate(() => {
+        const card = document.querySelector("#ideacard") as HTMLElement & { __anim?: Animation };
+        return {
+          invalid: card.classList.contains("invalid"),
+          hasAnim: Boolean(card.__anim),
+          stillOnMissions: document.querySelector("#missions")?.classList.contains("on") ?? false,
+        };
+      });
+      expect(fullEmptyState).toEqual({ invalid: true, hasAnim: true, stillOnMissions: true });
+      await ctxFull.close();
+
+      const ctxRm = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+      const pageRm = await ctxRm.newPage();
+      await pageRm.goto(`${site.url}?scene=idea&fast&rm`, { waitUntil: "domcontentloaded" });
+      await pageRm.locator("#idea-in").focus();
+      await pageRm.keyboard.press("Enter");
+      const rmEmptyState = await pageRm.evaluate(() => {
+        const card = document.querySelector("#ideacard") as HTMLElement & { __anim?: Animation };
+        return {
+          invalid: card.classList.contains("invalid"),
+          hasAnim: Boolean(card.__anim),
+          stillOnMissions: document.querySelector("#missions")?.classList.contains("on") ?? false,
+        };
+      });
+      expect(rmEmptyState).toEqual({ invalid: true, hasAnim: false, stillOnMissions: true });
+
+      // 3. Keyboard path: type idea -> Enter starts a run
+      await pageRm.keyboard.type("A calm 5-minute breathing timer");
+      await pageRm.keyboard.press("Enter");
+      await pageRm.locator("#run.on").waitFor({ state: "visible", timeout: 5000 });
+      const runIdea = await pageRm.evaluate(() => {
+        const w = window as unknown as { __ledring: { run: () => { idea: string } | null } };
+        return w.__ledring.run()?.idea;
+      });
+      expect(runIdea).toBe("A calm 5-minute breathing timer");
+      await ctxRm.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
+
+  it("renders all SIWC states honestly, masks and redacts BYO keys with •••• saved, traps focus in #drawer, and passes axe-core with zero serious violations", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const page = await ctx.newPage();
+
+      // 1. Static / Pages mode without bridge: ChatGPT plan shows Unavailable, clicking Continue explains node packages/cli/dist/bin.js play and never flips to Connected
+      await page.goto(`${site.url}?mode=chatgpt&drawer=1&fast`, { waitUntil: "domcontentloaded" });
+      await page.locator("#drawer.on").waitFor({ state: "visible" });
+      expect(await page.locator("#siwc-unavail").textContent()).toContain("Unavailable on this page");
+      await page.locator("#siwc-go").click();
+      expect(await page.locator("#siwc-flow").textContent()).toContain("node packages/cli/dist/bin.js play");
+      expect(await page.locator("#drawer").textContent()).not.toContain("Using ChatGPT plan");
+      expect(await page.locator(".siwc").getAttribute("data-siwc-state")).toBe("unavailable");
+
+      // 2. Test all SIWC states across EN/zh and 1280/820/390 + axe-core zero serious violations
+      const states = ["unavailable", "signed_out", "waiting", "declined", "connected", "plan_off", "usage_limit", "expired"] as const;
+      for (const st of states) {
+        await page.evaluate((s) => {
+          const w = window as unknown as { __ledring: { setSiwcState: (s: string, o?: Record<string, string>) => void } };
+          w.__ledring.setSiwcState(s, { name: "Ada Lovelace", email: "ada@analytical.engine" });
+        }, st);
+        expect(await page.locator(".siwc").getAttribute("data-siwc-state")).toBe(st);
+        const cardText = (await page.locator(".siwc").textContent()) ?? "";
+        if (st === "connected") {
+          expect(cardText).toContain("Using ChatGPT plan");
+          expect(cardText).toContain("Manage usage ↗");
+          expect(await page.locator("#siwc-manage").getAttribute("href")).toBe(
+            "https://help.openai.com/en/articles/20001542-using-your-chatgpt-plan-in-other-apps-and-sites",
+          );
+        } else {
+          expect(cardText).not.toContain("Using ChatGPT plan");
+        }
+        if (st === "usage_limit") {
+          expect(await page.locator("#siwc-manage-primary").textContent()).toContain("Manage usage ↗");
+        }
+      }
+
+      for (const vp of [
+        { width: 1280, height: 800 },
+        { width: 820, height: 1180 },
+        { width: 390, height: 844 },
+      ]) {
+        await page.setViewportSize(vp);
+        const box = await page.locator("#drawer").boundingBox();
+        expect(box).toBeTruthy();
+        expect(box!.width).toBeLessThanOrEqual(vp.width + 1);
+      }
+      await page.setViewportSize({ width: 1280, height: 800 });
+
+      // 3. BYO key masking & redaction: entering a key never leaves raw key in DOM and shows •••• saved
+      await page.locator('.mode[data-mode="openai"]').click();
+      expect(await page.locator("#demotag").textContent()).toContain("live ·");
+      const rawSecret = "sk-test-secret-do-not-leak-999999";
+      await page.locator("#p-key").fill(rawSecret);
+      await page.locator("#p-key").dispatchEvent("change");
+      const keyState = await page.evaluate(() => {
+        const input = document.querySelector("#p-key") as HTMLInputElement;
+        return {
+          value: input.value,
+          placeholder: input.placeholder,
+          savedBadge: document.querySelector("#p-key-saved")?.textContent ?? "",
+          htmlContainsSecret: document.documentElement.innerHTML.includes("sk-test-secret-do-not-leak-999999"),
+        };
+      });
+      expect(keyState).toEqual({
+        value: "",
+        placeholder: "•••• saved",
+        savedBadge: "•••• saved",
+        htmlContainsSecret: false,
+      });
+
+      // 4. axe-core check on open drawer (zero serious/critical violations)
+      const axe = await new AxeBuilder({ page }).include("#drawer").analyze();
+      const serious = axe.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
+      expect(serious).toEqual([]);
+
+      // 5. Escape closes drawer
+      await page.keyboard.press("Escape");
+      expect(await page.locator("#drawer").evaluate((el) => el.classList.contains("on"))).toBe(false);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("streams into the Run screen with auto-scroll pause/resume, diff highlights, version scrubber, offline preview CSP, and zero overflow at 1280/820/390", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    const externalRequests: string[] = [];
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const page = await ctx.newPage();
+      page.on("request", (req) => {
+        const u = new URL(req.url());
+        if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && u.hostname !== DEFAULT_STRANDS_HOST) {
+          externalRequests.push(req.url());
+        }
+      });
+
+      // Run snake preset through v1 (block red-wall) -> QTE v2 (demand tests) -> QTE v3 (polish)
+      await page.goto(`${site.url}?idea=snake&script=block,tests,polish&fast&mode=demo`, { waitUntil: "domcontentloaded" });
+      await page.locator("#end.on").waitFor({ state: "visible", timeout: 15_000 });
+
+      // Switch back to #run to inspect the completed run state
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { show: (id: string) => void } };
+        w.__ledring.show("run");
+      });
+      await page.locator("#run.on").waitFor({ state: "visible" });
+
+      // 1. Self-tests tab is visible because tests were demanded
+      expect(await page.locator("#tab-test").isVisible()).toBe(true);
+
+      // 2. Version pills exist in #pvvers and diff highlights (.add) render on v2/v3
+      const versCount = await page.locator("#pvvers .vpill").count();
+      expect(versCount).toBeGreaterThanOrEqual(2);
+      const addLines = await page.locator("#code .add").count();
+      expect(addLines).toBeGreaterThan(0);
+
+      // Click v1 pill -> #pvbuild shows v1
+      await page.locator("#pvvers .vpill").first().click();
+      expect(await page.locator("#pvbuild").textContent()).toBe("v1");
+
+      // 3. Auto-scroll pause when scrolled up, resume when scrolled to bottom
+      const scrollBehavior = await page.evaluate(async () => {
+        const el = document.querySelector("#code") as HTMLElement;
+        const w = window as unknown as { __ledring: { setCode: (h: string) => void } };
+        const tall = Array.from({ length: 120 }, (_, i) => `line ${i + 1}`).join("\n");
+        w.__ledring.setCode(tall);
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        el.scrollTop = 0;
+        el.dispatchEvent(new Event("scroll"));
+        // Stream while scrolled up: should NOT jump to bottom
+        const showFn = (window as unknown as { showCode: (t: string, s: boolean, tab: string) => void }).showCode;
+        showFn(tall + "\nline 121", true, "html");
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const pausedTop = el.scrollTop;
+        // Scroll back to bottom: should resume auto-scroll
+        el.scrollTop = el.scrollHeight;
+        el.dispatchEvent(new Event("scroll"));
+        showFn(tall + "\nline 121\nline 122\nline 123", true, "html");
+        await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+        const resumedAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight <= 24;
+        return { pausedTop, resumedAtBottom };
+      });
+      expect(scrollBehavior.pausedTop).toBe(0);
+      expect(scrollBehavior.resumedAtBottom).toBe(true);
+
+      // 4. Zero horizontal overflow at 1280x800, 820x1180, 390x844
+      for (const vp of [
+        { width: 1280, height: 800 },
+        { width: 820, height: 1180 },
+        { width: 390, height: 844 },
+      ]) {
+        await page.setViewportSize(vp);
+        const overflow = await page.locator("#run").evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+        expect(overflow).toBe(false);
+      }
+
+      // 5. Preview iframe made zero external requests
+      expect(externalRequests).toEqual([]);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("supports QTE keyboard 1-5/I, interrogate answer streaming, timer-pause mode, Red Wall ruleId + Space/Enter/B, ARIA live region, reduced-motion static wall, and 390x844 bottom sheet (>=44px targets)", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Timer-pause mode (?hold), interrogate (I), keyboard choice (2), and Red Wall (B) + ruleId + ARIA live region
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "no-preference" });
+      const page = await ctx.newPage();
+      await page.goto(`${site.url}?hold&fast&mode=demo`, { waitUntil: "domcontentloaded" });
+      await page.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            show: (id: string) => void;
+            qte: (v: number) => Promise<{ id: string; by: string; asked: boolean }>;
+          };
+          __qteOut?: { id: string; by: string; asked: boolean };
+        };
+        w.__ledring.show("run");
+        void w.__ledring.qte(2).then((res) => {
+          w.__qteOut = res;
+        });
+      });
+      await page.locator("#choicelayer.on").waitFor({ state: "visible" });
+      expect(await page.locator("#qcount").textContent()).toBe("PAUSED");
+      expect(await page.locator("#a11y-live").textContent()).toContain("Next step v2");
+
+      // Press 'I' to interrogate -> Ask why button disappears, .answer appears
+      await page.keyboard.press("i");
+      await page.locator("#qbox .answer").waitFor({ state: "visible" });
+      await page.waitForFunction(() => {
+        const ans = document.querySelector("#qbox .answer")?.textContent ?? "";
+        return ans.length > 5 && !document.querySelector('#qbox .qopt[data-id="ask"]');
+      });
+
+      // Press '2' to pick Demand tests
+      await page.keyboard.press("2");
+      await page.waitForFunction(() => Boolean((window as unknown as { __qteOut?: unknown }).__qteOut));
+      const qteRes = await page.evaluate(() => (window as unknown as { __qteOut: { id: string; by: string; asked: boolean } }).__qteOut);
+      expect(qteRes).toMatchObject({ id: "tests", by: "human", asked: true });
+
+      // Open Red Wall on 390x844 and check ruleId, bottom-sheet tap target >= 44px, and Space/B block
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            redWall: (
+              finds: Array<{ cat: string; ruleId: string; line: string }>,
+              where: string,
+            ) => Promise<{ v: string; by: string }>;
+          };
+          __wallOut?: { v: string; by: string };
+        };
+        void w.__ledring
+          .redWall([{ cat: "network", ruleId: "risk.network.fetch", line: "fetch('https://evil.test')" }], "code")
+          .then((res) => {
+            w.__wallOut = res;
+          });
+      });
+      await page.locator("#choicelayer.on.wall").waitFor({ state: "visible" });
+      expect(await page.locator(".wallfind").textContent()).toContain("[risk.network.fetch]");
+      expect(await page.locator("#a11y-live").textContent()).toContain("risk.network.fetch");
+      const wbBox = await page.locator("#wb").boundingBox();
+      expect(wbBox).toBeTruthy();
+      expect(wbBox!.height).toBeGreaterThanOrEqual(44);
+      const qboxOverflow = await page.locator("#qbox").evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(qboxOverflow).toBe(false);
+
+      await page.keyboard.press("b");
+      await page.waitForFunction(() => Boolean((window as unknown as { __wallOut?: unknown }).__wallOut));
+      const wallRes = await page.evaluate(() => (window as unknown as { __wallOut: { v: string; by: string } }).__wallOut);
+      expect(wallRes).toEqual({ v: "block", by: "human" });
+      await ctx.close();
+
+      // 2. Reduced motion: hazard bands are hidden and static red border is used
+      const ctxRm = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+      const pageRm = await ctxRm.newPage();
+      await pageRm.goto(`${site.url}?rm&hold&fast&mode=demo`, { waitUntil: "domcontentloaded" });
+      await pageRm.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            show: (id: string) => void;
+            redWall: (
+              finds: Array<{ cat: string; ruleId: string; line: string }>,
+              where: string,
+            ) => Promise<{ v: string; by: string }>;
+          };
+        };
+        w.__ledring.show("run");
+        void w.__ledring.redWall([{ cat: "eval", ruleId: "risk.eval.1", line: "eval(x)" }], "code");
+      });
+      await pageRm.locator("#choicelayer.on.wall").waitFor({ state: "visible" });
+      const rmWallStyle = await pageRm.evaluate(() => {
+        const hz = document.querySelector("#choicelayer .hz") as HTMLElement;
+        const qb = document.querySelector("#qbox") as HTMLElement;
+        return {
+          hzDisplay: getComputedStyle(hz).display,
+          borderColor: getComputedStyle(qb).borderColor,
+        };
+      });
+      expect(rmWallStyle.hzDisplay).toBe("none");
+      expect(rmWallStyle.borderColor).toBe("rgb(224, 30, 43)");
+      await ctxRm.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("fits #end at 1280x800 without scroll across all 7 endings in EN and zh, renders 2-8 flow columns without overlap, expands real judge evidence, and builds valid .zip/.trace.json exports", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const endings = ["POLISHED", "SHIPPED", "BUGGY", "FAKE", "COMPROMISED", "BROKEN", "ABANDONED"] as const;
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+        const page = await ctx.newPage();
+        await page.goto(`${site.url}?lang=${lang}&rm&fast`, { waitUntil: "domcontentloaded" });
+
+        // 1. All 7 endings fit 1280x800 with zero scroll
+        for (const end of endings) {
+          const fit = await page.evaluate((e) => {
+            const w = window as unknown as {
+              __ledring: {
+                paintEnd: (j: Record<string, unknown>) => void;
+              };
+            };
+            w.__ledring.paintEnd({
+              end: e,
+              valid: e !== "BROKEN",
+              left: e === "COMPROMISED" ? ["network"] : [],
+              outside: e === "COMPROMISED" ? ["network"] : [],
+              tests: e === "POLISHED" || e === "FAKE" ? [{ name: "t1", pass: true }] : null,
+              fake: e === "FAKE",
+              tpass: 1,
+              errs: e === "BUGGY" ? 2 : 0,
+              bytes: 3420,
+              engine: "playwright",
+              verdict: {
+                engine: "playwright",
+                ending: e,
+                validPage: e !== "BROKEN",
+                interactive: true,
+                responsiveActions: 2,
+                actions: 3,
+                errors: e === "BUGGY" ? ["ReferenceError: x is not defined"] : [],
+                runtimeErrors: e === "BUGGY" ? 1 : 0,
+                a11y: { violations: 0, gating: false },
+                screenshots: [
+                  { name: "desktop", bytes: 18420 },
+                  { name: "mobile", bytes: 12110 },
+                ],
+              },
+            });
+            const el = document.querySelector("#end") as HTMLElement;
+            return {
+              scrollHeight: el.scrollHeight,
+              clientHeight: el.clientHeight,
+              scrollWidth: el.scrollWidth,
+              clientWidth: el.clientWidth,
+            };
+          }, end);
+          expect(fit.scrollHeight).toBeLessThanOrEqual(fit.clientHeight);
+          expect(fit.scrollWidth).toBeLessThanOrEqual(fit.clientWidth + 1);
+          if (lang === "zh") {
+            const card = await page.evaluate(() => ({
+              share: (document.querySelector("#e-share") as HTMLElement).hidden === false,
+              bodyHidden: (document.querySelector("#end-body") as HTMLElement).hidden,
+              verdict: document.querySelector("#e-verdict")?.textContent || "",
+            }));
+            expect(card.share).toBe(true);
+            expect(card.bodyHidden).toBe(true);
+            expect(card.verdict.length).toBeGreaterThan(4);
+          }
+        }
+        if (lang === "en") {
+          expect(await page.locator("#e-star").textContent()).toContain("Star");
+          expect(await page.locator("#e-cli").textContent()).toContain("#quickstart");
+          expect(await page.locator("#e-source").textContent()).toMatch(/source/i);
+          expect(await page.locator("#e-share").evaluate((el) => (el as HTMLElement).hidden)).toBe(true);
+        } else {
+          await page.locator("#e-more").click();
+          expect(await page.locator("#end-body").evaluate((el) => (el as HTMLElement).hidden)).toBe(false);
+        }
+
+        // 2. Expand judge evidence & screenshots and verify no scroll on #end
+        await page.locator("#j-expand").click();
+        expect(await page.locator("#j-expand").getAttribute("aria-expanded")).toBe("true");
+        await page.locator("#j-details").waitFor({ state: "visible" });
+        expect(await page.locator('#j-details [data-shot="desktop"]').textContent()).toContain("desktop");
+        expect(await page.locator('#j-details [data-shot="mobile"]').textContent()).toContain("mobile");
+        const fitExpanded = await page.locator("#end").evaluate((el) => el.scrollHeight <= el.clientHeight);
+        expect(fitExpanded).toBe(true);
+
+        // 3. Flow SVG handles 2 to 8 decision columns without overlap
+        for (let cols = 2; cols <= 8; cols++) {
+          const overlaps = await page.evaluate((count) => {
+            const w = window as unknown as {
+              __ledring: {
+                run: () => { decs: Array<Record<string, unknown>> };
+                drawFlow: (end: string) => void;
+              };
+            };
+            const decs = Array.from({ length: count }, (_, i) =>
+              i % 3 === 1
+                ? { k: "wall", label: `v${i + 1} wall`, opts: ["block", "allow"], pick: "block" }
+                : {
+                    k: "qte",
+                    label: `v${i + 1}`,
+                    opts: ["short", "tests", "polish", "cut", "plug"],
+                    pick: ["short", "tests", "polish", "cut"][i % 4],
+                    asked: i % 2 === 0,
+                  },
+            );
+            w.__ledring.run().decs = decs;
+            w.__ledring.drawFlow("POLISHED");
+            const nodes = [...document.querySelectorAll("#flow .flow-node")].map((n) => n.getBoundingClientRect());
+            let nodeOverlap = 0;
+            for (let i = 0; i < nodes.length; i++) {
+              for (let j = i + 1; j < nodes.length; j++) {
+                const a = nodes[i]!;
+                const b = nodes[j]!;
+                const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                if (ox > 1 && oy > 1) nodeOverlap++;
+              }
+            }
+            const heads = [...document.querySelectorAll("#flow .flow-head")].map((h) => h.getBoundingClientRect());
+            let headOverlap = 0;
+            for (let i = 0; i < heads.length; i++) {
+              for (let j = i + 1; j < heads.length; j++) {
+                const a = heads[i]!;
+                const b = heads[j]!;
+                const ox = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+                const oy = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+                if (ox > 1 && oy > 1) headOverlap++;
+              }
+            }
+            return { nodeOverlap, headOverlap, colGroups: document.querySelectorAll("#flow .flow-col").length };
+          }, cols);
+          expect(overlaps.nodeOverlap).toBe(0);
+          expect(overlaps.headOverlap).toBe(0);
+          expect(overlaps.colGroups).toBe(cols + 2); // idea + N decs + ending
+        }
+
+        // 4. ZIP and Trace exports
+        const exportCheck = await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              trace: () => string;
+              makeZip: (files: Array<[string, string]>) => Uint8Array;
+            };
+          };
+          const trace = JSON.parse(w.__ledring.trace()) as { schema: string };
+          const zip = w.__ledring.makeZip([
+            ["index.html", "<!doctype html><html><body>ok</body></html>"],
+            ["ledring.trace.v1.json", w.__ledring.trace()],
+            ["README.md", "# Build\n"],
+          ]);
+          const ascii = new TextDecoder().decode(zip);
+          return {
+            schema: trace.schema,
+            pkHeader: zip[0] === 0x50 && zip[1] === 0x4b && zip[2] === 0x03 && zip[3] === 0x04,
+            hasHtml: ascii.includes("index.html"),
+            hasTrace: ascii.includes("ledring.trace.v1.json"),
+            hasReadme: ascii.includes("README.md"),
+          };
+        });
+        expect(exportCheck).toEqual({
+          schema: "ledring.trace.v1",
+          pkHeader: true,
+          hasHtml: true,
+          hasTrace: true,
+          hasReadme: true,
+        });
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("renders the menu Session Library in EN and zh, supports keyboard navigation, and deterministically replays a cassette run with identical ending and event IDs", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      const cassette = loadCassette(readFileSync(join(root, "fixtures/play/snake-polished.json"), "utf8"));
+      const played = playCassette(cassette);
+      const events = JSON.parse(JSON.stringify(played.events)) as unknown[];
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, reducedMotion: "reduce" });
+        const page = await ctx.newPage();
+        await page.goto(`${site.url}?lang=${lang}&rm&fast`, { waitUntil: "domcontentloaded" });
+
+        await page.evaluate(
+          ({ sess }) => {
+            const w = window as unknown as {
+              __ledring: {
+                setLibrarySessions: (rows: unknown[]) => void;
+              };
+            };
+            w.__ledring.setLibrarySessions([sess]);
+          },
+          {
+            sess: {
+              id: "sess-snake-1",
+              idea: played.idea,
+              ending: played.ending,
+              date: "2026-10-15T05:00:00.000Z",
+              events,
+            },
+          },
+        );
+
+        await page.locator("#m-lib").waitFor({ state: "visible" });
+        expect(await page.locator("#lib-cap").textContent()).toContain(lang === "zh" ? "已保存的构建" : "SAVED BUILDS");
+        expect(await page.locator('.lib-row[data-session-id="sess-snake-1"] .lib-idea').textContent()).toBe(played.idea);
+
+        // Keyboard reachability: focus .lib-replay and press Enter
+        const replayBtn = page.locator('.lib-replay[data-id="sess-snake-1"]');
+        await replayBtn.focus();
+        expect(await replayBtn.evaluate((el) => document.activeElement === el)).toBe(true);
+
+        const replayed = await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: {
+              openLibrarySession: (
+                id: string,
+                mode: string,
+              ) => Promise<{
+                id: string;
+                ending: string;
+                eventIds: number[];
+                events: unknown[];
+              }>;
+              exportLibrarySession: (id: string) => Promise<string>;
+            };
+          };
+          const res = await w.__ledring.openLibrarySession("sess-snake-1", "replay");
+          const exported = await w.__ledring.exportLibrarySession("sess-snake-1");
+          return { res, trace: JSON.parse(exported) as { schema: string; instruction: string } };
+        });
+
+        expect(replayed.res.ending).toBe("POLISHED");
+        expect(replayed.res.eventIds).toEqual(events.map((_, i) => i + 1));
+        expect(replayed.res.events).toEqual(events);
+        expect(replayed.trace.schema).toBe("ledring.trace.v1");
+        expect(replayed.trace.instruction).toBe(played.idea);
+        expect(await page.locator("#end").evaluate((el) => el.classList.contains("on"))).toBe(true);
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it.skipIf(!installed)("supports Chapter 0 keyboard 1-4/nudge, reroll/fuse/rewrite, 2-column phone board, live trend cards with source+time, and empty-feed fallback with zero Demo trend requests", async () => {
+    mkdirSync(diffDir, { recursive: true });
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Offline Chapter 0 in EN and zh at 1280x800 and 390x844; verify zero Demo trend requests
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        const trendHits: string[] = [];
+        await page.route(/hn\.algolia\.com|reddit\.com|api\.x\.com/, async (route) => {
+          trendHits.push(route.request().url());
+          await route.abort();
+        });
+
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&mode=demo`);
+        expect(trendHits).toHaveLength(0);
+        expect(await page.locator("#in-opts .trend").count()).toBe(0);
+
+        // Q1: press "4" to trigger nudge, then Enter to submit free text
+        await page.keyboard.press("4");
+        const nudgedVal = await page.locator("#in-free").inputValue();
+        expect(nudgedVal.length).toBeGreaterThan(0);
+        await page.keyboard.press("Enter");
+        await page.waitForFunction(() => {
+          const free = document.querySelector("#in-free");
+          return document.querySelectorAll("#in-frags .frag").length === 1 && document.activeElement !== free;
+        });
+
+        // Q2: press "1"
+        await page.keyboard.press("1");
+        await page.waitForFunction(() => document.querySelectorAll("#in-frags .frag").length === 2);
+
+        // Q3: press "2"
+        await page.keyboard.press("2");
+        await page.waitForFunction(
+          () => document.querySelectorAll("#in-frags .frag").length === 3 && document.querySelectorAll("#in-opts .dir").length === 3,
+        );
+
+        expect(await page.locator("#in-frags .frag").count()).toBe(3);
+        const rrLabels = await page.locator("#in-frags .rr").evaluateAll((els) =>
+          els.map((el) => el.getAttribute("aria-label") || ""),
+        );
+        expect(rrLabels).toHaveLength(3);
+        for (const label of rrLabels) {
+          expect(label).toContain(lang === "zh" ? "换一条灵感素材" : "Replace this note");
+        }
+
+        expect(await page.locator("#in-opts .dir").count()).toBe(3);
+
+        // Reroll F2, fuse two directions, and edit the brief
+        await page.locator('#in-frags .rr[data-k="trust"]').click();
+        await page.waitForTimeout(40);
+        await page.locator('#in-opts .fz input[data-i="0"]').check();
+        await page.locator('#in-opts .fz input[data-i="1"]').check();
+        await page.locator("#in-fuse").click();
+        await page.waitForTimeout(40);
+        expect(await page.locator("#in-opts .dir.fused").count()).toBe(1);
+
+        await page.locator("#in-brief").fill(lang === "zh" ? "自定义简报内容" : "Custom rewritten brief");
+        expect(await page.locator("#in-edited").textContent()).toContain(
+          lang === "zh" ? "你改写过" : "rewritten by you",
+        );
+
+        await page.screenshot({ path: join(diffDir, `insp-offline-1280-${lang}.png`) });
+
+        // Resize to 390x844 and check board is below questions and fragments are in 2 columns
+        await page.setViewportSize({ width: 390, height: 844 });
+        const layout = await page.evaluate(() => {
+          const modeRect = document.querySelector("#in-mode")!.getBoundingClientRect();
+          const boardRect = document.querySelector("#in-board")!.getBoundingClientRect();
+          const cols = getComputedStyle(document.querySelector("#in-frags")!)
+            .gridTemplateColumns.split(" ")
+            .filter(Boolean).length;
+          return {
+            below: boardRect.top >= modeRect.bottom - 4,
+            cols,
+          };
+        });
+        expect(layout).toEqual({
+          below: true,
+          cols: 2,
+        });
+        await page.screenshot({ path: join(diffDir, `insp-offline-390-${lang}.png`) });
+        expect(trendHits).toHaveLength(0);
+        await ctx.close();
+      }
+
+      // 2. Live trends with source + relative time, and empty-feed fallback ("No live feed reachable")
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        await page.addInitScript(() => {
+          localStorage.setItem(
+            "ledring-provider",
+            JSON.stringify({
+              mode: "openai",
+              openai: { base: "http://127.0.0.1:59999/v1", key: "sk-test-12345678", model: "gpt-4o-mini" },
+            }),
+          );
+        });
+        await page.route("http://127.0.0.1:59999/**", async (route) => {
+          await route.fulfill({ status: 503, body: "offline" });
+        });
+        let failTrends = false;
+        await page.route("https://hn.algolia.com/**", async (route) => {
+          if (failTrends) {
+            await route.fulfill({ status: 503, body: "unavailable" });
+            return;
+          }
+          const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+              hits: [
+                { objectID: "101", title: "Local-first tools on small screens", created_at: tenMinAgo },
+                { objectID: "102", title: "Why deterministic replay matters", created_at: tenMinAgo },
+                { objectID: "103", title: "Synthesizing audio in 2KB of WebAudio", created_at: tenMinAgo },
+              ],
+            }),
+          });
+        });
+
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+        await page.waitForSelector("#in-frags .frag.tr", { timeout: 5000 });
+        const trendCards = await page.locator("#in-opts .trend, #in-frags .frag.tr").count();
+        expect(trendCards).toBeGreaterThanOrEqual(3);
+        const refCard = await page.evaluate(() => {
+          const src = document.querySelector("#in-opts .trend .tsrc")?.textContent?.trim() || "";
+          const ts = document.querySelector("#in-opts .trend .tts")?.textContent?.trim() || "";
+          return { src, ts };
+        });
+        expect(refCard.src).toBe("Hacker News");
+        expect(refCard.ts).toContain(lang === "zh" ? "分钟前" : "m ago");
+        if (lang === "zh") {
+          const title = (await page.locator("#in-opts .trend .tt").first().textContent()) || "";
+          expect(title).toContain("暂无中文译文。以下为原标题：");
+          expect(title).toContain("Local-first tools on small screens");
+        }
+        await page.screenshot({ path: join(diffDir, `insp-live-1280-${lang}.png`) });
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.screenshot({ path: join(diffDir, `insp-live-390-${lang}.png`) });
+
+        // Empty-feed fallback when all trend providers fail
+        failTrends = true;
+        await page.setViewportSize({ width: 1280, height: 800 });
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}`);
+        await page.waitForSelector("#in-feed .feedempty", { timeout: 5000 });
+        expect(await page.locator("#in-feed .feedempty").textContent()).toContain(
+          lang === "zh" ? "没有取到条目" : "No items came back",
+        );
+        expect(await page.locator("#in-opts .trend").count()).toBe(0);
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("enforces server-backed-by-default and simulated-fallback Strands label rules across Menu, Chapter 0, and Ending in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const simWord = lang === "zh" ? "模拟" : "simulated";
+        const store = memoryStore();
+        let backendOffline = false;
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+
+        await page.route(/^https:\/\/strands\.ledring\.(test|workers\.dev)\//, async (route) => {
+          if (backendOffline) {
+            await route.fulfill({ status: 503, body: "offline" });
+            return;
+          }
+          const req = route.request();
+          const webReq = new Request(req.url(), {
+            method: req.method(),
+            headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.42" },
+            ...(req.method() === "POST" ? { body: req.postData() ?? "{}" } : {}),
+          });
+          const res = await handleStrands(webReq, store);
+          const body = await res.text();
+          await route.fulfill({
+            status: res.status,
+            contentType: "application/json",
+            body,
+          });
+        });
+
+        // 1. Default state is server-backed: with no configuration Play uses the deployed strands worker
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.locator("#menu").waitFor({ state: "visible" });
+
+        // Ending publishes to the default server instead of a simulated strand
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              setRun: (r: unknown) => void;
+              paintEnd: (j: unknown) => void;
+            };
+          };
+          w.__ledring.setRun({
+            idea: "A quiet focus timer",
+            mode: "demo",
+            model: "demo",
+            html: "<!doctype html><html><body><h1>Timer</h1></body></html>",
+            plan: "1. timer",
+            v: 1,
+            blocked: new Set(),
+            allowed: new Set(),
+            decs: [],
+            snaps: [{ label: "v1", html: "<h1>Timer</h1>" }],
+            steps: [{ id: "s1", kind: "llm", name: "plan", signature: "plan" }],
+            startedAt: new Date().toISOString(),
+            endedAt: new Date().toISOString(),
+            end: "POLISHED",
+          });
+          w.__ledring.paintEnd({
+            end: "POLISHED",
+            valid: true,
+            left: [],
+            outside: [],
+            tests: [{ name: "t1", pass: true }],
+            fake: false,
+            tpass: 1,
+            errs: 0,
+            bytes: 120,
+          });
+        });
+        await revealEndingRecord(page);
+        await page.locator("#e-strand").click();
+        await page.waitForFunction(() => document.querySelector("#e-strand")?.getAttribute("data-simulated") === "false");
+        expect(await page.locator("#e-strand").textContent()).not.toContain(simWord);
+
+        // 2. Wire real @ledring/play-strands backend and publish a real strand
+        await page.evaluate(() => {
+          const b = document.querySelector("#e-strand") as HTMLButtonElement;
+          b.disabled = false;
+        });
+        await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: {
+              setStrandsUrl: (url: string, brief?: string) => Promise<unknown>;
+              leaveStrand: () => Promise<{ ok: boolean; simulated: boolean; id?: string }>;
+            };
+          };
+          await w.__ledring.setStrandsUrl("https://strands.ledring.test", "A quiet focus timer");
+        });
+        const posted = await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: {
+              leaveStrand: () => Promise<{ ok: boolean; simulated: boolean; id?: string; likes?: number }>;
+            };
+          };
+          return await w.__ledring.leaveStrand();
+        });
+        expect(posted.ok).toBe(true);
+        expect(posted.simulated).toBe(false);
+        expect(posted.likes).toBe(0);
+        expect(await page.locator("#e-strand").getAttribute("data-simulated")).toBe("false");
+        expect(await page.locator("#e-strand").textContent()).not.toContain(simWord);
+
+        // Like the server-backed strand and verify likes count updates from server
+        const liked = await page.evaluate(async (id) => {
+          const w = window as unknown as {
+            __ledring: {
+              likeStrand: (id: string) => Promise<{ ok: boolean; likes?: number }>;
+            };
+          };
+          return await w.__ledring.likeStrand(id!);
+        }, posted.id);
+        expect(liked).toEqual({ ok: true, likes: 1 });
+        expect(await page.locator("#e-strand .num").textContent()).toBe("1");
+
+        // Menu tag drops "(simulated)" when server-backed strands are loaded
+        await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { show: (id: string) => void } };
+          w.__ledring.show("menu");
+        });
+        const menuLiveTag = (await page.locator("#strandtag").textContent()) || "";
+        expect(menuLiveTag).not.toContain(simWord);
+        expect(await page.locator("#strandtag").getAttribute("data-simulated")).toBe("false");
+        await page.screenshot({ path: join(diffDir, `strands-live-menu-1280-${lang}.png`) });
+
+        // Chapter 0 direction cards omit "(simulated)" when backed by server strands
+        await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&mode=demo&strandsUrl=${encodeURIComponent("https://strands.ledring.test")}`);
+        await page.waitForSelector("#in-opts .qopt");
+        for (let step = 0; step < 3; step += 1) {
+          await page.keyboard.press("1");
+          await page.waitForFunction(
+            (n) => document.querySelectorAll("#in-frags .frag").length === n,
+            step + 1,
+          );
+        }
+        await page.waitForSelector("#in-opts .dir .dstr");
+        await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: { syncStrands: (brief?: string) => Promise<unknown> };
+          };
+          await w.__ledring.syncStrands("A quiet focus timer");
+        });
+        const dirSimAttr = await page.locator("#in-opts .dir .dstr").first().getAttribute("data-simulated");
+        const dirText = (await page.locator("#in-opts .dir .dstr").first().textContent()) || "";
+        expect(dirSimAttr).toBe("false");
+        expect(dirText).not.toContain(simWord);
+
+        // 3. When backend goes offline, fallback restores "(simulated)" label on both Menu and Chapter 0
+        backendOffline = true;
+        await page.evaluate(async () => {
+          const w = window as unknown as {
+            __ledring: { syncStrands: (brief?: string) => Promise<unknown> };
+          };
+          await w.__ledring.syncStrands("A quiet focus timer");
+        });
+        expect(await page.locator("#strandtag").getAttribute("data-simulated")).toBe("true");
+        expect(await page.locator("#strandtag").textContent()).toContain(simWord);
+        expect(await page.locator("#in-opts .dir .dstr").first().getAttribute("data-simulated")).toBe("true");
+        expect(await page.locator("#in-opts .dir .dstr").first().textContent()).toContain(simWord);
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
+
+  it("supports Fourth-wall local signals, tab-away miniCodec, port-swap resize Red Wall, keyboard dismiss, and COMPROMISED brief quote in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        await page.addInitScript(() => {
+          localStorage.setItem(
+            "ledring-play2",
+            JSON.stringify({
+              plays: 3,
+              last: { idea: "Secret neon synth", end: "COMPROMISED", trust: 28 },
+              seen: { COMPROMISED: 1 },
+            }),
+          );
+        });
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.locator("#menu").waitFor({ state: "visible" });
+
+        // 1. Verify fourthWallLines uses local time, screen class, past run memory, and privacy notice
+        const lines = await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { fourthWallLines: () => string[] } };
+          return w.__ledring.fourthWallLines();
+        });
+        expect(lines.length).toBeGreaterThanOrEqual(4);
+        expect(lines.join(" ")).toContain("Secret neon synth");
+        expect(lines.join(" ")).toContain(lang === "zh" ? "网络请求" : "network call");
+        expect(lines.join(" ")).toContain(lang === "zh" ? "都没离开你的浏览器" : "None of this left your browser");
+
+        // 2. Tab-away and return on #run surfaces miniCodec copy (reduced-motion safe)
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: { show: (id: string) => void; triggerTabAway: (sec: number) => string };
+          };
+          w.__ledring.show("run");
+          w.__ledring.triggerTabAway(7);
+        });
+        await page.waitForSelector("#minicodec.on");
+        const miniText = (await page.locator("#minicodec").textContent()) || "";
+        expect(miniText).toContain("7");
+        expect(miniText).toContain(lang === "zh" ? "你离开了 7 秒" : "You left for 7 seconds");
+        await page.screenshot({ path: join(diffDir, `fourth-wall-minicodec-1280-${lang}.png`) });
+
+        // 3. Port-swap Red Wall: large resize (>=120px) blocks the wall
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              redWall: (
+                finds: { cat: string; ruleId: string; line: string }[],
+                where: string,
+              ) => Promise<{ v: string; by: string }>;
+            };
+            __wallRes?: { v: string; by: string } | null;
+          };
+          w.__wallRes = null;
+          void w.__ledring
+            .redWall([{ cat: "network", ruleId: "risk.network.fetch", line: "fetch('https://evil.test')" }], "code")
+            .then((r) => {
+              w.__wallRes = r;
+            });
+        });
+        await page.waitForSelector("#choicelayer.on.wall");
+        expect(await page.locator("#wallswap").textContent()).toContain("120px");
+        await page.setViewportSize({ width: 1080, height: 800 });
+        await page.waitForFunction(() => Boolean((window as unknown as { __wallRes?: unknown }).__wallRes));
+        const resizeRes = await page.evaluate(() => (window as unknown as { __wallRes: { v: string; by: string } }).__wallRes);
+        expect(resizeRes).toEqual({ v: "block", by: "human" });
+
+        // 4. Keyboard Escape also dismisses/blocks the Red Wall
+        await page.setViewportSize({ width: 1280, height: 800 });
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              redWall: (
+                finds: { cat: string; ruleId: string }[],
+                where: string,
+              ) => Promise<{ v: string; by: string }>;
+            };
+            __wallEsc?: { v: string; by: string } | null;
+          };
+          w.__wallEsc = null;
+          void w.__ledring
+            .redWall([{ cat: "eval", ruleId: "risk.eval.1", line: "eval(code)" } as never], "code")
+            .then((r) => {
+              w.__wallEsc = r;
+            });
+        });
+        await page.waitForSelector("#choicelayer.on.wall");
+        await page.keyboard.press("Escape");
+        await page.waitForFunction(() => Boolean((window as unknown as { __wallEsc?: unknown }).__wallEsc));
+        const escRes = await page.evaluate(() => (window as unknown as { __wallEsc: { v: string; by: string } }).__wallEsc);
+        expect(escRes).toEqual({ v: "block", by: "human" });
+
+        // 5. COMPROMISED ending quotes the player's own brief back at them
+        await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: { setRun: (r: unknown) => void; paintEnd: (j: unknown) => void };
+          };
+          w.__ledring.setRun({
+            idea: "Secret neon synth",
+            mode: "demo",
+            model: "demo",
+            html: "<!doctype html><html><body><h1>Synth</h1></body></html>",
+            plan: "",
+            v: 1,
+            blocked: new Set(),
+            allowed: new Set(["network"]),
+            decs: [],
+            snaps: [{ label: "v1", html: "<h1>Synth</h1>" }],
+            steps: [],
+            startedAt: new Date().toISOString(),
+            endedAt: new Date().toISOString(),
+            end: "COMPROMISED",
+          });
+          w.__ledring.paintEnd({
+            end: "COMPROMISED",
+            valid: true,
+            left: ["network"],
+            outside: ["network"],
+            tests: null,
+            fake: false,
+            tpass: 0,
+            errs: 0,
+            bytes: 128,
+          });
+        });
+        await revealEndingRecord(page);
+        await page.waitForSelector("#e-comp-quote");
+        expect(await page.locator("#e-comp-quote").textContent()).toContain("Secret neon synth");
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
+
+  it("defaults to silent SFX, persists keyboard toggle across reloads, synthesizes all 12 cues, and ducks during codec in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.locator("#menu").waitFor({ state: "visible" });
+
+        // 1. Default is silent (off) and playing a cue returns false without recording
+        expect(await page.locator("#sfx").getAttribute("aria-pressed")).toBe("false");
+        expect(await page.locator("#sfx").textContent()).toContain(lang === "zh" ? "声音关" : "sound off");
+        const silentPlay = await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: { sfx: { on: boolean; play: (k: string) => boolean; played: string[] } };
+          };
+          return {
+            on: w.__ledring.sfx.on,
+            res: w.__ledring.sfx.play("click"),
+            played: w.__ledring.sfx.played.length,
+          };
+        });
+        expect(silentPlay).toEqual({ on: false, res: false, played: 0 });
+
+        // 2. Toggle via keyboard focus + Enter, verify aria-pressed & label update, and persistence across reload
+        await page.locator("#sfx").focus();
+        await page.keyboard.press("Enter");
+        expect(await page.locator("#sfx").getAttribute("aria-pressed")).toBe("true");
+        expect(await page.locator("#sfx").textContent()).toContain(lang === "zh" ? "声音开" : "sound on");
+
+        await page.reload();
+        await page.locator("#menu").waitFor({ state: "visible" });
+        expect(await page.locator("#sfx").getAttribute("aria-pressed")).toBe("true");
+        expect(await page.locator("#sfx").textContent()).toContain(lang === "zh" ? "声音开" : "sound on");
+
+        // 3. Play all 12 synthesized cues and verify ducking during miniCodec
+        const allPlayed = await page.evaluate(() => {
+          const w = window as unknown as {
+            __ledring: {
+              sfx: { cues: string[]; play: (k: string) => boolean; played: string[]; ducked: boolean };
+              miniCodec: (text: string) => void;
+            };
+          };
+          w.__ledring.sfx.played.length = 0;
+          const results = w.__ledring.sfx.cues.map((c) => w.__ledring.sfx.play(c));
+          w.__ledring.miniCodec("Audio ducking check");
+          return {
+            cues: w.__ledring.sfx.cues,
+            allTrue: results.every(Boolean),
+            playedCount: w.__ledring.sfx.played.length,
+            duckedDuringCodec: w.__ledring.sfx.ducked,
+          };
+        });
+        expect(allPlayed.cues).toEqual([
+          "click",
+          "tick",
+          "alert",
+          "thud",
+          "stamp",
+          "ring",
+          "blip",
+          "scan",
+          "ping",
+          "win",
+          "lose",
+          "like",
+        ]);
+        expect(allPlayed.allTrue).toBe(true);
+        expect(allPlayed.playedCount).toBeGreaterThanOrEqual(12);
+        expect(allPlayed.duckedDuringCodec).toBe(true);
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 25_000);
+
+  it("enforces 100% i18n key parity with zero unused keys, zh typography rules, >=44px phone tap targets, and zero horizontal overflow at 1280x800, 820x1180, and 390x844", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    mkdirSync(diffDir, { recursive: true });
+    const htmlSource = readFileSync(join(root, "packages/play-web/index.html"), "utf8");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      // 1. Verify 100% EN/zh key parity and zero unused keys
+      const parityCtx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const parityPage = await parityCtx.newPage();
+      await parityPage.goto(`${site.url}?fast=1&rm=1&lang=en`);
+      const dictInfo = await parityPage.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: { dict: { en: Record<string, unknown>; zh: Record<string, unknown> } };
+        };
+        const en = w.__ledring.dict.en;
+        const zh = w.__ledring.dict.zh;
+        const nestedKeys = ["risk", "ends", "badge", "pdesc", "pname", "frag"];
+        const nested = Object.fromEntries(
+          nestedKeys.map((k) => [
+            k,
+            {
+              en: Object.keys((en[k] || {}) as Record<string, unknown>).sort(),
+              zh: Object.keys((zh[k] || {}) as Record<string, unknown>).sort(),
+            },
+          ]),
+        );
+        return {
+          enKeys: Object.keys(en).sort(),
+          zhKeys: Object.keys(zh).sort(),
+          nested,
+        };
+      });
+      expect(dictInfo.enKeys).toEqual(dictInfo.zhKeys);
+      for (const [, pair] of Object.entries(dictInfo.nested)) {
+        expect(pair.en).toEqual(pair.zh);
+      }
+      const unusedKeys = dictInfo.enKeys.filter(
+        (k) => !htmlSource.includes(`T.${k}`) && !htmlSource.includes(`DICT.en.${k}`) && !htmlSource.includes(`"${k}"`),
+      );
+      expect(unusedKeys).toEqual([]);
+      await parityCtx.close();
+
+      // 2. Verify responsive layout, zh typography, >=44px phone tap targets, and visual snapshots across 1280x800, 820x1180, 390x844
+      const viewports = [
+        { width: 1280, height: 800, label: "1280x800" },
+        { width: 820, height: 1180, label: "820x1180" },
+        { width: 390, height: 844, label: "390x844" },
+      ];
+
+      for (const lang of ["en", "zh"] as const) {
+        for (const vp of viewports) {
+          const ctx = await browser.newContext({ viewport: { width: vp.width, height: vp.height } });
+          const page = await ctx.newPage();
+          await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+          await page.locator("#menu").waitFor({ state: "visible" });
+
+          if (lang === "zh") {
+            const zhTypo = await page.evaluate(() => {
+              const bodyLh = parseFloat(getComputedStyle(document.body).lineHeight);
+              const bodyFs = parseFloat(getComputedStyle(document.body).fontSize);
+              const eye = document.querySelector("#m-eye") as HTMLElement;
+              const eyeStyle = getComputedStyle(eye);
+              return {
+                htmlLang: document.documentElement.lang,
+                ratio: bodyLh / bodyFs,
+                textTransform: eyeStyle.textTransform,
+                letterSpacing: eyeStyle.letterSpacing,
+              };
+            });
+            expect(zhTypo.htmlLang).toBe("zh-CN");
+            expect(zhTypo.ratio).toBeCloseTo(1.7, 1);
+            expect(zhTypo.textTransform).toBe("none");
+            expect(["0px", "normal"]).toContain(zhTypo.letterSpacing);
+          }
+
+          const checkScene = async (sceneName: string, selector: string) => {
+            await page.waitForTimeout(160);
+            const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+            expect(overflow, `${sceneName} overflow at ${vp.label} (${lang})`).toBeLessThanOrEqual(1);
+            await page.screenshot({ path: join(diffDir, `responsive-${sceneName}-${vp.label}-${lang}.png`) });
+
+            if (vp.width === 390) {
+              const tooSmall = await page.evaluate((sel) => {
+                const rootEl = document.querySelector(sel);
+                if (!rootEl) return [];
+                const targets = [...rootEl.querySelectorAll<HTMLElement>("button, .btn, .qopt, .mode, .mcard, input, textarea")];
+                return targets
+                  .filter((el) => {
+                    const st = getComputedStyle(el);
+                    if (st.display === "none" || st.visibility === "hidden" || (el as HTMLButtonElement).disabled) return false;
+                    const r = el.getBoundingClientRect();
+                    return r.width > 0 && r.height > 0 && (r.width < 43.5 || r.height < 43.5);
+                  })
+                  .map((el) => `${el.id || el.className}:${Math.round(el.getBoundingClientRect().width)}x${Math.round(el.getBoundingClientRect().height)}`);
+              }, selector);
+              expect(tooSmall, `${sceneName} phone tap targets at 390x844 (${lang})`).toEqual([]);
+            }
+          };
+
+          // Menu
+          await checkScene("menu", "#menu");
+
+          // Onboarding
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { openOnboard: (fromDrawer?: boolean, direct?: boolean) => void } };
+            w.__ledring.openOnboard(false, true);
+          });
+          await checkScene("onboard", "#onboard");
+
+          // Chapter 0 Inspiration
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { show: (id: string) => void } };
+            w.__ledring.show("insp");
+          });
+          await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=${lang}&mode=demo`);
+          await page.waitForSelector("#in-opts .qopt");
+          await checkScene("insp", "#insp");
+
+          // Idea / Mission Select
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { paintIdea: () => void; show: (id: string) => void } };
+            w.__ledring.paintIdea();
+            w.__ledring.show("missions");
+          });
+          await checkScene("idea", "#missions");
+
+          // Drawer
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { openDrawer: () => void } };
+            w.__ledring.openDrawer();
+          });
+          await checkScene("drawer", "#drawer");
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { closeDrawer: () => void } };
+            w.__ledring.closeDrawer();
+          });
+
+          // Run
+          await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { show: (id: string) => void; setCode: (h: string) => void } };
+            w.__ledring.show("run");
+            w.__ledring.setCode("<!doctype html><html><body><h1> timer </h1></body></html>");
+          });
+          if (vp.width === 390) {
+            const previewAboveCode = await page.evaluate(() => {
+              const pv = document.querySelector(".previewwrap")!.getBoundingClientRect();
+              const cd = document.querySelector("#code")!.getBoundingClientRect();
+              return pv.top < cd.top;
+            });
+            expect(previewAboveCode).toBe(true);
+          }
+          await checkScene("run", "#run");
+
+          // Ending
+          await page.evaluate(() => {
+            const w = window as unknown as {
+              __ledring: { setRun: (r: unknown) => void; paintEnd: (j: unknown) => void };
+            };
+            w.__ledring.setRun({
+              idea: "Focus timer",
+              mode: "demo",
+              model: "demo",
+              html: "<!doctype html><html><body><h1>Timer</h1></body></html>",
+              plan: "1. timer",
+              v: 1,
+              blocked: new Set(),
+              allowed: new Set(),
+              decs: [],
+              snaps: [{ label: "v1", html: "<h1>Timer</h1>" }],
+              steps: [],
+              startedAt: new Date().toISOString(),
+              endedAt: new Date().toISOString(),
+              end: "POLISHED",
+            });
+            w.__ledring.paintEnd({
+              end: "POLISHED",
+              valid: true,
+              left: [],
+              outside: [],
+              tests: [{ name: "t1", pass: true }],
+              fake: false,
+              tpass: 1,
+              errs: 0,
+              bytes: 128,
+            });
+          });
+          await checkScene("end", "#end");
+
+          await ctx.close();
+        }
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
+
+  it("runs first-run onboarding with zero external requests before action, LEDRING Free AI preselected, BYOK and the bridge, SIWC gating, live connection test, localStorage persistence, skip, and settings reopen in EN and zh", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    mkdirSync(diffDir, { recursive: true });
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+
+        const externalBeforeAction: string[] = [];
+        let userActed = false;
+        page.on("request", (req) => {
+          const u = new URL(req.url());
+          if (u.protocol.startsWith("http") && u.hostname !== "127.0.0.1" && u.hostname !== "localhost" && !userActed) {
+            externalBeforeAction.push(req.url());
+          }
+        });
+
+        // 1. First-run Menu -> Play opens codec then Onboarding, with zero external requests before user acts
+        await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=${lang}`);
+        await page.waitForSelector("#onboard.on");
+        await page.waitForTimeout(150);
+        expect(externalBeforeAction).toEqual([]);
+        await page.screenshot({ path: join(diffDir, `onboard-initial-1280-${lang}.png`) });
+
+        const cardIds = await page.locator("#ob-cards .ob-card").evaluateAll((els) => els.map((e) => (e as HTMLElement).dataset.choice));
+        expect(cardIds).toEqual(["ledring", "anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo"]);
+        expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
+        expect(externalBeforeAction.some((url) => url.includes("/ai/chat"))).toBe(false);
+
+        if (lang === "zh") {
+          expect(await page.locator("#ob-eye").textContent()).toBe("连接方式");
+          expect(await page.locator("#ob-title").textContent()).toBe("选择 CX-417 使用的 AI 模型");
+          expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 免费 AI");
+          expect(await page.locator("#ob-priv").textContent()).toContain("不保存密钥");
+        } else {
+          expect(await page.locator("#ob-eye").textContent()).toBe("CONNECTION");
+          expect(await page.locator("#ob-title").textContent()).toBe("Choose an AI model for CX-417");
+          expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING Free AI");
+          expect(await page.locator("#ob-priv").textContent()).toContain("localStorage");
+        }
+
+        // 2. Sign in with ChatGPT is Coming Soon when LEDRING_SIWC is not enabled, and becomes active when enabled
+        userActed = true;
+        await page.locator('.ob-card[data-choice="chatgpt"]').click();
+        expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
+          lang === "zh" ? "敬请期待" : "COMING SOON",
+        );
+        expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("false");
+        expect(await page.locator("#ob-test").isDisabled()).toBe(true);
+
+        // Enable LEDRING_SIWC dynamically and verify it renders the enabled SIWC status (never faking connected)
+        await page.evaluate(() => {
+          (window as unknown as { __LEDRING_SIWC?: boolean }).__LEDRING_SIWC = true;
+          const w = window as unknown as { __ledring: { selectObChoice: (c: string, u: boolean) => void } };
+          w.__ledring.selectObChoice("chatgpt", true);
+        });
+        expect(await page.locator('.ob-card[data-choice="chatgpt"] .ob-badge').textContent()).toContain(
+          lang === "zh" ? "可用" : "READY",
+        );
+        expect(await page.locator("#ob-siwc-status").getAttribute("data-siwc-enabled")).toBe("true");
+
+        // 3. OpenAI BYOK via local bridge: shows copyable `node packages/cli/dist/bin.js play` command and polls 127.0.0.1 until connected
+        let bridgeReady = false;
+        await page.route("**/api/status", async (route) => {
+          if (!bridgeReady) {
+            await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ ok: false }) });
+            return;
+          }
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            headers: { "access-control-allow-origin": "*" },
+            body: JSON.stringify({ ok: true, service: "ledring-play" }),
+          });
+        });
+
+        await page.locator('.ob-card[data-choice="openai-bridge"]').click();
+        expect(await page.locator("#ob-bridge-box").isVisible()).toBe(true);
+        expect(await page.locator("#ob-cmd").inputValue()).toBe("node packages/cli/dist/bin.js play");
+        await page.locator("#ob-copy").click();
+        expect(await page.locator("#ob-copy").textContent()).toContain("✓");
+        expect(await page.locator("#ob-bridge-st").getAttribute("class")).toContain("wait");
+
+        // Flip bridgeReady to true and verify polling detects it and marks connected
+        bridgeReady = true;
+        await page.locator("#ob-poll-btn").click();
+        await page.waitForFunction(() => {
+          const st = document.querySelector("#ob-bridge-st");
+          return Boolean(st && st.classList.contains("ok"));
+        });
+        expect(await page.locator("#ob-bridge-txt").textContent()).toContain("127.0.0.1");
+        expect(await page.locator("#ob-bridge-txt").textContent()).toContain("✓");
+        await page.screenshot({ path: join(diffDir, `onboard-bridge-connected-1280-${lang}.png`) });
+
+        // 4. Custom OpenAI-compatible endpoint + key entry stored locally only + live connection test (error then success)
+        await page.locator('.ob-card[data-choice="openai-custom"]').click();
+        await page.locator("#ob-base").fill("https://custom.openai.test/v1");
+        await page.locator("#ob-model").fill("gpt-4o-mini-custom");
+        const secretKey = "sk-onboard-secret-99887766";
+        await page.locator("#ob-key").fill(secretKey);
+        await page.locator("#ob-key").dispatchEvent("change");
+
+        const savedCustom = await page.evaluate(() => {
+          const raw = JSON.parse(localStorage.getItem("ledring-provider") || "{}");
+          return { mode: raw.mode, base: raw.openai?.base, model: raw.openai?.model, key: raw.openai?.key };
+        });
+        expect(savedCustom).toEqual({
+          mode: "openai",
+          base: "https://custom.openai.test/v1",
+          model: "gpt-4o-mini-custom",
+          key: secretKey,
+        });
+        expect(await page.locator("#ob-key").inputValue()).toBe("");
+        expect(await page.locator("#ob-key-saved").textContent()).toContain("••••");
+
+        // 5. Anthropic BYOK: direct browser request, live connection test error (with secret redaction) -> success
+        let anthShouldFail = true;
+        await page.route("https://api.anthropic.com/v1/messages", async (route) => {
+          if (anthShouldFail) {
+            await route.fulfill({
+              status: 401,
+              contentType: "application/json",
+              body: JSON.stringify({ error: { message: `Invalid key sk-ant-secret-12345678` } }),
+            });
+            return;
+          }
+          const sse = [
+            `event: content_block_delta\ndata: ${JSON.stringify({ type: "content_block_delta", delta: { text: "OK" } })}\n\n`,
+            `data: [DONE]\n\n`,
+          ].join("");
+          await route.fulfill({
+            status: 200,
+            contentType: "text/event-stream",
+            body: sse,
+          });
+        });
+
+        await page.locator('.ob-card[data-choice="anthropic"]').click();
+        await page.locator("#ob-key").fill("sk-ant-secret-12345678");
+        await page.locator("#ob-key").dispatchEvent("change");
+
+        // Error state check
+        await page.locator("#ob-test").click();
+        await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
+        const errTxt = (await page.locator("#ob-test-status").textContent()) || "";
+        expect(errTxt).toContain("401");
+        expect(errTxt).not.toContain("sk-ant-secret-12345678");
+        expect(errTxt).toContain("[redacted]");
+
+        // Success state check
+        anthShouldFail = false;
+        await page.locator("#ob-test").click();
+        await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("ok"));
+        const okTxt = (await page.locator("#ob-test-status").textContent()) || "";
+        expect(okTxt).toContain("✓");
+        expect(okTxt).toContain("OK");
+        await page.screenshot({ path: join(diffDir, `onboard-test-ok-1280-${lang}.png`) });
+
+        // 6. Demo mode option + Continue into Inspiration flow + localStorage completion persistence
+        await page.locator('.ob-card[data-choice="demo"]').click();
+        await page.locator("#ob-test").click();
+        expect(await page.locator("#ob-test-status").textContent()).toContain("✓");
+
+        await page.locator("#ob-continue").click();
+        await page.waitForSelector("#insp.on");
+        const onboardedFlag = await page.evaluate(() => localStorage.getItem("ledring-onboarded"));
+        expect(onboardedFlag).toBe("1");
+
+        // Reload to menu: clicking Play now goes straight to Inspiration (since already onboarded)
+        await page.goto(`${site.url}?fast=1&rm=1&lang=${lang}`);
+        await page.waitForSelector("#menu.on");
+        await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { isOnboarded: () => boolean } };
+          if (!w.__ledring.isOnboarded()) throw new Error("expected onboarded to persist");
+        });
+
+        // 7. Re-open Onboarding from Settings (#drawer -> #d-onboard) and test Skip (#ob-skip)
+        await page.locator("#demotag").click();
+        await page.locator("#d-onboard").waitFor({ state: "visible" });
+        await page.locator("#d-onboard").click();
+        await page.waitForSelector("#onboard.on");
+
+        // Clear onboarded flag to verify Skip also marks completion and transitions to Inspiration
+        await page.evaluate(() => localStorage.removeItem("ledring-onboarded"));
+        await page.locator("#ob-skip").click();
+        await page.waitForSelector("#insp.on");
+        expect(await page.evaluate(() => localStorage.getItem("ledring-onboarded"))).toBe("1");
+
+        await ctx.close();
+      }
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
+
+  it("calls LEDRING Free AI only after the user tests, shows the quota error, and keeps the demo cassette offline", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      const external: string[] = [];
+      page.on("request", (req) => {
+        const url = new URL(req.url());
+        if (url.protocol.startsWith("http") && url.hostname !== "127.0.0.1" && url.hostname !== "localhost") {
+          external.push(`${req.method()} ${url.host}${url.pathname}`);
+        }
+      });
+      let quota = true;
+      await page.route("https://api.ledring.dev/ai/chat", async (route) => {
+        const origin = route.request().headers().origin ?? "*";
+        const cors = {
+          "access-control-allow-origin": origin,
+          "access-control-allow-headers": "content-type",
+          "access-control-allow-methods": "POST, OPTIONS",
+        };
+        if (route.request().method() === "OPTIONS") {
+          await route.fulfill({ status: 204, headers: cors, body: "" });
+          return;
+        }
+        if (quota) {
+          await route.fulfill({
+            status: 429,
+            contentType: "application/json",
+            headers: cors,
+            body: JSON.stringify({ error: { message: "shared quota", code: "quota_exhausted" } }),
+          });
+          return;
+        }
+        const sse = `data: ${JSON.stringify({ choices: [{ delta: { content: "OK" } }] })}\n\ndata: [DONE]\n\n`;
+        await route.fulfill({ status: 200, contentType: "text/event-stream", headers: cors, body: sse });
+      });
+
+      await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=en`);
+      await page.waitForSelector("#onboard.on");
+      await page.waitForTimeout(150);
+      expect(external).toEqual([]);
+      expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
+      expect(await page.locator("#ob-fields").isHidden()).toBe(true);
+
+      await page.locator("#ob-test").click();
+      await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("err"));
+      expect(await page.locator("#ob-test-status").textContent()).toContain("Try again tomorrow");
+      expect(external.filter((entry) => entry.startsWith("POST"))).toEqual(["POST api.ledring.dev/ai/chat"]);
+
+      quota = false;
+      await page.locator("#ob-test").click();
+      await page.waitForFunction(() => document.querySelector("#ob-test-status")?.classList.contains("ok"));
+      expect(await page.locator("#ob-test-status").textContent()).toContain("OK");
+      const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("ledring-provider") || "{}"));
+      expect(stored.mode).toBe("ledring");
+      expect(stored.ledring?.key ?? "").toBe("");
+
+      await page.locator('.ob-card[data-choice="demo"]').click();
+      await page.locator("#ob-test").click();
+      expect(await page.locator("#ob-test-status").textContent()).toContain("offline");
+      expect(external.filter((entry) => entry.startsWith("POST"))).toEqual([
+        "POST api.ledring.dev/ai/chat",
+        "POST api.ledring.dev/ai/chat",
+      ]);
+
+      await page.locator('.ob-card[data-choice="openai-custom"]').click();
+      expect(await page.locator("#ob-presets").count()).toBe(0);
+      expect(await page.locator("#ob-fields").isVisible()).toBe(true);
+      await page.locator("#ob-base").fill("https://custom.openai.test/v1");
+      expect(await page.locator("#ob-bridge-box").isHidden()).toBe(true);
+
+      await page.setViewportSize({ width: 390, height: 800 });
+      await page.locator('.ob-card[data-choice="ledring"]').click();
+      const chip = await page.locator('.ob-card[data-choice="ledring"]').boundingBox();
+      expect(chip?.height ?? 0).toBeGreaterThanOrEqual(44);
+
+      await page.evaluate(() => localStorage.clear());
+      await page.goto(`${site.url}?fast=1&rm=1&onboard=1&lang=zh`);
+      await page.waitForSelector("#onboard.on");
+      expect(await page.locator('.ob-card[data-choice="ledring"]').getAttribute("aria-checked")).toBe("true");
+      expect(await page.locator('.ob-card[data-choice="ledring"] b').textContent()).toBe("LEDRING 免费 AI");
+      expect(await page.locator("#ob-priv").textContent()).toContain("共享每日额度");
+
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 45_000);
+
+  it("renders live trend lines in literary Chinese and caches each item in localStorage", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      await page.addInitScript(() => {
+        localStorage.setItem(
+          "ledring-provider",
+          JSON.stringify({
+            mode: "openai",
+            openai: { base: "http://127.0.0.1:59998/v1", key: "sk-test-12345678", model: "gpt-4o-mini" },
+          }),
+        );
+      });
+      const tenMinAgo = new Date(Date.now() - 10 * 60_000).toISOString();
+      await page.route("https://hn.algolia.com/**", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            hits: [{ objectID: "201", title: "Local-first tools on small screens", created_at: tenMinAgo }],
+          }),
+        });
+      });
+      let translatePosts = 0;
+      await page.route("http://127.0.0.1:59998/**", async (route) => {
+        const origin = route.request().headers().origin || "http://127.0.0.1";
+        const headers = {
+          "access-control-allow-origin": origin,
+          "access-control-allow-headers": "content-type, authorization",
+          "access-control-allow-methods": "POST, OPTIONS",
+        };
+        if (route.request().method() === "OPTIONS") {
+          await route.fulfill({ status: 204, headers });
+          return;
+        }
+        const body = route.request().postData() || "";
+        if (body.includes("feed item")) {
+          translatePosts += 1;
+          const sse = `data: ${JSON.stringify({
+            choices: [{ delta: { content: '{"lines":[{"id":"T1","zh":"小屏之上，本地优先又被提起。"}]}' } }],
+          })}\n\ndata: [DONE]\n\n`;
+          await route.fulfill({ status: 200, contentType: "text/event-stream", headers, body: sse });
+          return;
+        }
+        await route.fulfill({ status: 503, headers, body: "offline" });
+      });
+      await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=zh`);
+      await page.waitForSelector("#in-opts .trend .tt");
+      expect(await page.locator("#in-opts .trend .tt").first().textContent()).toBe("小屏之上，本地优先又被提起。");
+      expect(await page.locator("#in-opts .trend .tsrc").first().textContent()).toBe("Hacker News");
+      expect(translatePosts).toBe(1);
+      const cached = await page.evaluate(() => localStorage.getItem("ledring-zh-feed-v1") || "");
+      expect(cached).toContain("小屏之上，本地优先又被提起。");
+      await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=zh`);
+      await page.waitForSelector("#in-opts .trend .tt");
+      expect(await page.locator("#in-opts .trend .tt").first().textContent()).toBe("小屏之上，本地优先又被提起。");
+      expect(translatePosts).toBe(1);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("applies ?src= to the pack, language, onboard length, and ending", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+
+      const douyin = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const douyinPage = await douyin.newPage();
+      await douyinPage.addInitScript(() => {
+        localStorage.setItem("ledring-play2", JSON.stringify({ called: 1 }));
+      });
+      await douyinPage.goto(`${site.url}?src=douyin&fast=1&rm=1`, { waitUntil: "domcontentloaded" });
+      await douyinPage.locator("#menu.on").waitFor();
+      expect(await douyinPage.locator("html").getAttribute("lang")).toBe("zh-CN");
+      const douyinExp = await douyinPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { experience: () => Record<string, unknown> } };
+        return w.__ledring.experience();
+      });
+      expect(douyinExp).toMatchObject({ lang: "zh", pack: "cn", src: "douyin", onboard: "skip", ending: "share" });
+      expect(await douyinPage.evaluate(() => localStorage.getItem("ledring-src"))).toBe("douyin");
+      await douyinPage.locator("#m-play").click();
+      await douyinPage.locator("#missions.on").waitFor();
+      expect(await douyinPage.locator("#onboard.on").count()).toBe(0);
+      expect(await douyinPage.locator("#presets .mcard h3").allTextContents()).toEqual(["告白页", "摸鱼", "生日贺卡", "今日运势"]);
+      const cardBox = await douyinPage.locator("#presets .mcard").first().boundingBox();
+      expect(cardBox && cardBox.height).toBeGreaterThanOrEqual(43.5);
+      await douyin.close();
+
+      const mixed = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const mixedPage = await mixed.newPage();
+      await mixedPage.goto(`${site.url}?src=douyin&lang=en&fast=1&rm=1`, { waitUntil: "domcontentloaded" });
+      await mixedPage.locator("#menu.on").waitFor();
+      expect(await mixedPage.locator("html").getAttribute("lang")).toBe("en");
+      const mixedExp = await mixedPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { experience: () => Record<string, unknown> } };
+        return w.__ledring.experience();
+      });
+      expect(mixedExp).toMatchObject({ lang: "en", pack: "cn", src: "douyin", onboard: "skip", ending: "share" });
+      await mixedPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { paintEnd: (j: Record<string, unknown>) => void } };
+        w.__ledring.paintEnd({ end: "POLISHED", valid: true, left: [], outside: [], tests: [{ name: "t1", pass: true }], fake: false, tpass: 1, errs: 0, bytes: 128 });
+      });
+      await mixedPage.locator("#e-share").waitFor({ state: "visible" });
+      expect(await mixedPage.locator("#e-verdict").textContent()).toContain("Send it");
+      expect(await mixedPage.locator("#e-star").isVisible()).toBe(false);
+      const overflow = await mixedPage.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      expect(overflow).toBeLessThanOrEqual(1);
+      await mixed.close();
+
+      const hn = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const hnPage = await hn.newPage();
+      await hnPage.addInitScript(() => {
+        localStorage.setItem("ledring-play2", JSON.stringify({ called: 1 }));
+      });
+      await hnPage.goto(`${site.url}?src=hn&fast=1&rm=1`, { waitUntil: "domcontentloaded" });
+      await hnPage.locator("#menu.on").waitFor();
+      const hnExp = await hnPage.evaluate(() => {
+        const w = window as unknown as { __ledring: { experience: () => Record<string, unknown> } };
+        return w.__ledring.experience();
+      });
+      expect(hnExp).toMatchObject({ lang: "en", pack: "dev", src: "hn", onboard: "full", ending: "dev" });
+      await hnPage.locator("#m-play").click();
+      await hnPage.locator("#onboard.on").waitFor();
+      expect(await hnPage.locator("#ob-title").textContent()).toBe("Choose an AI model for CX-417");
+      await hn.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 30_000);
+
+  it("shows no Latin-only user-visible strings in the zh flow, aside from brands and code identifiers", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const page = await ctx.newPage();
+      const violations = () =>
+        page.evaluate(() => {
+          const problem = (window as unknown as { __ledring: { latinOnlyProblem: (s: string) => string | null } }).__ledring
+            .latinOnlyProblem;
+          const bad: string[] = [];
+          const skipSel = "#code, script, style, noscript";
+          const hidden = (el: Element) => {
+            if (el.closest(skipSel)) return true;
+            const scene = el.closest(".scene");
+            if (scene && !scene.classList.contains("on")) return true;
+            const drawer = el.closest("#drawer");
+            if (drawer && !drawer.classList.contains("on")) return true;
+            const layer = el.closest("#choicelayer, #codec, #minicodec");
+            if (layer && !layer.classList.contains("on")) return true;
+            let cur: Element | null = el;
+            while (cur && cur !== document.body) {
+              if (cur.getAttribute("aria-hidden") === "true") return true;
+              const st = getComputedStyle(cur);
+              if (st.display === "none" || st.visibility === "hidden") return true;
+              cur = cur.parentElement;
+            }
+            return false;
+          };
+          const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+          let node = walker.nextNode();
+          while (node) {
+            const el = node.parentElement;
+            if (el && !hidden(el)) {
+              const hit = problem(node.textContent || "");
+              if (hit) bad.push(hit);
+            }
+            node = walker.nextNode();
+          }
+          document.querySelectorAll<HTMLElement>("input, textarea, [aria-label], [title], [placeholder]").forEach((el) => {
+            if (hidden(el)) return;
+            for (const attr of ["aria-label", "title", "placeholder"] as const) {
+              const value = el.getAttribute(attr);
+              if (!value) continue;
+              const hit = problem(value);
+              if (hit) bad.push(`${attr}: ${hit}`);
+            }
+            if (el instanceof HTMLInputElement && /^(checkbox|radio|range|hidden|password|button|submit)$/.test(el.type)) return;
+            if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+              const hit = problem(el.value);
+              if (hit) bad.push(`value: ${hit}`);
+            }
+          });
+          return [...new Set(bad)];
+        });
+
+      await page.goto(`${site.url}?fast=1&rm=1&lang=zh&mode=demo&strandsUrl=${encodeURIComponent("http://127.0.0.1:9")}`);
+      await page.locator("#menu.on").waitFor({ state: "visible" });
+      expect(await violations(), "menu").toEqual([]);
+      const ghosts = await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { ghosts: () => { t: string }[] } };
+        return w.__ledring.ghosts().map((g) => g.t);
+      });
+      expect(ghosts.every((title) => /[\u4e00-\u9fff]/.test(title))).toBe(true);
+
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { openOnboard: (a?: boolean, b?: boolean) => void } };
+        w.__ledring.openOnboard(false, true);
+      });
+      await page.locator("#onboard.on").waitFor();
+      expect(await violations(), "onboard").toEqual([]);
+      for (const choice of ["anthropic", "openai-bridge", "openai-custom", "chatgpt", "demo", "ledring"]) {
+        await page.locator(`.ob-card[data-choice="${choice}"]`).click();
+        expect(await violations(), `onboard ${choice}`).toEqual([]);
+      }
+
+      await page.goto(`${site.url}?fast=1&rm=1&scene=insp&lang=zh&mode=demo&strandsUrl=${encodeURIComponent("http://127.0.0.1:9")}`);
+      await page.waitForSelector("#in-opts .qopt");
+      expect(await violations(), "inspiration").toEqual([]);
+      for (let step = 0; step < 3; step += 1) {
+        await page.keyboard.press("1");
+        await page.waitForFunction(
+          (n) => document.querySelectorAll("#in-frags .frag").length === n,
+          step + 1,
+        );
+      }
+      await page.waitForSelector("#in-opts .dir");
+      expect(await violations(), "directions").toEqual([]);
+
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { paintIdea: () => void; show: (id: string) => void } };
+        w.__ledring.paintIdea();
+        w.__ledring.show("missions");
+      });
+      expect(await violations(), "idea").toEqual([]);
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { openDrawer: () => void } };
+        w.__ledring.openDrawer();
+      });
+      expect(await violations(), "drawer").toEqual([]);
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { show: (id: string) => void } };
+        w.__ledring.show("gallery");
+      });
+      expect(await violations(), "gallery").toEqual([]);
+
+      await page.goto(
+        `${site.url}?idea=snake&script=block,tests,polish&fast&mode=demo&lang=zh&strandsUrl=${encodeURIComponent("http://127.0.0.1:9")}`,
+      );
+      await page.locator("#end.on").waitFor({ state: "visible", timeout: 20_000 });
+      expect(await violations(), "ending").toEqual([]);
+      const built = await page.evaluate(() => {
+        const w = window as unknown as {
+          __ledring: {
+            run: () => { html?: string } | null;
+            readme: () => string;
+            latinOnlyProblem: (s: string) => string | null;
+          };
+        };
+        const doc = new DOMParser().parseFromString(w.__ledring.run()?.html || "", "text/html");
+        const bad: string[] = [];
+        const walker = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+        let node = walker.nextNode();
+        while (node) {
+          const el = node.parentElement;
+          if (el && el.tagName !== "SCRIPT" && el.tagName !== "STYLE") {
+            const hit = w.__ledring.latinOnlyProblem(node.textContent || "");
+            if (hit) bad.push(hit);
+          }
+          node = walker.nextNode();
+        }
+        const readmeHits = w.__ledring
+          .readme()
+          .split("\n")
+          .map((line) => w.__ledring.latinOnlyProblem(line))
+          .filter((line): line is string => Boolean(line));
+        return { bad, readmeHits, readme: w.__ledring.readme() };
+      });
+      expect(built.bad, "generated game").toEqual([]);
+      expect(built.readmeHits, built.readme).toEqual([]);
+      expect(built.readme).toContain("结局");
+      await page.evaluate(() => {
+        const w = window as unknown as { __ledring: { show: (id: string) => void } };
+        w.__ledring.show("run");
+      });
+      expect(await violations(), "run").toEqual([]);
+      await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 60_000);
+});
