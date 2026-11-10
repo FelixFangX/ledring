@@ -2,6 +2,33 @@ import { pct, type BranchNode, type BranchTree } from "./tree.js";
 import { darkTokens, paperTokens, tokensToCss, type Tokens } from "./tokens.js";
 import { CJK_SANS, STRINGS, type Lang } from "./i18n.js";
 
+export interface ReviewFinding { status: "observed" | "derived" | "unknown"; code: string; text: string }
+export interface ReviewStep {
+  stepId: string;
+  nodeId?: string;
+  signature: string;
+  kind: string;
+  isError?: boolean;
+  decision?: { verdict: "allow" | "deny"; by: string; reason?: string };
+  nonExecution?: "interrupted";
+  startedAt?: string;
+  parentId?: string;
+  provenance?: { file?: string; line?: number; eventId?: string; resultLine?: number };
+  inputPreview?: string;
+  outputPreview?: string;
+  inputCut?: boolean;
+  outputCut?: boolean;
+  findings: ReviewFinding[];
+}
+export interface ReviewRun {
+  id: string;
+  truncated?: boolean;
+  instructionStatus: "observed" | "unknown";
+  omitted: number;
+  findings: ReviewFinding[];
+  steps: ReviewStep[];
+}
+
 export interface RenderOptions {
   title?: string;
   /** Run whose path is lit. Defaults to the first run. */
@@ -12,6 +39,8 @@ export interface RenderOptions {
   darkTokens?: Partial<Tokens>;
   /** Language of the UI chrome. Defaults to English. */
   lang?: Lang;
+  /** Per-run step evidence. Omitted reports keep the tree and say the step record is absent. */
+  review?: ReviewRun[];
   /** @deprecated Paper is now the default theme; these merge into it, under `tokens`. */
   lightTokens?: Partial<Tokens>;
 }
@@ -77,7 +106,8 @@ export function renderHtml(tree: BranchTree, opts: RenderOptions = {}): string {
     nodes.push(`<g class="${cls}" data-id="${p.n.id}" tabindex="0" transform="translate(${p.x + PAD} ${p.y + PAD})"><title data-user-content>${esc(p.n.id === "0" ? L.start : p.n.signature)} — ${p.n.count}/${tree.runCount} ${L.runs}</title><rect class="b" width="${W}" height="${H}"/><rect class="tab" width="${tab}" height="15"/><text class="no" x="5" y="11">${no}</text><text class="k" x="${no.length * 6.2 + 10}" y="11">${esc(kind.toUpperCase())}</text><text data-user-content class="t" x="10" y="35">${esc(clip(p.n.id === "0" ? L.start : p.n.signature))}</text><text class="m" x="${W - 8}" y="11" text-anchor="end">${meta}</text></g>`);
   }
 
-  const data = JSON.stringify({ labels: STRINGS[opts.lang === "zh" ? "zh" : "en"], runs: tree.runs, nodes: placed.map((p) => ({ id: p.n.id, signature: p.n.signature, kind: p.n.kind, count: p.n.count, share: p.n.share, errors: p.n.errors, ends: p.n.ends, outcomes: p.n.outcomes })) }).replace(/</g, "\\u003c");
+  const review = opts.review ?? [];
+  const data = JSON.stringify({ labels: STRINGS[lang], runs: tree.runs, evidence: review, nodes: placed.map((p) => ({ id: p.n.id, signature: p.n.signature, kind: p.n.kind, count: p.n.count, share: p.n.share, errors: p.n.errors, ends: p.n.ends, outcomes: p.n.outcomes })) }).replace(/</g, "\\u003c");
   const paper = { ...paperTokens, ...opts.lightTokens, ...opts.tokens };
   const dark = { ...darkTokens, ...opts.darkTokens };
   const title = opts.title ?? L.title;
@@ -139,10 +169,21 @@ select:focus-visible,.n:focus-visible{outline:2px solid var(--lr-calm);outline-o
 .legend{display:flex;gap:18px}
 .legend span{display:flex;align-items:center;gap:6px}
 .legend i{width:20px;border-top:2px solid var(--lr-accent)}.legend .l2 i{border-top:1px dashed var(--lr-text-4)}.legend .l3 i{border-color:var(--lr-critical)}
+.timeline{list-style:none;margin:18px 0 0;padding:0;max-height:320px;overflow:auto;border-top:1px solid var(--lr-line-3)}
+.timeline button{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:baseline;width:100%;text-align:left;background:transparent;color:inherit;border:0;border-bottom:1px solid var(--lr-line);font:inherit;padding:8px 2px;cursor:pointer;min-height:36px}
+.timeline button span:nth-child(2){overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.timeline button[aria-current="true"]{background:var(--lr-sunken)}
+.timeline button:focus-visible,summary:focus-visible{outline:2px solid var(--lr-calm);outline-offset:2px}
+.note{padding:10px 0;color:var(--lr-text-2);font-size:13px}
+.findings{list-style:none;padding:0;margin:8px 0 0}
+.findings li{display:grid;grid-template-columns:72px minmax(0,1fr);gap:8px;margin:10px 0;font-size:13px}
+details{margin-top:18px}
+summary{cursor:pointer;font-size:12px}
+pre.raw{white-space:pre-wrap;word-break:break-word;font:12px/1.45 var(--lr-font-mono);background:var(--lr-sunken);padding:10px;margin-top:8px;max-height:180px;overflow:auto}
 footer{margin-top:32px;padding-top:10px;border-top:1px solid var(--lr-line-2);display:flex;justify-content:space-between}
 ${lang === "zh" ? `body{font-family:var(--lr-font-sans),${CJK_SANS};line-height:1.75;text-spacing-trim:normal;text-autospace:normal}h1.disp{font-stretch:100%;text-transform:none;letter-spacing:.02em;line-height:1.15;font-family:${CJK_SANS};font-weight:600}.cap{letter-spacing:0}.empty{line-height:1.8}` : ""}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.e-lit.on{stroke-dashoffset:0}}
-@media (max-width:900px){.layout{grid-template-columns:1fr}.head{grid-template-columns:1fr}}
+@media (max-width:900px){body{padding:16px}.layout{grid-template-columns:1fr}.head{grid-template-columns:1fr}h1{font-size:32px}.idx{font-size:40px}.kpi b{font-size:28px}.timeline button{min-height:44px}}
 </style></head><body>
 <header><span class="mark"><span class="ring"></span>ledring</span><span class="cap">${L.section}</span></header>
 <div class="head"><div class="disp idx">01</div><div><h1 class="disp">${esc(title)}</h1>
@@ -150,7 +191,8 @@ ${tree.instruction ? `<p data-user-content class="instr">“${esc(tree.instructi
 <div class="kpis"><div class="kpi"><span class="cap">${L.runs}</span><b class="disp">${tree.runCount}</b></div><div class="kpi"><span class="cap">${L.forks}</span><b class="disp">${forks}</b></div><div class="kpi"><span class="cap">${L.errored}</span><b class="disp"${errored ? ' style="color:var(--lr-critical)"' : ""}>${errored}</b></div></div></div>
 <div class="layout">
 <div><div class="canvas"><svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img" aria-label="${L.branchTree}">${base.join("")}${lit.join("")}${pills.join("")}${nodes.join("")}</svg></div>
-<div class="fig cap"><span>${L.figure.replace("{n}", String(tree.runCount)).replace(" 1 runs", " 1 run")}</span><span class="legend"><span><i></i>${L.taken}</span><span class="l2"><i></i>${L.others}</span><span class="l3"><i></i>${L.erroredStep}</span></span></div></div>
+<div class="fig cap"><span>${L.figure.replace("{n}", String(tree.runCount)).replace(" 1 runs", " 1 run")}</span><span class="legend"><span><i></i>${L.taken}</span><span class="l2"><i></i>${L.others}</span><span class="l3"><i></i>${L.erroredStep}</span></span></div>
+<ol class="timeline" id="timeline" aria-label="${esc(L.timeline)}"></ol></div>
 <aside><div class="cap rule">${L.highlighted}</div><select id="run" aria-label="${L.highlighted}">${runOptions}</select>
 <div class="cap rule">${L.selected}</div><div id="info"><p class="empty">${L.empty}</p></div></aside>
 </div>
@@ -159,15 +201,46 @@ ${tree.instruction ? `<p data-user-content class="instr">“${esc(tree.instructi
 <script>
 (function(){var d=JSON.parse(document.getElementById("lr-data").textContent);
 var byId={};d.nodes.forEach(function(n){byId[n.id]=n});
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+var runSel=document.getElementById("run");
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+function evidence(){return (d.evidence||[]).find(function(e){return e.id===runSel.value})}
 function light(id){var r=d.runs.find(function(x){return x.id===id});if(!r)return;var t={};r.path.forEach(function(p){t[p]=1});
 document.querySelectorAll(".n").forEach(function(g){var on=!!t[g.dataset.id];g.classList.toggle("taken",on);g.classList.toggle("locked",!on)});
 document.querySelectorAll("[data-to]").forEach(function(e){var to=e.dataset.to,from=to.slice(0,to.lastIndexOf(".")),on=!!(t[to]&&t[from]);
 if(e.classList.contains("e-lit")){e.classList.remove("on");void e.getBoundingClientRect();}e.classList.toggle("on",on)})}
-function show(id){var n=byId[id];document.querySelectorAll(".n.sel").forEach(function(g){g.classList.remove("sel")});var g=document.querySelector('.n[data-id="'+id+'"]');g&&g.classList.add("sel");
-var L=d.labels;document.getElementById("info").innerHTML='<div class="kv"><b>'+L.kSignature+'</b><span data-user-content>'+esc(n.signature)+'</span><b>'+L.kKind+'</b><span>'+esc(L[n.kind]||n.kind)+'</span><b>'+L.kRuns+'</b><span>'+n.count+' / '+d.runs.length+'</span><b>'+L.kDivergence+'</b><span>'+Math.round(n.share*100)+L.ofParent+'</span><b>'+L.kErrors+'</b><span>'+n.errors+'</span><b>'+L.kEnded+'</b><span>'+n.ends+'</span><b>'+L.kOutcomes+'</b><span>'+n.outcomes.success+' '+L.ok+' · '+n.outcomes.failure+' '+L.fail+' · '+n.outcomes.unknown+' ?</span></div>'}
-document.getElementById("run").addEventListener("change",function(e){light(e.target.value)});
+function row(label,text,user){return "<b>"+esc(label)+"</b><span"+(user?" data-user-content":"")+">"+esc(text)+"</span>"}
+function drawTimeline(){var ol=document.getElementById("timeline"),ev=evidence(),L=d.labels;
+if(!ev){ol.innerHTML='<li class="note">'+esc(L.noEvidence)+"</li>";return}
+var html="";
+if(ev.truncated)html+='<li class="note">'+esc(L.truncated)+"</li>";
+if(ev.omitted)html+='<li class="note">'+esc(String(L.omitted).replace("{n}",String(ev.omitted)))+"</li>";
+ev.steps.forEach(function(s,i){html+='<li><button type="button" data-node="'+esc(s.nodeId||"")+'" data-step="'+esc(s.stepId)+'"><span class="cap">'+String(i+1).padStart(2,"0")+'</span><span data-user-content>'+esc(s.signature)+'</span><span class="cap">'+(s.startedAt?esc(s.startedAt):esc(L.timeUnknown))+"</span></button></li>"});
+ol.innerHTML=html||'<li class="note">'+esc(L.noEvidence)+"</li>"}
+function show(nodeId,stepId){var L=d.labels,n=nodeId?byId[nodeId]:null,ev=evidence();
+var step=ev&&ev.steps.find(function(s){return stepId?s.stepId===stepId:!!(nodeId&&s.nodeId===nodeId)});
+document.querySelectorAll(".n.sel").forEach(function(g){g.classList.remove("sel")});
+if(nodeId)document.querySelectorAll(".n").forEach(function(g){if(g.dataset.id===nodeId)g.classList.add("sel")});
+document.querySelectorAll("#timeline button").forEach(function(b){if(step&&b.dataset.step===step.stepId){b.setAttribute("aria-current","true");b.scrollIntoView({block:"nearest"})}else b.removeAttribute("aria-current")});
+var html="";
+if(n)html+='<div class="kv">'+row(L.kSignature,n.signature,true)+row(L.kKind,L[n.kind]||n.kind)+row(L.kRuns,n.count+" / "+d.runs.length)+row(L.kDivergence,Math.round(n.share*100)+L.ofParent)+row(L.kErrors,String(n.errors))+row(L.kEnded,String(n.ends))+row(L.kOutcomes,n.outcomes.success+" "+L.ok+" · "+n.outcomes.failure+" "+L.fail+" · "+n.outcomes.unknown+" "+L.unknown)+"</div>";
+if(!ev)html+='<p class="empty">'+esc(L.noEvidence)+"</p>";
+else if(!step)html+='<p class="empty">'+esc(n?L.notOnRun:L.empty)+"</p>";
+else{if(ev.instructionStatus==="unknown")html+='<p class="note">'+esc(L.instructionUnknown)+"</p>";
+var decision=step.nonExecution==="interrupted"?L.interrupted:(step.decision?step.decision.verdict+" · "+step.decision.by+(step.decision.reason?" · "+step.decision.reason:""):L.noneRecorded);
+var err=step.isError===true?L.yes:step.isError===false?L.no:L.unknown;
+var where=!step.provenance||(!step.provenance.file&&step.provenance.line==null)?L.noneRecorded:((step.provenance.file||"")+(step.provenance.line!=null?":"+step.provenance.line:""));
+var eventId=step.provenance&&step.provenance.eventId?step.provenance.eventId:L.noneRecorded;
+html+='<p class="note">'+esc(L.plateScope)+'</p><div class="cap rule">'+esc(L.observed)+'</div><div class="kv">'+row(L.error,err)+row(L.decision,decision,true)+row(L.time,step.startedAt||L.timeUnknown,true)+row(L.source,where,true)+row(L.event,eventId,true)+row(L.parent,step.parentId||L.noneRecorded,true)+"</div>";
+var items=(step.findings||[]).map(function(f){return '<li><span class="cap">'+esc(L[f.status]||f.status)+'</span> <span data-user-content>'+esc(f.text)+"</span></li>"}).join("");
+html+=items?'<ul class="findings">'+items+"</ul>":'<p class="empty">'+esc(L.noDerived)+"</p>";
+function block(label,text,cut,missing){if(text==null)return '<p class="note"><span class="cap">'+esc(label)+"</span> "+esc(missing)+"</p>";return '<p class="cap">'+esc(label)+(cut?" · "+esc(L.shownInPart):"")+'</p><pre class="raw" data-user-content>'+esc(text)+"</pre>"}
+html+="<details><summary>"+esc(L.sourceEvent)+"</summary>"+block(L.input,step.inputPreview,step.inputCut,L.inputMissing)+block(L.output,step.outputPreview,step.outputCut,L.outputMissing)+"</details>"}
+document.getElementById("info").innerHTML=html||'<p class="empty">'+esc(L.empty)+"</p>"}
+runSel.addEventListener("change",function(){light(runSel.value);drawTimeline();document.querySelectorAll(".n.sel").forEach(function(g){g.classList.remove("sel")});document.getElementById("info").innerHTML='<p class="empty">'+esc(d.labels.empty)+"</p>"});
 document.querySelectorAll(".n").forEach(function(g){g.addEventListener("click",function(){show(g.dataset.id)});g.addEventListener("keydown",function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();show(g.dataset.id)}})});
+document.getElementById("timeline").addEventListener("click",function(e){var b=e.target.closest&&e.target.closest("button");if(!b)return;show(b.dataset.node,b.dataset.step)});
+document.getElementById("timeline").addEventListener("keydown",function(e){if(e.key!=="ArrowDown"&&e.key!=="ArrowUp")return;var buttons=Array.prototype.slice.call(document.querySelectorAll("#timeline button"));if(!buttons.length)return;var i=buttons.indexOf(document.activeElement);var n=e.key==="ArrowDown"?(i<0?0:Math.min(buttons.length-1,i+1)):(i<=0?0:i-1);e.preventDefault();buttons[n].focus();show(buttons[n].dataset.node,buttons[n].dataset.step)});
+drawTimeline();
 })();
 </script>
 </body></html>

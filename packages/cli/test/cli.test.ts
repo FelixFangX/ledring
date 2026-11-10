@@ -46,6 +46,9 @@ describe("ledring flowchart", () => {
     const html = readFileSync(out, "utf8");
     expect(html).toContain("fix login");
     expect(html).toContain(">67%<");
+    expect(html).toContain('"file":"run-1.jsonl"');
+    expect(html).toContain('"line":2');
+    expect(html).toContain("ArrowDown");
   });
 
   it("prints the branch tree as JSON", async () => {

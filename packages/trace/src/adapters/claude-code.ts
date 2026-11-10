@@ -1,6 +1,6 @@
 import { TRACE_SCHEMA, type Decision, type Run, type Step } from "../schema.js";
 import { signatureOf } from "../signature.js";
-import { firstJson, jsonLines } from "./jsonl.js";
+import { firstJson, readJsonLines } from "./jsonl.js";
 import type { Adapter } from "./types.js";
 
 interface Block { type?: string; id?: string; name?: string; input?: unknown; text?: string; tool_use_id?: string; content?: unknown; is_error?: boolean }
@@ -43,18 +43,24 @@ export const claudeCode: Adapter = {
     return ("sessionId" in first || "leafUuid" in first) && typeof first.type === "string";
   },
   parse(text, opts = {}) {
-    const lines = (jsonLines(text) as Line[]).filter((l) => (l.type === "user" || l.type === "assistant") && !l.isSidechain && l.message);
-    const bySession = new Map<string, Line[]>();
-    for (const l of lines) {
-      const k = l.sessionId ?? "session";
-      bySession.set(k, [...(bySession.get(k) ?? []), l]);
+    const read = readJsonLines(text);
+    const lines = read.records.filter((record) => {
+      const line = record.value as Line;
+      return (line.type === "user" || line.type === "assistant") && !line.isSidechain && line.message;
+    });
+    const bySession = new Map<string, { line: number; value: Line }[]>();
+    for (const record of lines) {
+      const line = record.value as Line;
+      const key = line.sessionId ?? "session";
+      bySession.set(key, [...(bySession.get(key) ?? []), { line: record.line, value: line }]);
     }
-    return [...bySession.entries()].map(([sessionId, ls]) => {
+    return [...bySession.entries()].map(([sessionId, records]) => {
       const steps: Step[] = [];
       const byToolId = new Map<string, Step>();
       let instruction: string | undefined;
       let model: string | undefined;
-      for (const l of ls) {
+      for (const record of records) {
+        const l = record.value;
         const content = l.message!.content;
         if (l.type === "user") {
           if (instruction === undefined && !(Array.isArray(content) && content.some((b) => b?.type === "tool_result"))) instruction = textOf(content);
@@ -64,10 +70,15 @@ export const claudeCode: Adapter = {
               const step = byToolId.get(b.tool_use_id);
               if (!step) continue;
               step.output = textOf(b.content) ?? b.content;
-              const decision = decisionOf(l, textOf(b.content));
-              if (decision) step.decision = decision;
+              const kind = [...(l.tool_result_meta ?? []), ...(l.toolResultMeta ?? [])].find((m) => m?.non_execution_kind)?.non_execution_kind;
+              if (kind === "interrupted") step.nonExecution = "interrupted";
+              else {
+                const decision = decisionOf(l, textOf(b.content));
+                if (decision) step.decision = decision;
+              }
               step.isError = b.is_error === true;
               step.endedAt = l.timestamp;
+              step.provenance = { ...step.provenance, resultLine: record.line, ...(l.uuid ? { resultEventId: l.uuid } : {}) };
             }
           }
         } else {
@@ -75,17 +86,26 @@ export const claudeCode: Adapter = {
           if (!Array.isArray(content)) continue;
           for (const b of content) {
             if (b?.type !== "tool_use" || !b.name) continue;
-            const step: Step = { id: b.id ?? `${l.uuid}-${steps.length}`, kind: "tool", name: b.name, signature: signatureOf(b.name, b.input), input: b.input, startedAt: l.timestamp };
+            const step: Step = {
+              id: b.id ?? `${l.uuid}-${steps.length}`,
+              kind: "tool",
+              name: b.name,
+              signature: signatureOf(b.name, b.input),
+              input: b.input,
+              startedAt: l.timestamp,
+              provenance: { line: record.line, ...(opts.filename ? { file: opts.filename } : {}), ...(l.uuid ? { eventId: l.uuid } : {}) },
+            };
             if (opts.keepRaw) step.raw = b;
             steps.push(step);
             if (b.id) byToolId.set(b.id, step);
           }
         }
       }
-      const run: Run = { schema: TRACE_SCHEMA, id: opts.filename ? `${opts.filename}#${sessionId}` : sessionId, source: "claude-code", steps, outcome: "unknown", startedAt: ls[0]?.timestamp, endedAt: ls[ls.length - 1]?.timestamp };
+      const run: Run = { schema: TRACE_SCHEMA, id: opts.filename ? `${opts.filename}#${sessionId}` : sessionId, source: "claude-code", steps, outcome: "unknown", startedAt: records[0]?.value.timestamp, endedAt: records[records.length - 1]?.value.timestamp };
+      if (read.truncated) run.truncated = true;
       if (instruction !== undefined) run.instruction = instruction;
       if (model) run.agent = { model };
-      const cwd = ls.find((l) => l.cwd)?.cwd;
+      const cwd = records.find((record) => record.value.cwd)?.value.cwd;
       if (cwd) run.cwd = cwd;
       return run;
     });

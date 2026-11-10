@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { adapters, parseTrace, riskOf, RunSchema, signatureOf, TRACE_SCHEMA } from "@ledring/trace";
+import { adapters, blockBasis, parseTrace, riskOf, RunSchema, signatureOf, TRACE_SCHEMA } from "@ledring/trace";
 
 const fx = (p: string) => readFileSync(new URL(`../../../fixtures/${p}`, import.meta.url), "utf8");
 
@@ -12,6 +12,8 @@ describe("claude-code adapter", () => {
     expect(run!.instruction).toBe("Fix the login bug in src/auth. Don't change the tests.");
     expect(run!.agent?.model).toBe("claude-sonnet-4-5");
     expect(run!.steps.map((s) => s.signature)).toEqual(["Read(login.ts)", "Edit(login.ts)", "Bash(npm test)"]);
+    expect(run!.steps[0]!.provenance).toEqual({ file: "run-1.jsonl", line: 2, eventId: "00000000-0000-4000-8000-000000000002", resultLine: 3, resultEventId: "00000000-0000-4000-8000-000000000003" });
+    expect(run!.truncated).toBeUndefined();
     expect(RunSchema.parse(run)).toBeTruthy();
   });
 
@@ -32,9 +34,44 @@ describe("claude-code adapter", () => {
     expect(run!.steps).toHaveLength(0);
   });
 
-  it("tolerates a truncated final line", () => {
+  it("tolerates a truncated final line and records that the input was cut", () => {
     const text = fx("claude-code/run-1.jsonl") + '{"type":"assist';
-    expect(parseTrace(text)[0]!.steps).toHaveLength(3);
+    const run = parseTrace(text)[0]!;
+    expect(run.steps).toHaveLength(3);
+    expect(run.truncated).toBe(true);
+  });
+
+  it("does not turn an interrupt into a deny", () => {
+    const line = (o: object) => JSON.stringify({ sessionId: "s", cwd: "/repo", timestamp: "2026-01-01T00:00:00Z", parentUuid: null, ...o });
+    const reject = "The user doesn't want to proceed with this tool use. STOP what you are doing.";
+    const text = [
+      line({ type: "user", uuid: "u0", message: { role: "user", content: "deploy" } }),
+      line({ type: "assistant", uuid: "a1", message: { role: "assistant", content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "git push --force" } }] } }),
+      line({ type: "user", uuid: "u1", tool_result_meta: [{ non_execution_kind: "interrupted" }], message: { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", content: reject, is_error: true }] } }),
+    ].join("\n");
+    const step = parseTrace(text)[0]!.steps[0]!;
+    expect(step.decision).toBeUndefined();
+    expect(step.nonExecution).toBe("interrupted");
+    expect(blockBasis(step)).toBeUndefined();
+  });
+
+  it("keeps a shared deny and does not equate provenance the two sources do not share", () => {
+    const line = (o: object) => JSON.stringify({ sessionId: "s", cwd: "/repo", timestamp: "2026-01-01T00:00:00Z", parentUuid: null, ...o });
+    const reject = "The user doesn't want to proceed with this tool use. To tell you how to proceed, the user said:\nnot now";
+    const claude = [
+      line({ type: "user", uuid: "u0", message: { role: "user", content: "deploy" } }),
+      line({ type: "assistant", uuid: "a1", message: { role: "assistant", content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "npm test" } }] } }),
+      line({ type: "user", uuid: "u1", toolUseResult: "User rejected tool use", message: { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", content: reject, is_error: true }] } }),
+    ].join("\n");
+    const decisions = JSON.stringify({ schema: "ledring.decisions.v1", run: "r1", tool: "Bash", input: { command: "npm test" }, verdict: "deny", by: "human", reason: "not now" });
+    const fromClaude = parseTrace(claude, { filename: "session.jsonl" })[0]!.steps[0]!;
+    const fromLog = parseTrace(decisions, { filename: "decisions.jsonl" })[0]!.steps[0]!;
+    expect(fromClaude.signature).toBe(fromLog.signature);
+    expect(fromClaude.decision).toEqual(fromLog.decision);
+    expect(fromClaude.provenance?.file).toBe("session.jsonl");
+    expect(fromLog.provenance).toEqual({ file: "decisions.jsonl", line: 1 });
+    expect(fromClaude.startedAt).toBe("2026-01-01T00:00:00Z");
+    expect(fromLog.startedAt).toBeUndefined();
   });
 });
 
@@ -52,6 +89,9 @@ describe("otel-genai adapter", () => {
     expect(r.instruction).toBe("What should I wear in Paris tomorrow?");
     expect(r.steps.filter((s) => s.kind === "tool").map((s) => s.signature)).toEqual(["get_forecast", "suggest_outfit"]);
     expect(r.steps.some((s) => s.kind === "llm")).toBe(true);
+    expect(r.steps[0]!.provenance?.eventId).toBe(r.steps[0]!.id);
+    expect(r.steps[0]!.provenance?.line).toBeUndefined();
+    expect(r.steps.some((s) => s.parentId)).toBe(true);
   });
 
   it("marks failed tool spans and failed runs", () => {

@@ -75,5 +75,40 @@ describe("scoreInstability", () => {
   it("can score against an instruction supplied by the caller", () => {
     const r = scoreInstability(load(1), { instruction: "Only touch docs/" });
     expect(r.score).toBeGreaterThan(0);
+    expect(r.instructionStatus).toBe("observed");
+  });
+
+  it("does not call a check passed unless the output says so", () => {
+    const quiet = scoreInstability(run("Fix the bug in src/auth", [["Bash", { command: "npm test" }]]));
+    expect(quiet.steps[0]!.delta).toBe(0);
+    expect(quiet.steps[0]!.reasons).toEqual([]);
+    expect(quiet.steps[0]!.findings).toEqual([expect.objectContaining({ status: "unknown", code: "check.unknown" })]);
+    const passed = scoreInstability({
+      schema: TRACE_SCHEMA, id: "said", source: "test", instruction: "Fix the bug in src/auth",
+      steps: [{ id: "s0", kind: "tool", name: "Bash", signature: "Bash(npm test)", input: { command: "npm test" }, output: "12 passing", isError: false }],
+    });
+    expect(passed.score).toBe(0);
+    expect(passed.steps[0]!.reasons.join(" ")).toMatch(/output says the check passed/);
+    expect(passed.steps[0]!.findings[0]).toMatchObject({ status: "derived", code: "check.passed" });
+  });
+
+  it("does not score a denied risky command as if it ran", () => {
+    const denied = scoreInstability({
+      schema: TRACE_SCHEMA, id: "denied", source: "test", instruction: "ship it",
+      steps: [{ id: "s0", kind: "tool", name: "Bash", signature: "Bash(rm)", input: { command: "rm -rf dist" }, decision: { verdict: "deny", by: "human" } }],
+    });
+    expect(denied.steps[0]!.delta).toBe(0);
+    expect(denied.steps[0]!.findings).toEqual([expect.objectContaining({ status: "observed", code: "command.denied" })]);
+  });
+
+  it("says when no instruction was recorded, and points a finding at the source line", () => {
+    const scored = scoreInstability({
+      schema: TRACE_SCHEMA, id: "bare", source: "test", truncated: true,
+      steps: [{ id: "s0", kind: "tool", name: "Bash", signature: "Bash(rm)", input: { command: "rm -rf dist" }, provenance: { file: "cut.jsonl", line: 4, eventId: "e4" } }],
+    });
+    expect(scored.instructionStatus).toBe("unknown");
+    expect(scored.findings.map((finding) => finding.code)).toEqual(["instruction.unknown", "input.truncated"]);
+    expect(scored.steps[0]!.findings.find((finding) => finding.code === "command.risky")?.provenance).toEqual({ file: "cut.jsonl", line: 4, eventId: "e4" });
+    expect(scored.steps[0]!.findings.some((finding) => finding.code === "command.completion")).toBe(true);
   });
 });

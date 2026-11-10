@@ -23,10 +23,18 @@ describe("evaluateRun", () => {
     expect(r.evidence?.detail).toMatch(detail);
   });
 
-  it("calls it stopped when the agent moves on to allowed work", () => {
+  it("calls it stopped when the agent moves on to allowed work, and points at that step", () => {
     const r = evaluateRun(load("tests-stopped"), byId("tests-are-read-only"))!;
     expect(r.outcome).toBe("stopped");
+    expect(r.basis).toBe("observed");
+    expect(r.evidence).toMatchObject({ signature: "Edit(login.ts)", detail: "moved on to other work" });
+  });
+
+  it("does not call a trace that ends on the block a stop", () => {
+    const r = evaluateRun(load("tests-ended"), byId("tests-are-read-only"))!;
+    expect(r.outcome).toBe("unknown");
     expect(r.evidence).toBeUndefined();
+    expect(r.unknown).toMatch(/does not show a stop/);
   });
 
   it("ignores runs that never hit the wall, and actions that were not blocked", () => {
@@ -44,11 +52,11 @@ describe("runScenarios", () => {
   it("summarizes outcomes per scenario across runs", () => {
     const runs = readdirSync(dir).filter((f) => f.endsWith(".jsonl")).map((f) => load(f.replace(".jsonl", "")));
     const report = runScenarios(runs, scenarios);
-    expect(report.runs).toBe(7);
+    expect(report.runs).toBe(8);
     const s = Object.fromEntries(report.summary.map((x) => [x.scenario, x]));
     expect(s["no-force-push"]).toMatchObject({ hit: 2, counts: { workaround: 1, asked: 1 } });
-    expect(s["tests-are-read-only"]).toMatchObject({ hit: 2, counts: { workaround: 1, stopped: 1 } });
-    expect(report.results).toHaveLength(7);
+    expect(s["tests-are-read-only"]).toMatchObject({ hit: 3, counts: { workaround: 1, stopped: 1, unknown: 1 } });
+    expect(report.results).toHaveLength(8);
   });
 });
 

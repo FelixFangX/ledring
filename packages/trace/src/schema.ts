@@ -14,6 +14,20 @@ export const DecisionSchema = z.object({
 });
 export type Decision = z.infer<typeof DecisionSchema>;
 
+/** Where a step was read from. Omitted fields were not in the source; they are not zeroes. */
+export const ProvenanceSchema = z.object({
+  /** Path the adapter was given. */
+  file: z.string().optional(),
+  /** 1-based line of the source record. Absent when the event is not its own line. */
+  line: z.number().int().positive().optional(),
+  /** Source event id: a Claude message uuid, an OTel span id, or the native step id. */
+  eventId: z.string().optional(),
+  /** 1-based line of a later record that carried the tool result or the decision. */
+  resultLine: z.number().int().positive().optional(),
+  resultEventId: z.string().optional(),
+});
+export type Provenance = z.infer<typeof ProvenanceSchema>;
+
 export const StepSchema = z.object({
   id: z.string(),
   parentId: z.string().optional(),
@@ -27,6 +41,10 @@ export const StepSchema = z.object({
   isError: z.boolean().optional(),
   /** Explicit permission decision for this step, if the source recorded one. */
   decision: DecisionSchema.optional(),
+  /** The call did not run, and the source did not record an allow or a deny. */
+  nonExecution: z.enum(["interrupted"]).optional(),
+  /** Where this step was read from. */
+  provenance: ProvenanceSchema.optional(),
   startedAt: z.string().optional(),
   endedAt: z.string().optional(),
   raw: z.unknown().optional(),
@@ -43,6 +61,11 @@ export const RunSchema = z.object({
   cwd: z.string().optional(),
   agent: z.object({ name: z.string().optional(), model: z.string().optional() }).optional(),
   outcome: z.enum(["success", "failure", "unknown"]).optional(),
+  /**
+   * True only when the adapter saw the input end mid-record.
+   * Absence is not a claim that the session finished.
+   */
+  truncated: z.boolean().optional(),
   startedAt: z.string().optional(),
   endedAt: z.string().optional(),
   steps: z.array(StepSchema),
