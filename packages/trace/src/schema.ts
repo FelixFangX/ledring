@@ -66,6 +66,11 @@ export const RunSchema = z.object({
    * Absence is not a claim that the session finished.
    */
   truncated: z.boolean().optional(),
+  /**
+   * Source messages marked as sidechains that this adapter did not turn into steps.
+   * Absent when the adapter did not see any. It is not a claim about other formats.
+   */
+  omittedSidechains: z.number().int().positive().optional(),
   startedAt: z.string().optional(),
   endedAt: z.string().optional(),
   steps: z.array(StepSchema),

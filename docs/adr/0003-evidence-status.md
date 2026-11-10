@@ -14,4 +14,6 @@ The HTML report embeds those notes for the runs it rendered. Selecting a plate a
 - Readers of `reasons` and the four original Red Wall outcomes keep working. `findings`, `instructionStatus`, `basis`, and `unknown` are additive.
 - `passingCheck` still lowers a score only when the tool output itself says the check passed. `ok` does not.
 - A recorded deny suppresses the risky-command weight. The command text is still reported as observed.
-- Adapters that do not know a line or an event id omit it. OTel spans in one JSON document have an event id and no line. Claude sidechains stay out of the run. Sibling spans stay in start-time order on the branch tree; `parentId` is on the step for the raw note.
+- Adapters that do not know a line or an event id omit it. OTel spans in one JSON document have an event id and no line. Claude sidechains stay out of the run. When the adapter saw any, the run carries `omittedSidechains`. Sibling spans stay in start-time order on the branch tree. `parentId` is the recorded parent, and the report says the line between plates is the previous signature.
+- A finding that read the tool result cites `resultLine` and `resultEventId` when those were stored. A finding that read the input cites the call. The report link opens that event's payload.
+- Red on a plate is the highlighted run's recorded error. A count of other runs that recorded an error stays in the All runs section.

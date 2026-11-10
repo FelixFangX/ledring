@@ -22,6 +22,7 @@ describe("branch review", () => {
       id: "alpha",
       instructionStatus: "observed",
       omitted: 0,
+      omittedSidechains: 2,
       truncated: true,
       findings: [],
       steps: [
@@ -47,6 +48,8 @@ describe("branch review", () => {
       await page.goto(`file://${file}`);
       expect(await page.locator("#info").innerText()).toContain("Nothing selected");
       expect(await page.locator("#timeline").innerText()).toContain("This input ended mid-record");
+      expect(await page.locator("#timeline").innerText()).toContain("2 sidechain records were left out of this run.");
+      expect(await page.locator("#tree-limit").innerText()).toContain("previous signature");
       await page.locator('#timeline button[data-step="alpha-0"]').click();
       const selected = await page.locator("#info").innerText();
       expect(selected).toContain("time unknown");

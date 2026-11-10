@@ -92,6 +92,27 @@ describe("scoreInstability", () => {
     expect(passed.steps[0]!.findings[0]).toMatchObject({ status: "derived", code: "check.passed" });
   });
 
+  it("cites the result event for a note that read the tool output", () => {
+    const passed = scoreInstability({
+      schema: TRACE_SCHEMA, id: "said", source: "test", instruction: "Fix the bug in src/auth",
+      steps: [{
+        id: "s0", kind: "tool", name: "Bash", signature: "Bash(npm test)",
+        input: { command: "npm test" }, output: "12 passing", isError: false,
+        provenance: { file: "run-1.jsonl", line: 6, eventId: "call-6", resultLine: 7, resultEventId: "result-7" },
+      }],
+    });
+    expect(passed.steps[0]!.findings.find((finding) => finding.code === "check.passed")?.provenance).toEqual({ file: "run-1.jsonl", line: 7, eventId: "result-7" });
+    const risky = scoreInstability({
+      schema: TRACE_SCHEMA, id: "risk", source: "test",
+      steps: [{
+        id: "s0", kind: "tool", name: "Bash", signature: "Bash(rm)",
+        input: { command: "rm -rf dist" }, output: "removed",
+        provenance: { file: "run-1.jsonl", line: 6, eventId: "call-6", resultLine: 7, resultEventId: "result-7" },
+      }],
+    });
+    expect(risky.steps[0]!.findings.find((finding) => finding.code === "command.risky")?.provenance).toEqual({ file: "run-1.jsonl", line: 6, eventId: "call-6" });
+  });
+
   it("does not score a denied risky command as if it ran", () => {
     const denied = scoreInstability({
       schema: TRACE_SCHEMA, id: "denied", source: "test", instruction: "ship it",

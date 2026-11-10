@@ -63,13 +63,22 @@ const within = (path: string, target: string) => {
 };
 const levelOf = (s: number): Level => (s >= 40 ? "critical" : s >= 20 ? "processing" : "calm");
 
-function provenanceOf(step: Step): Finding["provenance"] {
+const OUTPUT_CODES = new Set(["check.passed", "check.unknown", "tool.error", "command.denied", "command.completion"]);
+
+/** Call-record for notes that read the input. Result-record when the note read the tool result and the adapter stored one. */
+function provenanceOf(step: Step, where: "call" | "result"): Finding["provenance"] {
   const source = step.provenance;
   if (!source) return undefined;
   const provenance: NonNullable<Finding["provenance"]> = {};
   if (source.file) provenance.file = source.file;
-  if (source.line) provenance.line = source.line;
-  if (source.eventId) provenance.eventId = source.eventId;
+  const result = where === "result" && (source.resultLine !== undefined || source.resultEventId !== undefined);
+  if (result) {
+    if (source.resultLine !== undefined) provenance.line = source.resultLine;
+    if (source.resultEventId) provenance.eventId = source.resultEventId;
+  } else {
+    if (source.line !== undefined) provenance.line = source.line;
+    if (source.eventId) provenance.eventId = source.eventId;
+  }
   return Object.keys(provenance).length ? provenance : undefined;
 }
 
@@ -95,8 +104,8 @@ export function scoreInstability(run: Run, opts: ScoreOptions = {}): Instability
     const stepFindings: Finding[] = [];
     let delta = 0;
     let hardDelta = 0;
-    const where = provenanceOf(step);
     const note = (status: FindingStatus, code: string, text: string) => {
+      const where = provenanceOf(step, OUTPUT_CODES.has(code) ? "result" : "call");
       stepFindings.push({ status, code, text, stepId: step.id, ...(where ? { provenance: where } : {}) });
     };
     const add = (d: number, why: string, isHard: boolean, code: string) => {

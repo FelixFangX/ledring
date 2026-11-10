@@ -12,7 +12,12 @@ function clip(value: unknown): { text?: string; cut?: boolean } {
 }
 
 function notes(list: Finding[]): ReviewStep["findings"] {
-  return list.map((finding) => ({ status: finding.status, code: finding.code, text: finding.text }));
+  return list.map((finding) => ({
+    status: finding.status,
+    code: finding.code,
+    text: finding.text,
+    ...(finding.provenance ? { provenance: finding.provenance } : {}),
+  }));
 }
 
 /** Step evidence for the branch-tree report. One entry per run, in tree order. */
@@ -43,6 +48,7 @@ export function reviewOf(runs: readonly Run[], paths: ReadonlyMap<string, readon
           ...(step.provenance.line ? { line: step.provenance.line } : {}),
           ...(step.provenance.eventId ? { eventId: step.provenance.eventId } : {}),
           ...(step.provenance.resultLine ? { resultLine: step.provenance.resultLine } : {}),
+          ...(step.provenance.resultEventId ? { resultEventId: step.provenance.resultEventId } : {}),
         };
       }
       if (input.text !== undefined) view.inputPreview = input.text;
@@ -56,6 +62,7 @@ export function reviewOf(runs: readonly Run[], paths: ReadonlyMap<string, readon
       ...(run.truncated ? { truncated: true } : {}),
       instructionStatus: report.instructionStatus,
       omitted: run.steps.length - shown.length,
+      ...(run.omittedSidechains ? { omittedSidechains: run.omittedSidechains } : {}),
       findings: notes(report.findings),
       steps,
     };

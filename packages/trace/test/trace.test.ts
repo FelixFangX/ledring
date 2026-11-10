@@ -32,6 +32,20 @@ describe("claude-code adapter", () => {
     ].join("\n");
     const [run] = parseTrace(text);
     expect(run!.steps).toHaveLength(0);
+    expect(run!.omittedSidechains).toBe(1);
+  });
+
+  it("keeps the recorded parent and does not turn a sidechain into a step", () => {
+    const line = (o: object) => JSON.stringify({ sessionId: "s", cwd: "/repo", timestamp: "2026-01-01T00:00:00Z", ...o });
+    const text = [
+      line({ type: "user", uuid: "u0", parentUuid: null, message: { role: "user", content: "hi" } }),
+      line({ type: "assistant", uuid: "a1", parentUuid: "u0", message: { role: "assistant", content: [{ type: "tool_use", id: "t1", name: "Bash", input: { command: "npm test" } }] } }),
+      line({ type: "assistant", uuid: "side", parentUuid: "a1", isSidechain: true, message: { role: "assistant", content: [{ type: "tool_use", id: "t2", name: "Bash", input: { command: "ls" } }] } }),
+    ].join("\n");
+    const run = parseTrace(text, { filename: "s.jsonl" })[0]!;
+    expect(run.steps.map((step) => step.signature)).toEqual(["Bash(npm test)"]);
+    expect(run.steps[0]!.parentId).toBe("u0");
+    expect(run.omittedSidechains).toBe(1);
   });
 
   it("tolerates a truncated final line and records that the input was cut", () => {
