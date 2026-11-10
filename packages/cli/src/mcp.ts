@@ -14,7 +14,7 @@ const str = z.string().max(200);
 const count = z.number().int().nonnegative();
 const common = { paths: z.array(z.string()).min(1), adapter: z.string().optional() };
 const reference = z.object({ id: str, signature: str });
-const counts = z.object({ asked: count, stopped: count, retried: count, workaround: count });
+const counts = z.object({ asked: count, stopped: count, retried: count, workaround: count, unknown: count });
 const branch = z.object({ signature: str, runCount: count, divergence: z.number() });
 const fork = z.object({ signature: str, depth: count, branches: z.array(branch) });
 const nodeSchema: z.ZodType<BranchNode> = z.lazy(() => z.object({
@@ -70,13 +70,14 @@ export function createMcpServer(io: IO): McpServer {
     inputSchema: { ...common, instruction: z.string().optional(), runId: z.string().optional() },
     outputSchema: { schema: z.literal(INSTABILITY_SCHEMA), total: count, reports: z.array(z.object({
       runId: str, score: z.number(), peak: z.number(), level: z.enum(["calm", "processing", "critical"]),
+      instructionStatus: z.enum(["observed", "unknown"]),
       steps: z.array(z.object({ stepId: str, signature: str, delta: z.number(), score: z.number() })),
     })) }, annotations,
   }, ({ paths, adapter, instruction, runId }) => reply(() => {
     const runs = load(paths, adapter).filter(({ run }) => runId === undefined || run.id === runId);
     return { schema: INSTABILITY_SCHEMA, total: runs.length, reports: runs.slice(0, 50).map(({ run }) => {
       const r = scoreInstability(run, instruction === undefined ? {} : { instruction });
-      return { runId: short(r.runId), score: r.score, peak: r.peak, level: r.level,
+      return { runId: short(r.runId), score: r.score, peak: r.peak, level: r.level, instructionStatus: r.instructionStatus,
         steps: r.steps.filter((s) => s.delta !== 0).sort((a, b) => b.delta - a.delta).slice(0, 10)
           .map((s) => ({ stepId: short(s.stepId), signature: short(s.signature), delta: s.delta, score: s.score })) };
     }) };
@@ -85,7 +86,7 @@ export function createMcpServer(io: IO): McpServer {
     description: "Evaluate default walls or a local scenarios file. Counts cover all results; lists are limited to 100 entries.",
     inputSchema: { ...common, scenarios: z.string().optional() },
     outputSchema: { schema: z.literal(REDWALL_SCHEMA), runs: count, totalResults: count, totalScenarios: count,
-      counts, results: z.array(z.object({ runId: str, scenario: str, wall: str, outcome: z.enum(OUTCOMES), blocked: reference,
+      counts, results: z.array(z.object({ runId: str, scenario: str, wall: str, outcome: z.enum(["asked", "stopped", "retried", "workaround", "unknown"]), blocked: reference,
         evidence: reference.extend({ detail: str }).optional() })),
       summary: z.array(z.object({ scenario: str, hit: count, counts })),
     }, annotations,
@@ -93,7 +94,7 @@ export function createMcpServer(io: IO): McpServer {
     const report = runScenarios(load(paths, adapter).map(({ run }) => run), scenarios ? parseScenarios(io.readFile(scenarios)) : defaultScenarios);
     const ref = (s: { id: string; signature: string }) => ({ id: short(s.id), signature: short(s.signature) });
     return { schema: report.schema, runs: report.runs, totalResults: report.results.length, totalScenarios: report.summary.length,
-      counts: Object.fromEntries(OUTCOMES.map((o) => [o, report.results.filter((r) => r.outcome === o).length])),
+      counts: Object.fromEntries([...OUTCOMES, "unknown" as const].map((o) => [o, report.results.filter((r) => r.outcome === o).length])),
       summary: report.summary.slice(0, 100).map((s) => ({ ...s, scenario: short(s.scenario) })),
       results: report.results.slice(0, 100).map((r) => ({ runId: short(r.runId), scenario: short(r.scenario), wall: short(r.wall),
         outcome: r.outcome, blocked: ref(r.blocked), ...(r.evidence ? { evidence: { ...ref(r.evidence), detail: short(r.evidence.detail) } } : {}) })),

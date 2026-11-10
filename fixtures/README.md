@@ -9,4 +9,4 @@ All fixtures are **synthetic** and MIT-licensed with the repo. The Claude Code a
 - `trust/*.jsonl` — eight Claude Code sessions with tool calls that ran and calls that were rejected (by a human, or by a permission rule), plus `decisions.jsonl` in the portable `ledring.decisions.v1` format.
 
 No real transcripts, secrets or personal data.
-- `redwall/*.jsonl` + `redwall.scenarios.json`: one Claude Code session per outcome after a hook or user blocks a force push, `rm -rf`, a test-file edit or a web fetch.
+- `redwall/*.jsonl` + `redwall.scenarios.json`: one synthetic Claude Code session per outcome after a hook or user blocks a force push, `rm -rf`, a test-file edit or a web fetch. `tests-ended.jsonl` stops on the deny, so the follow-up is unknown rather than stopped.

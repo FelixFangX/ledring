@@ -1,6 +1,6 @@
 import { DecisionSchema, TRACE_SCHEMA, type Run } from "../schema.js";
 import { signatureOf } from "../signature.js";
-import { firstJson, jsonLines } from "./jsonl.js";
+import { firstJson, readJsonLines } from "./jsonl.js";
 import type { Adapter } from "./types.js";
 
 export const DECISIONS_SCHEMA = "ledring.decisions.v1";
@@ -17,16 +17,29 @@ export const decisionsLog: Adapter = {
   detect(text) {
     return (firstJson(text) as Entry | undefined)?.schema === DECISIONS_SCHEMA;
   },
-  parse(text) {
+  parse(text, opts = {}) {
+    const read = readJsonLines(text);
     const byRun = new Map<string, Run>();
-    (jsonLines(text) as Entry[]).forEach((e, i) => {
+    read.records.forEach((record, i) => {
+      const e = record.value as Entry;
       if (e.schema !== DECISIONS_SCHEMA || !e.tool) return;
       const id = e.run ?? "decisions";
       const run = byRun.get(id) ?? { schema: TRACE_SCHEMA, id, source: "ledring-decisions", steps: [], outcome: "unknown" as const };
       byRun.set(id, run);
       const decision = DecisionSchema.parse({ verdict: e.verdict, by: e.by ?? "unknown", ...(e.reason ? { reason: e.reason } : {}) });
-      run.steps.push({ id: `${id}-${i}`, kind: "tool", name: e.tool, signature: signatureOf(e.tool, e.input), input: e.input, decision, ...(e.at ? { startedAt: e.at } : {}) });
+      run.steps.push({
+        id: `${id}-${i}`,
+        kind: "tool",
+        name: e.tool,
+        signature: signatureOf(e.tool, e.input),
+        input: e.input,
+        decision,
+        provenance: { line: record.line, ...(opts.filename ? { file: opts.filename } : {}) },
+        ...(e.at ? { startedAt: e.at } : {}),
+      });
     });
-    return [...byRun.values()];
+    const runs = [...byRun.values()];
+    if (read.truncated) for (const run of runs) run.truncated = true;
+    return runs;
   },
 };

@@ -111,6 +111,44 @@ describe("renderHtml", () => {
     expect(html).toMatch(/<text class="no" x="5" y="11">01<\/text>/);
   });
 
+  it("carries step evidence beside the tree and names unknown follow-up", () => {
+    const html = renderHtml(tree, { review: [{
+      id: tree.runs[0]!.id,
+      instructionStatus: "unknown",
+      omitted: 1,
+      truncated: true,
+      findings: [],
+      steps: [{
+        stepId: "toolu_1_0",
+        nodeId: tree.runs[0]!.path[1],
+        signature: "Read(login.ts)",
+        kind: "tool",
+        findings: [{ status: "unknown", code: "check.unknown", text: "The trace does not say whether it passed." }],
+        provenance: { file: "run-1.jsonl", line: 2, eventId: "evt-2" },
+      }],
+    }] });
+    const data = JSON.parse(html.match(/<script type="application\/json" id="lr-data">([\s\S]*?)<\/script>/)![1]!) as { evidence: { steps: { provenance: { file: string; line: number } }[] }[] };
+    expect(data.evidence[0]!.steps[0]!.provenance).toEqual({ file: "run-1.jsonl", line: 2, eventId: "evt-2" });
+    expect(html).toContain("ArrowDown");
+    expect(html).toContain("This plate is not on the highlighted run.");
+    expect(html).toContain("This input ended mid-record");
+    expect(html).not.toContain("<script>alert");
+  });
+
+  it("renders a few hundred synthetic steps in this environment", () => {
+    const steps = Array.from({ length: 300 }, (_, i) => ({ id: `s${i}`, kind: "tool" as const, name: "Bash", signature: `Bash(step-${i})`, input: { command: `echo ${"x".repeat(40)}` } }));
+    const many = Array.from({ length: 20 }, (_, i) => ({ schema: TRACE_SCHEMA, id: `r${i}`, source: "synthetic", instruction: "synthetic large trace", steps }));
+    const started = performance.now();
+    const built = buildBranchTree(many);
+    const html = renderHtml(built);
+    const elapsed = performance.now() - started;
+    expect(built.root.children).toHaveLength(1);
+    expect(html).toContain("Bash(step-299)");
+    expect(elapsed).toBeLessThan(3000);
+    expect(html.length).toBeLessThan(5_000_000);
+    console.info(`large-trace render 20 runs x 300 steps: ${elapsed.toFixed(1)} ms, html ${html.length} bytes`);
+  });
+
   it("marks errored nodes", () => {
     const t = buildBranchTree([mk("a", ["x", "y"], true), mk("b", ["x", "z"])]);
     expect(renderHtml(t)).toMatch(/class="n (taken|locked) error" data-id="0\.0\.\d"/);

@@ -6,6 +6,7 @@ import { basename } from "node:path";
 import { parseArgs } from "node:util";
 import { scoreInstability, type InstabilityReport } from "@ledring/instability";
 import { buildBranchTree, fromDesignTokens, renderHtml, type Tokens } from "@ledring/flowchart";
+import { reviewOf } from "./review.js";
 import { parseTrace, type Run } from "@ledring/trace";
 import { diffPermissions, learnPolicy, toClaudeCodePermissions, type Policy, type PermissionsDiff } from "@ledring/trust";
 import { dirname, join, resolve } from "node:path";
@@ -33,7 +34,8 @@ Usage:
                [--out card.json] [--svg card.svg]
                                                      A2A Agent Card + SVG spec card from agent config
   ledring redwall <traces...> [--scenarios scenarios.json] [--json] [--fail-on workaround|retried|stopped]
-                                                     What the agent did after a guardrail blocked it
+                                                     What the agent did after a guardrail blocked it.
+                                                     A trace that ends on the block is unknown, not stopped.
   ledring play [--port n] [--no-open] [--print-config] [--home dir]
                                                      Local Play bridge on 127.0.0.1. Not in the npm package; build this repo from source.
                                                      --print-config never prints secrets.
@@ -106,7 +108,8 @@ const commands: Record<string, Command> = {
         adapter: { type: "string" },
       },
     });
-    const tree = buildBranchTree(loadRuns(io, positionals, values.adapter));
+    const runs = loadRuns(io, positionals, values.adapter);
+    const tree = buildBranchTree(runs);
     if (values.json) {
       io.out(JSON.stringify(tree, null, 2) + "\n");
       if (!values.out) return 0;
@@ -114,6 +117,7 @@ const commands: Record<string, Command> = {
     const themes = values.tokens ? readTokens(io.readFile(values.tokens)) : {};
     const html = renderHtml(tree, {
       ...themes,
+      review: reviewOf(runs, new Map(tree.runs.map((run) => [run.id, run.path]))),
       ...(values.lang === "zh" ? { lang: "zh" as const } : {}),
       ...(values.title ? { title: values.title } : {}),
       ...(values.highlight ? { highlightRunId: values.highlight } : {}),
@@ -224,7 +228,7 @@ const commands: Record<string, Command> = {
     io.out(values.json ? JSON.stringify(report, null, 2) + "\n" : formatRedWall(report));
     if (failOn) {
       const min = OUTCOMES.indexOf(failOn);
-      const bad = report.results.filter((r) => OUTCOMES.indexOf(r.outcome) >= min);
+      const bad = report.results.filter((r) => r.outcome !== "unknown" && OUTCOMES.indexOf(r.outcome) >= min);
       if (bad.length) {
         io.err(`${bad.length} run(s) ${failOn === "workaround" ? "worked around a wall" : `ended at or beyond "${failOn}"`}\n`);
         return 3;
@@ -279,13 +283,13 @@ const commands: Record<string, Command> = {
 };
 
 function formatRedWall(report: RedWallReport): string {
-  const mark: Record<Outcome, string> = { asked: "○ asked", stopped: "○ stopped", retried: "◐ retried", workaround: "● WORKAROUND" };
+  const mark = { asked: "○ asked", stopped: "○ stopped", retried: "◐ retried", workaround: "● WORKAROUND", unknown: "? unknown" } as const;
   const lines = [`RED WALL · ${report.runs} runs · ${report.summary.length} scenarios`, ""];
   for (const s of report.summary) {
-    const counts = OUTCOMES.filter((o) => s.counts[o]).map((o) => `${s.counts[o]} ${o}`).join(" · ");
+    const counts = [...OUTCOMES, "unknown" as const].filter((o) => s.counts[o]).map((o) => `${s.counts[o]} ${o}`).join(" · ");
     lines.push(`  ${s.scenario}  ${s.hit ? `hit in ${s.hit} run(s): ${counts}` : "not hit"}`);
     for (const r of report.results.filter((x) => x.scenario === s.scenario))
-      lines.push(`    ${mark[r.outcome].padEnd(13)} ${r.runId.split("#")[0]}  blocked ${r.blocked.signature}${r.evidence ? ` → ${r.evidence.signature} (${r.evidence.detail})` : ""}`);
+      lines.push(`    ${mark[r.outcome].padEnd(13)} ${r.runId.split("#")[0]}  blocked ${r.blocked.signature}${r.evidence ? ` → ${r.evidence.signature} (${r.evidence.detail})` : ""}${r.unknown ? ` — ${r.unknown}` : ""}`);
   }
   return lines.join("\n") + "\n";
 }
@@ -313,10 +317,13 @@ const LED = { calm: "●", processing: "◐", critical: "○" } as const;
 
 function formatReport(r: InstabilityReport): string {
   const lines = [`${LED[r.level]} ${r.score.toString().padStart(3)} ${r.level.toUpperCase().padEnd(10)} peak ${r.peak}  ${r.runId}`];
+  for (const finding of r.findings) lines.push(`  ? ${finding.text}`);
   for (const s of r.steps) {
-    if (s.delta === 0 && s.reasons.length === 0) continue;
+    const unknown = s.findings.filter((finding) => finding.status === "unknown");
+    if (s.delta === 0 && s.reasons.length === 0 && unknown.length === 0) continue;
     const d = s.delta > 0 ? `▲ +${s.delta}` : s.delta < 0 ? `▼ ${s.delta}` : "  ·";
-    lines.push(`    ${d.padEnd(6)} ${s.signature.padEnd(26)} ${s.reasons.join("; ")}`);
+    lines.push(`    ${d.padEnd(6)} ${s.signature.padEnd(26)} ${s.reasons.join("; ")}`.trimEnd());
+    for (const finding of unknown) lines.push(`      ? ${finding.text}`);
   }
   return lines.join("\n") + "\n";
 }

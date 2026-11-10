@@ -1,6 +1,6 @@
 import { TRACE_SCHEMA, type Run, type Step, type StepKind } from "../schema.js";
 import { signatureOf } from "../signature.js";
-import { firstJson, jsonLines } from "./jsonl.js";
+import { firstJson, readJsonLines } from "./jsonl.js";
 import type { Adapter } from "./types.js";
 
 interface AnyValue { stringValue?: string; intValue?: string | number; doubleValue?: number; boolValue?: boolean; arrayValue?: { values?: AnyValue[] } }
@@ -37,10 +37,16 @@ function userText(messages: unknown): string | undefined {
   return undefined;
 }
 
-function spansOf(text: string): Span[] {
-  const whole = firstJson(text) as Batch | undefined;
-  const batches: Batch[] = whole && text.trim().startsWith("{") && (() => { try { JSON.parse(text); return true; } catch { return false; } })() ? [whole] : (jsonLines(text) as Batch[]);
-  return batches.flatMap((b) => (b.resourceSpans ?? []).flatMap((r) => (r.scopeSpans ?? []).flatMap((s) => s.spans ?? [])));
+function batchesOf(text: string): { batches: { line?: number; batch: Batch }[]; truncated: boolean } {
+  const trimmed = text.trimStart();
+  if (trimmed.startsWith("{")) {
+    try {
+      JSON.parse(text);
+      return { batches: [{ batch: JSON.parse(text) as Batch }], truncated: false };
+    } catch { /* a JSONL export, or a cut file */ }
+  }
+  const read = readJsonLines(text);
+  return { batches: read.records.map((record) => ({ line: record.line, batch: record.value as Batch })), truncated: read.truncated };
 }
 
 /** OTLP/JSON export of OpenTelemetry GenAI semantic-convention spans. */
@@ -51,10 +57,16 @@ export const otelGenAI: Adapter = {
     return !!first && typeof first === "object" && Array.isArray(first.resourceSpans);
   },
   parse(text, opts = {}) {
-    const byTrace = new Map<string, Span[]>();
-    for (const s of spansOf(text)) byTrace.set(s.traceId, [...(byTrace.get(s.traceId) ?? []), s]);
-    return [...byTrace.entries()].map(([traceId, spans]) => {
-      spans.sort((a, b) => (BigInt(a.startTimeUnixNano ?? "0") < BigInt(b.startTimeUnixNano ?? "0") ? -1 : 1));
+    const { batches, truncated } = batchesOf(text);
+    const byTrace = new Map<string, { span: Span; line?: number }[]>();
+    for (const { line, batch } of batches) {
+      for (const span of (batch.resourceSpans ?? []).flatMap((r) => (r.scopeSpans ?? []).flatMap((s) => s.spans ?? []))) {
+        byTrace.set(span.traceId, [...(byTrace.get(span.traceId) ?? []), { span, line }]);
+      }
+    }
+    return [...byTrace.entries()].map(([traceId, located]) => {
+      located.sort((a, b) => (BigInt(a.span.startTimeUnixNano ?? "0") < BigInt(b.span.startTimeUnixNano ?? "0") ? -1 : 1));
+      const spans = located.map((item) => item.span);
       const ids = new Set(spans.map((s) => s.spanId));
       const roots = spans.filter((s) => !s.parentSpanId || !ids.has(s.parentSpanId));
       const root = roots[0];
@@ -63,7 +75,8 @@ export const otelGenAI: Adapter = {
       let instruction: string | undefined;
       let agentName = rootAttrs["gen_ai.agent.name"] as string | undefined;
       let model = rootAttrs["gen_ai.request.model"] as string | undefined;
-      for (const s of spans) {
+      for (const item of located) {
+        const s = item.span;
         const a = attrs(s);
         instruction ??= userText(a["gen_ai.input.messages"]) ?? userText(a["gen_ai.prompt"]);
         agentName ??= a["gen_ai.agent.name"] as string | undefined;
@@ -73,7 +86,15 @@ export const otelGenAI: Adapter = {
         if (!kind || (s === root && kind === "agent")) continue;
         const name = kind === "tool" ? String(a["gen_ai.tool.name"] ?? s.name.replace(/^execute_tool\s+/, "")) : kind === "agent" ? String(a["gen_ai.agent.name"] ?? s.name) : kind === "llm" ? String(a["gen_ai.request.model"] ?? s.name) : s.name;
         const input = kind === "tool" ? json(a["gen_ai.tool.call.arguments"]) : undefined;
-        const step: Step = { id: s.spanId, kind, name, signature: kind === "llm" ? `llm(${name})` : signatureOf(name, input), startedAt: iso(s.startTimeUnixNano), endedAt: iso(s.endTimeUnixNano) };
+        const step: Step = {
+          id: s.spanId,
+          kind,
+          name,
+          signature: kind === "llm" ? `llm(${name})` : signatureOf(name, input),
+          startedAt: iso(s.startTimeUnixNano),
+          endedAt: iso(s.endTimeUnixNano),
+          provenance: { eventId: s.spanId, ...(opts.filename ? { file: opts.filename } : {}), ...(item.line ? { line: item.line } : {}) },
+        };
         if (s.parentSpanId) step.parentId = s.parentSpanId;
         if (input !== undefined) step.input = input;
         const out = a["gen_ai.tool.call.result"];
@@ -83,6 +104,7 @@ export const otelGenAI: Adapter = {
         steps.push(step);
       }
       const run: Run = { schema: TRACE_SCHEMA, id: traceId, source: "otel-genai", steps, outcome: root ? (isError(root) ? "failure" : "success") : "unknown", startedAt: iso(root?.startTimeUnixNano), endedAt: iso(root?.endTimeUnixNano) };
+      if (truncated) run.truncated = true;
       if (instruction ?? rootAttrs["gen_ai.system_instructions"]) run.instruction = instruction ?? String(rootAttrs["gen_ai.system_instructions"]);
       if (agentName || model) run.agent = { ...(agentName ? { name: agentName } : {}), ...(model ? { model } : {}) };
       return run;

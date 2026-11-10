@@ -1,6 +1,6 @@
 import { TRACE_SCHEMA, type Run } from "../schema.js";
 import { signatureOf } from "../signature.js";
-import { firstJson, jsonLines } from "./jsonl.js";
+import { firstJson, readJsonLines } from "./jsonl.js";
 import type { Adapter } from "./types.js";
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -15,23 +15,34 @@ export const ledringTrace: Adapter = {
     const first: unknown = Array.isArray(value) ? value[0] : value;
     return isObject(first) && first.schema === TRACE_SCHEMA;
   },
-  parse(text) {
-    let value: unknown;
+  parse(text, opts = {}) {
+    let records: { line?: number; value: unknown }[];
+    let truncated = false;
     try {
-      value = JSON.parse(text);
+      records = [{ value: JSON.parse(text) }];
     } catch {
-      value = jsonLines(text);
+      const read = readJsonLines(text);
+      truncated = read.truncated;
+      records = read.records;
     }
-    const runs: unknown[] = Array.isArray(value) ? value : [value];
-    return runs.map((run) => {
-      if (!isObject(run) || !Array.isArray(run.steps)) return run as Run;
-      return {
-        ...run,
-        steps: run.steps.map((step: unknown) => {
-          if (!isObject(step) || step.signature !== undefined || typeof step.name !== "string") return step;
-          return { ...step, signature: signatureOf(step.name, step.input) };
-        }),
-      } as Run;
+    return records.flatMap((record) => {
+      const runs: unknown[] = Array.isArray(record.value) ? record.value : [record.value];
+      return runs.map((run) => {
+        if (!isObject(run) || !Array.isArray(run.steps)) return run as Run;
+        const next: Run = {
+          ...run,
+          steps: run.steps.map((step: unknown) => {
+            if (!isObject(step)) return step;
+            const filled = step.signature !== undefined || typeof step.name !== "string" ? step : { ...step, signature: signatureOf(step.name, step.input) };
+            if (isObject(filled) && filled.provenance === undefined && (opts.filename || record.line)) {
+              return { ...filled, provenance: { ...(opts.filename ? { file: opts.filename } : {}), ...(record.line ? { line: record.line } : {}) } };
+            }
+            return filled;
+          }),
+        } as Run;
+        if (truncated) next.truncated = true;
+        return next;
+      });
     });
   },
 };

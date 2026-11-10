@@ -2,5 +2,5 @@ export { builtinWalls, globToRegExp, type Wall, type WallContext } from "./walls
 export {
   evaluateRun, runScenarios, parseScenarios, isBlocked, defaultScenarios,
   OUTCOMES, REDWALL_SCHEMA, ScenarioSchema,
-  type Outcome, type Scenario, type WallResult, type RedWallReport,
+  type Outcome, type Scenario, type WallOutcome, type WallResult, type RedWallReport,
 } from "./evaluate.js";

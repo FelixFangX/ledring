@@ -5,7 +5,8 @@ import { decisionsLog } from "./adapters/decisions.js";
 import type { Adapter, ParseOptions } from "./adapters/types.js";
 import { RunSchema, type Run } from "./schema.js";
 
-export { TRACE_SCHEMA, RunSchema, StepSchema, StepKind, DecisionSchema, type Decision, type Run, type Step } from "./schema.js";
+export { TRACE_SCHEMA, RunSchema, StepSchema, StepKind, DecisionSchema, ProvenanceSchema, type Decision, type Provenance, type Run, type Step } from "./schema.js";
+export { guardrailOf, blockBasis, type GuardrailFact } from "./guardrail.js";
 export { riskOf, commandOf } from "./risk.js";
 export { DECISIONS_SCHEMA } from "./adapters/decisions.js";
 export { signatureOf, pathsOf } from "./signature.js";
