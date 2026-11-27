@@ -96,4 +96,12 @@ describe("play page", () => {
     expect(html).toContain("项自测通过");
     expect(html.split("languageDirective(").length).toBeGreaterThanOrEqual(6);
   });
+
+  it("includes persistent top-bar GitHub link and up-to-date npm CLI install command", () => {
+    expect(html).toContain('id="hud-gh" href="https://github.com/FelixFangX/ledring"');
+    expect(html).toContain("GitHub ↗");
+    expect(html).toContain('id="e-cli-cmd" translate="no">npm install -g ledring@beta</span>');
+    expect(html).not.toContain("Not on npm yet");
+    expect(html).not.toContain("暂未发布到 npm");
+  });
 });

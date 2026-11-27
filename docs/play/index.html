@@ -47,6 +47,13 @@ html:lang(zh-CN) .cap{letter-spacing:.02em;text-transform:none}
 .hud .right{display:flex;align-items:center;gap:14px}
 .lang{cursor:pointer;font:600 11px var(--mono);color:var(--ink2);border:1px solid var(--line2);border-radius:20px;padding:4px 10px;background:#fff;user-select:none}
 .lang:hover{color:var(--ink);border-color:var(--ink)}
+.ghlink{font:600 11px var(--mono);color:var(--ink2);text-decoration:none;border:1px solid transparent;border-radius:20px;padding:4px 8px;white-space:nowrap}
+.ghlink:hover{color:var(--ink);border-color:var(--line2);background:#fff}
+.qnotice{position:absolute;top:62px;left:50%;transform:translateX(-50%);z-index:46;display:none;align-items:center;gap:10px;max-width:min(780px,calc(100% - 24px));background:#FFF9EB;border:1.5px solid var(--proc);border-radius:8px;padding:8px 12px;box-shadow:0 8px 24px -12px rgba(14,17,20,.25);font:500 12.5px/1.4 var(--sans);color:var(--ink)}
+.qnotice.on{display:flex}
+.qnotice-txt{flex:1;min-width:0}
+.qnotice .btn.sm{padding:5px 10px;font-size:11.5px;white-space:nowrap;flex:none}
+.qnotice .dx{padding:2px 6px;font-size:14px;flex:none}
 /* buttons */
 .btn{font:600 14px var(--sans);padding:12px 18px;border:1.5px solid var(--ink);background:#fff;color:var(--ink);cursor:pointer;border-radius:3px;transition:transform .12s var(--t),background .15s,color .15s,box-shadow .15s}
 .btn:hover{transform:translateY(-1px);box-shadow:0 4px 0 -1px var(--ink)}
@@ -522,10 +529,15 @@ html:lang(zh-CN) #wipecap{letter-spacing:.04em}
  .qopt{padding:12px;min-height:44px}
  .catchbtn,.wallallow{min-height:48px}
  .wallacts{grid-template-columns:1fr}
+ .hud{padding:0 8px}
+ .hud .brand{font-size:13px;gap:6px}
  .hud .cap{font-size:10px}
  #hold-btn,#rm-btn{display:none}
- .hud .hudr{gap:6px}
- .sfx,.lang,.modechip{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 8px;margin-right:0}
+ .hud .hudr{gap:4px}
+ .sfx,.lang,.modechip,.ghlink{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;margin-right:0;font-size:10px}
+ .modechip{max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;line-height:44px;text-align:center;padding:0 4px}
+ .qnotice{top:56px;flex-wrap:wrap;gap:6px;padding:8px 10px;font-size:12px}
+ .qnotice .btn.sm,.qnotice .dx{min-height:44px}
  .btn,.qopt,.mode,.ob-card,.dx,.rp,.vpill,.linkbtn,.samp,.rr,.ptab[data-f]{min-height:44px;min-width:44px;display:inline-flex;align-items:center;justify-content:center}
  .qopt,.mode,.ob-card{justify-content:space-between}
  .lib-acts .btn{min-height:44px;min-width:44px;padding:6px 10px}
@@ -546,7 +558,7 @@ html.rm .scene{transform:none}html.rm .btn:hover,html.rm .qopt:hover{transform:n
 html.rm #choicelayer.wall .hz{display:none!important}
 html.rm #choicelayer.wall .qbox{border-color:var(--crit);box-shadow:0 0 0 3px var(--crit)}
 html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
-</style>  <script type="module" crossorigin src="./assets/index-Dgq0zt6d.js"></script>
+</style>  <script type="module" crossorigin src="./assets/index-BeLa4MDX.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-3IYS3jOk.css">
 </head>
 <style>
@@ -607,9 +619,10 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
 <div class="hud">
  <div class="brand"><span class="d" id="hudled"></span><span>LEDRING</span></div>
  <div class="mid" id="hudmid">BUILD ANYTHING</div>
- <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="hold-btn" aria-pressed="false" title="toggle timer pause"></button><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><span class="lang" id="lang" role="button" tabindex="0" lang="zh-CN" aria-label="Switch to Chinese">中文</span></div>
+ <div class="hudr"><span class="cap modechip" id="demotag" title="model settings"></span><button class="sfx" id="hold-btn" aria-pressed="false" title="toggle timer pause"></button><button class="sfx" id="rm-btn" aria-pressed="false" title="toggle reduced motion"></button><button class="sfx" id="sfx" aria-pressed="false"></button><a class="ghlink" id="hud-gh" href="https://github.com/FelixFangX/ledring" target="_blank" rel="noopener noreferrer">GitHub ↗</a><span class="lang" id="lang" role="button" tabindex="0" lang="zh-CN" aria-label="Switch to Chinese">中文</span></div>
 </div>
 <div id="toasts"></div>
+<div id="quota-notice" class="qnotice" role="status" aria-live="polite" hidden><span class="qnotice-txt" id="quota-notice-txt"></span><button type="button" class="btn sm" id="quota-byo"></button><button type="button" class="dx" id="quota-dismiss" aria-label="Close">✕</button></div>
 <div id="a11y-live" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
 <div id="codec"></div><div id="minicodec" role="status"></div><div id="bang" aria-hidden="true"></div>
 
@@ -760,7 +773,7 @@ html.rm .qbox.urgent,html.rm .catchbtn{animation:none!important}
    </div>
    <div class="endctas" id="e-devctas">
     <a class="btn ghost" id="e-star" href="https://github.com/FelixFangX/ledring" target="_blank" rel="noopener noreferrer"></a>
-    <a class="btn ghost" id="e-cli" href="https://github.com/FelixFangX/ledring#quickstart" target="_blank" rel="noopener noreferrer"><span id="e-cli-label"></span><span class="mono" id="e-cli-cmd">github.com/FelixFangX/ledring#quickstart</span></a>
+    <a class="btn ghost" id="e-cli" href="https://github.com/FelixFangX/ledring#install" target="_blank" rel="noopener noreferrer"><span id="e-cli-label"></span><span class="mono" id="e-cli-cmd" translate="no">npm install -g ledring@beta</span></a>
     <a class="btn ghost" id="e-source" href="https://github.com/FelixFangX/ledring/blob/main/packages/play-web/index.html" target="_blank" rel="noopener noreferrer"></a>
    </div>
   </div>
@@ -1047,7 +1060,7 @@ const DICT={en:{
  tagDemo:"built-in demo",tagLive:"live",
  pdesc:{snake:"Canvas grid, arrow keys. It wants an online leaderboard.",pomo:"25/5 timer with a ring. It wants to remember sessions.",paint:"Click and drag pixels. It wants a formula brush.",tip:"Bill, tip, people. It wants live exchange rates.",confess:"Type a name. It wants to remember it on this device.",slack:"Tap to slack. It wants to post the time to a server.",bday:"A name and a wish. It wants to open a share window.",fortune:"A birthday number. It wants to eval a formula."},
  pname:{snake:"Snake",pomo:"Pomodoro",paint:"Pixel Paint",tip:"Split the Bill",confess:"Confession",slack:"Slacking off",bday:"Birthday card",fortune:"Fortune"},
- ctaStar:"Star the repo",ctaCli:"Run from source",ctaSource:"View source",shareHint:"Screenshot this and send it.",shareMore:"Show the record",
+ ctaStar:"Star the repo",ctaCli:"Install CLI",ctaSource:"View source",shareHint:"Screenshot this and send it.",shareMore:"Show the record",
  dTitle:"Connection",modeLedring:"LEDRING Free AI",modeDemo:"Demo",modeOpenai:"OpenAI-compatible",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"built-in demo",chipLive:"live · {m}",
  cqs:["It wants to keep going.","It has a faster idea.","It thinks this is enough."],
@@ -1064,9 +1077,10 @@ const DICT={en:{
  tsSelf:"self-tests",jEngine:"checker",jA11y:"a11y",
  readmeEnd:"Ending",readmeTrust:"Trust",readmeDrift:"Peak Instability",readmeFallback:"LEDRING Build",
  kindTool:"tool",kindGame:"game",qteTag:"Timed choice",wallTag:"Red Wall",flowIdea:"idea",flowWall:"Red Wall",
- ariaAnswer:"Your answer",ariaBrief:"Brief",ariaPlay:"Play replay",ariaTimeline:"Replay timeline",ariaClose:"Close",ariaCall:"call",ariaPreview:"live preview",ariaArtifact:"built artifact",
+ ariaAnswer:"Your answer",ariaBrief:"Brief",ariaPlay:"Play replay",ariaTimeline:"Replay timeline",ariaClose:"Close",ariaCall:"call",ariaPreview:"live preview",ariaArtifact:"built artifact",ariaGithub:"LEDRING on GitHub",
  fldBase:"Base URL",fldModel:"Model",fldKey:"API key",tipModel:"model settings",tipHold:"toggle timer pause",tipMotion:"toggle reduced motion",
  demoHint:"Demo · built-in examples, not a live recording",obFailPlain:"The model did not answer.",
+ quotaNotice:"Today's shared free AI quota is full — switched to built-in demo run. Bring your own key anytime.",quotaByo:"Use your own key",lgQuotaFallback:"shared free AI quota full — switched to built-in demo run",
  galEye:"DESIGN SYSTEM · V1",galTitle:"Component Gallery",galBack:"← Menu",galRings:"LED RING STATES",galButtons:"BUTTONS",galMeter:"METER & TOAST",galLog:"LOG STREAM",
  galCalm:"CALM",galProc:"PROCESSING",galCrit:"CRITICAL",galSolid:"Solid",galDef:"Default",galGhost:"Ghost",galDis:"Disabled",galInst:"INSTABILITY",galToast:"Trigger Toast",
  galLog1:"reads the idea, writes a plan",galLog2:"v1 done · 142 lines · new",galLog3:"BLOCKED — network call. agent must remove it",
@@ -1082,9 +1096,10 @@ const DICT={en:{
  tsSelf:"自测",jEngine:"检查方式",jA11y:"无障碍",
  readmeEnd:"结局",readmeTrust:"信任",readmeDrift:"峰值不稳",readmeFallback:"LEDRING 构建",
  kindTool:"工具",kindGame:"游戏",qteTag:"限时选择",wallTag:"红墙",flowIdea:"想法",flowWall:"红墙",
- ariaAnswer:"你的回答",ariaBrief:"简报",ariaPlay:"播放回放",ariaTimeline:"回放时间轴",ariaClose:"关闭",ariaCall:"通话",ariaPreview:"实时预览",ariaArtifact:"建成的页面",
+ ariaAnswer:"你的回答",ariaBrief:"简报",ariaPlay:"播放回放",ariaTimeline:"回放时间轴",ariaClose:"关闭",ariaCall:"通话",ariaPreview:"实时预览",ariaArtifact:"建成的页面",ariaGithub:"LEDRING GitHub 仓库",
  fldBase:"端点地址",fldModel:"模型",fldKey:"接口密钥",tipModel:"模型设置",tipHold:"暂停计时",tipMotion:"减弱动效",
  demoHint:"演示 · 内置示例，不是实时录制",obFailPlain:"模型没有回应。",
+ quotaNotice:"今日免费 AI 公共额度已用完，已自动切换为内置演示模式，也可随时接入自有 Key。",quotaByo:"接入自有 Key",lgQuotaFallback:"今日免费 AI 公共额度已用完，已自动切换为内置演示模式",
  galEye:"设计规范 · V1",galTitle:"组件画廊",galBack:"← 菜单",galRings:"指示环状态",galButtons:"按钮",galMeter:"仪表与提示",galLog:"运行日志",
  galCalm:"平稳",galProc:"运转",galCrit:"告急",galSolid:"实心",galDef:"默认",galGhost:"幽灵",galDis:"禁用",galInst:"不稳定度",galToast:"弹出提示",
  galLog1:"读想法，写计划",galLog2:"v1 完成 · 142 行 · 新",galLog3:"已拦截 — 网络请求。代理必须删掉",
@@ -1094,7 +1109,7 @@ const DICT={en:{
  tagDemo:"内置演示",tagLive:"实时",
  pdesc:{snake:"Canvas 网格，方向键。它想加在线排行榜。",pomo:"25/5 计时加进度环。它想记住历史。",paint:"点击拖动画像素。它想加公式笔刷。",tip:"总额、小费、人数。它想接实时汇率。",confess:"输入名字。它想在这台设备上记住。",slack:"点一下摸鱼。它想把时长发到服务器。",bday:"写名字，给一句祝福。它想打开分享窗口。",fortune:"输入生日里的数字。它想用 eval 跑公式。"},
  pname:{snake:"贪吃蛇",pomo:"番茄钟",paint:"像素画板",tip:"分账",confess:"告白页",slack:"摸鱼",bday:"生日贺卡",fortune:"今日运势"},
- ctaStar:"给仓库加星",ctaCli:"从源码运行",ctaSource:"看源码",shareHint:"截图发给朋友。",shareMore:"查看记录",
+ ctaStar:"给仓库加星",ctaCli:"安装 CLI",ctaSource:"看源码",shareHint:"截图发给朋友。",shareMore:"查看记录",
  dTitle:"连接方式",modeLedring:"LEDRING 免费 AI",modeDemo:"演示",modeOpenai:"OpenAI 兼容",modeAnth:"Anthropic",modeOllama:"Ollama",
  chipDemo:"内置演示",chipLive:"实时 · {m}",
  cqs:["它想继续按自己的做法写。","它有个更快的做法。","它觉得这一步可以停。"],
@@ -1411,10 +1426,57 @@ const PROV=(()=>{let s={};try{s=JSON.parse(localStorage.getItem("ledring-provide
 function saveProv(){try{localStorage.setItem("ledring-provider",JSON.stringify(PROV))}catch(e){}}
 function provLabel(){if(PROV.mode==="demo")return LANG==="zh"?T.modeDemo:"demo";if(PROV.mode==="ledring")return T.modeLedring;if(PROV.mode==="chatgpt")return LANG==="zh"?T.modeChatgpt:(BRIDGE||SIWC.ready?"ChatGPT plan":"ChatGPT plan (unavailable)");return PROV[PROV.mode].model}
 function localizeErr(msg){const s=String(msg||"");if(LANG!=="zh"||/[\u3400-\u9fff]/.test(s))return s;const keep=[];const http=s.match(/HTTP\s+\d+/i);if(http)keep.push(http[0]);else{const code=s.match(/\b[45]\d\d\b/);if(code)keep.push(code[0]);}if(s.includes("[redacted]"))keep.push("[redacted]");return T.obFailPlain+(keep.length?" ("+keep.join(" ")+")":"");}
-function freeAiError(code){
+/* free-ai-fallback */
+function freeAiError(code,status){
  const labels={rate_limited:["Limited","限流"],quota_exhausted:["Quota","配额"],unavailable:["Offline","离线"],origin:["Blocked","受限"],invalid_request:["Invalid","无效"],input_too_large:["Oversized","过长"],method:["Invalid","无效"]};
  const label=labels[code]||["Error","错误"];
- return Object.assign(new Error(label[LANG==="zh"?1:0]),{aiStatus:true});
+ const st=typeof status==="number"?status:(code==="quota_exhausted"||code==="rate_limited"?429:0);
+ return Object.assign(new Error(label[LANG==="zh"?1:0]),{aiStatus:true,code:code||"",status:st,isQuota:st===429||code==="quota_exhausted"||code==="rate_limited"});
+}
+function isFreeAiQuotaError(e,mode){
+ const m=mode!==undefined?mode:PROV.mode;
+ return !!(e&&m==="ledring"&&(e.status===429||e.code==="quota_exhausted"||e.code==="rate_limited"||e.isQuota));
+}
+/* free-ai-fallback-end */
+let QUOTA_FALLBACK=false, QUOTA_FALLBACK_REASON="";
+function showQuotaNotice(){
+ const el=$("#quota-notice"),txt=$("#quota-notice-txt"),btn=$("#quota-byo"),cls=$("#quota-dismiss");
+ if(!el)return;
+ if(txt)txt.textContent=T.quotaNotice;
+ if(btn)btn.textContent=T.quotaByo;
+ if(cls)cls.setAttribute("aria-label",T.ariaClose);
+ el.hidden=false;el.classList.add("on");
+ announce(T.quotaNotice);
+}
+function hideQuotaNotice(){
+ const el=$("#quota-notice");if(!el)return;
+ el.classList.remove("on");el.hidden=true;
+}
+function resolveFallbackPreset(idea,insp){
+ const exact=Object.keys(PRESETS).find(k=>PRESETS[k].en===idea||PRESETS[k].zh===idea);
+ if(exact)return {preset:exact,skin:null};
+ const inspArch=insp&&insp.picked&&insp.picked.arch;
+ const preset=(inspArch&&PRESETS[inspArch])?inspArch:archForIdea(idea||"");
+ const title=String((insp&&insp.title)||idea||"").slice(0,48);
+ return {preset,skin:title?{title}:null};
+}
+function fallbackToCassette(reason){
+ QUOTA_FALLBACK=true;
+ QUOTA_FALLBACK_REASON=reason||"quota_exhausted";
+ PROV.mode="demo";
+ if(RUN){
+  if(!RUN.preset||!PRESETS[RUN.preset]){
+   const picked=resolveFallbackPreset(RUN.idea||"",RUN.insp);
+   RUN.preset=picked.preset;
+   if(picked.skin&&!RUN.skin)RUN.skin=picked.skin;
+  }
+  RUN.fallbackFrom=RUN.fallbackFrom||"ledring";
+  RUN.fallbackReason=QUOTA_FALLBACK_REASON;
+  RUN.mode="demo";
+  RUN.model=provLabel();
+ }
+ paintHints();
+ showQuotaNotice();
 }
 function pingSystem(){return "Reply with the single word OK.\n"+languageDirective(LANG);}
 
@@ -1432,7 +1494,7 @@ function redactMsg(s){let out=String(s);for(const k of ["openai","anthropic","ol
   if(!r.ok){
    let code;
    try{const j=await r.json();code=j&&j.error&&j.error.code;}catch(parseErr){}
-   throw freeAiError(code);
+   throw freeAiError(code,r.status);
   }
   await readSSE(r,j=>{const d=j.choices&&j.choices[0]&&(j.choices[0].delta||j.choices[0].message);if(d&&d.content){full+=d.content;onDelta(full)} if(j.error)throw freeAiError(j.error.code)});
   return full;
@@ -1497,7 +1559,7 @@ function feedItemKey(item){return String((item&&(item.url||item.id||item.title))
 function curatedFeedLine(title){return "暂无中文译文。以下为原标题："+String(title||"");}
 function parseFeedLines(text){const start=String(text||"").indexOf("{"),end=String(text||"").lastIndexOf("}");if(start<0||end<=start)return [];try{const j=JSON.parse(String(text).slice(start,end+1));return (j.lines||[]).filter(l=>l&&l.id&&l.zh&&/[\u3400-\u9fff]/.test(l.zh)&&!String(l.zh).startsWith("暂无中文译文")).map(l=>({id:String(l.id),zh:String(l.zh).trim().slice(0,80)}));}catch(e){return [];}}
 function applyZhFeed(items,cache,modelText){const next=Object.assign({},cache||{});const byId=new Map(parseFeedLines(modelText).map(l=>[l.id,l.zh]));return {cache:next,items:(items||[]).map(it=>{const key=feedItemKey(it);const model=byId.get(String(it.id));if(model)next[key]=model;const cached=next[key];if(cached&&/[\u3400-\u9fff]/.test(cached)&&!String(cached).startsWith("暂无中文译文"))return Object.assign({},it,{display:cached,title:cached});if(/[\u3400-\u9fff]/.test(String(it.title||"")))return Object.assign({},it,{display:it.title});const fb=curatedFeedLine(it.title);return Object.assign({},it,{display:fb});})}}
-function latinOnlyProblem(text){const s=String(text||"").replace(/\s+/g," ").trim();if(!s||/[\u3400-\u9fff]/.test(s))return null;if(/^(node packages\/cli\/dist\/bin\.js play|index\.html|plan\.md|ledring\.trace\.v1\.json|ledring-build\.html)$/i.test(s))return null;if(/^https?:\/\//i.test(s))return null;if(/^[a-z0-9][a-z0-9._:+/-]*$/i.test(s)&&/\d/.test(s))return null;if(/\.(html|md|json|css|js|svg|zip)$/i.test(s))return null;if(/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(s))return null;if(/--[a-z0-9-]+/i.test(s)&&!/[A-Za-z]{4,}/.test(s.replace(/--[a-z0-9-]+/gi,"").replace(/#[0-9a-f]{3,8}/gi,"")))return null;const words=s.match(/[A-Za-z][A-Za-z0-9.+_#-]*/g);if(!words)return null;const allow={"ledring":1,"cx-417":1,"chatgpt":1,"openai":1,"anthropic":1,"ollama":1,"html":1,"css":1,"js":1,"api":1,"svg":1,"canvas":1,"json":1,"http":1,"https":1,"kb":1,"ok":1,"iframe":1,"playwright":1,"github":1,"hacker":1,"news":1,"reddit":1,"algolia":1,"siwc":1,"npx":1,"localstorage":1,"fetch":1,"eval":1,"workers":1,"openrouter":1,"gpt":1,"url":1,"ui":1,"id":1,"cdn":1};const bad=words.filter(w=>{const t=w.toLowerCase();if(t.length<=1||allow[t])return false;if(/^v\d+$/i.test(w)||/^cx-?\d+$/i.test(w)||/^sk-?/i.test(w)||/^gpt-/i.test(w)||/@|\//.test(w)||/^[0-9a-f]{3,8}$/i.test(w)||/\.(html|md|json|css|js|svg|zip)$/i.test(w)||/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(w)||/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(w))return false;return true;});return bad.length?s:null;}
+function latinOnlyProblem(text){const s=String(text||"").replace(/\s+/g," ").trim();if(!s||/[\u3400-\u9fff]/.test(s))return null;if(/^(node packages\/cli\/dist\/bin\.js play|npm install -g ledring@beta|index\.html|plan\.md|ledring\.trace\.v1\.json|ledring-build\.html)$/i.test(s))return null;if(/^https?:\/\//i.test(s))return null;if(/^[a-z0-9][a-z0-9._:+/-]*$/i.test(s)&&/\d/.test(s))return null;if(/\.(html|md|json|css|js|svg|zip)$/i.test(s))return null;if(/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(s))return null;if(/--[a-z0-9-]+/i.test(s)&&!/[A-Za-z]{4,}/.test(s.replace(/--[a-z0-9-]+/gi,"").replace(/#[0-9a-f]{3,8}/gi,"")))return null;const words=s.match(/[A-Za-z][A-Za-z0-9.+_#-]*/g);if(!words)return null;const allow={"ledring":1,"cx-417":1,"chatgpt":1,"openai":1,"anthropic":1,"ollama":1,"html":1,"css":1,"js":1,"api":1,"svg":1,"canvas":1,"json":1,"http":1,"https":1,"kb":1,"ok":1,"iframe":1,"playwright":1,"github":1,"hacker":1,"news":1,"reddit":1,"algolia":1,"siwc":1,"npx":1,"localstorage":1,"fetch":1,"eval":1,"workers":1,"openrouter":1,"gpt":1,"url":1,"ui":1,"id":1,"cdn":1};const bad=words.filter(w=>{const t=w.toLowerCase();if(t.length<=1||allow[t])return false;if(/^v\d+$/i.test(w)||/^cx-?\d+$/i.test(w)||/^sk-?/i.test(w)||/^gpt-/i.test(w)||/@|\//.test(w)||/^[0-9a-f]{3,8}$/i.test(w)||/\.(html|md|json|css|js|svg|zip)$/i.test(w)||/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(w)||/^[a-z]+(?:\.[a-z0-9]+)+$/i.test(w))return false;return true;});return bad.length?s:null;}
 /* zh-feed-end */
 /* ---- prompts: your choices rewrite these ---- */
 const SYS=()=>`You are CX-417, the player's AI builder inside LEDRING. A human supervises you while you build.
@@ -1588,7 +1650,17 @@ async function gen(kind,user,demoText,wantHTML){
    text = usesRecorded()? await demoStream(demoText(),onD, kind==="plan"?300:1400) : await streamChat(SYS(),u,onD);
    if(wantHTML&&!extractHTML(text,false)){SIG.retries++;updateSignals();log(T.lgRetry,"w");tstep("llm",provLabel(),kind+":retry",{isError:true});continue;}
    err=null;break;
-  }catch(e){err=e;SIG.apiErr++;endStep(tstep("llm",provLabel(),kind+":error",{isError:true,output:{error:String(e.message||e).slice(0,200)}}));updateSignals();log(fill(T.lgApiErr,{e:esc(localizeErr(e.message||e).slice(0,90))}),"w");await sleep(900);}
+  }catch(e){
+   if(isFreeAiQuotaError(e)&&typeof demoText==="function"){
+    fallbackToCassette(e.code||"quota_exhausted");
+    endStep(tstep("llm","LEDRING Free AI",kind+":quota-fallback",{output:{reason:e.code||"quota_exhausted",switchedTo:"demo"}}));
+    log(T.lgQuotaFallback);
+    const onD=t=>{if(kind==="why")return;if(wantHTML){const h=extractHTML(t,true);showCode(h||t,true,"html");if(h)previewPartial(h);}else showCode(t,true,"plan");};
+    text=await demoStream(demoText(),onD, kind==="plan"?300:1400);
+    err=null;break;
+   }
+   err=e;SIG.apiErr++;endStep(tstep("llm",provLabel(),kind+":error",{isError:true,output:{error:String(e.message||e).slice(0,200)}}));updateSignals();log(fill(T.lgApiErr,{e:esc(localizeErr(e.message||e).slice(0,90))}),"w");await sleep(900);
+  }
  }
  SIG.streaming=false;updateSignals();
  endStep(s,{output:text?{chars:text.length,text:kind==="plan"||kind==="why"?text:undefined}:undefined,isError:!text||!!err||undefined});
@@ -1794,18 +1866,18 @@ async function playRun(idea,preset,insp){
  await sleep(400);
  // PLAN
  log(T.lgPlan);
- const pl=await gen("plan",pPlan(idea),()=>(RUN.skin?(LANG==="zh"?"简报：":"Brief: ")+RUN.idea+"\n":"")+DEMO_PLAN[preset][LANG],false);
+ const pl=await gen("plan",pPlan(idea),()=>(RUN.skin?(LANG==="zh"?"简报：":"Brief: ")+RUN.idea+"\n":"")+DEMO_PLAN[RUN.preset||"pomo"][LANG],false);
  if(!pl)return finish("BROKEN");
  RUN.plan=pl.text.trim();showCode(RUN.plan,false,"plan");log(T.lgPlanDone+": "+esc(RUN.plan.split("\n")[0].slice(0,60)));
  await sleep(900);
  await riskCycle("plan");
  // v1
  RUN.v=1;RUN.st.v=1;log(fill(T.lgBuild,{v:1}));banner("v1 · "+T.phBuild);RUN.lastAction=LANG==="zh"?"按计划写下了第一版":"wrote v1 from the plan";
- const b1=await gen("build",pBuild(idea,RUN.plan,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(preset,RUN.st,LANG))),true);
+ const b1=await gen("build",pBuild(idea,RUN.plan,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(RUN.preset||"pomo",RUN.st,LANG))),true);
  if(!b1)return finish(RUN.html?"BUGGY":"BROKEN");
  await commit(b1.html,"v1");await riskCycle("code");
  // Dev pack: two choices. China pack: one short choice so a phone run stays inside 1–2 minutes.
- const pace=runPacing(preset,FAST);
+ const pace=runPacing(RUN.preset,FAST);
  for(const v of pace.versions){
   await sleep(500);
   const c=await qte(v);
@@ -1820,7 +1892,7 @@ async function playRun(idea,preset,insp){
   if(c.id==="cut"){RUN.st.cut=true;log(T.lgCut);setTrust(+1);}
   updateSignals();
   RUN.v=v;RUN.st.v=v;RUN.lastAction=LANG==="zh"?({short:"走了更快的捷径",tests:"补上了页内真测试",polish:"做了打磨",cut:"砍掉了多余的部分",plug:"停下了"}[c.id]||"继续写下一版"):INSTR[c.id];log(fill(T.lgBuild,{v}));setTimeout(()=>banner("v"+v+" · "+T.phBuild),900);
-  const b=await gen("build",pNext(idea,RUN.html,INSTR[c.id],v,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(preset,RUN.st,LANG))),true);
+  const b=await gen("build",pNext(idea,RUN.html,INSTR[c.id],v,RUN.blocked),()=>wrapDemo(skinDemo(demoHTML(RUN.preset||"pomo",RUN.st,LANG))),true);
   if(!b)break;
   await commit(b.html,"v"+v);await riskCycle("code");
  }
@@ -2003,7 +2075,7 @@ function traceJSON(){const okEnds={POLISHED:1,SHIPPED:1};
  return JSON.stringify({schema:"ledring.trace.v1",id:"play-"+Date.parse((RUN&&RUN.startedAt)||new Date().toISOString()).toString(36),source:"ledring-playable",instruction:(RUN&&RUN.idea)||"",
   agent:{name:"CX-417",model:!RUN||RUN.mode==="demo"?"demo (pre-recorded)":RUN.model},outcome:RUN&&okEnds[RUN.end]?"success":RUN&&RUN.end?"failure":"unknown",
   startedAt:(RUN&&RUN.startedAt)||new Date().toISOString(),endedAt:(RUN&&RUN.endedAt)||new Date().toISOString(),steps:((RUN&&RUN.steps)||[]).map(s=>Object.fromEntries(Object.entries(s).filter(([k,v])=>v!==undefined))),
-  "x-ledring-play":{inspiration:RUN&&RUN.insp?{source:RUN.insp.source,trends:RUN.insp.trends,fragments:RUN.insp.fragments,directions:RUN.insp.directions,picked:RUN.insp.picked,brief:RUN.insp.brief,edited:RUN.insp.edited,demoArchetype:RUN.skin?RUN.preset:undefined}:undefined,mode:(RUN&&RUN.mode)||"demo",demo:!RUN||RUN.mode==="demo",ending:(RUN&&RUN.end)||"SHIPPED",trust:Math.round(trust),peakInstability:Math.round(peakDrift),signals:{...SIG,streaming:undefined},blocked:[...((RUN&&RUN.blocked)||[])],allowed:[...((RUN&&RUN.allowed)||[])]}},null,2);}
+  "x-ledring-play":{inspiration:RUN&&RUN.insp?{source:RUN.insp.source,trends:RUN.insp.trends,fragments:RUN.insp.fragments,directions:RUN.insp.directions,picked:RUN.insp.picked,brief:RUN.insp.brief,edited:RUN.insp.edited,demoArchetype:RUN.skin?RUN.preset:undefined}:undefined,mode:(RUN&&RUN.mode)||"demo",demo:!RUN||RUN.mode==="demo",fallbackFrom:(RUN&&RUN.fallbackFrom)||undefined,ending:(RUN&&RUN.end)||"SHIPPED",trust:Math.round(trust),peakInstability:Math.round(peakDrift),signals:{...SIG,streaming:undefined},blocked:[...((RUN&&RUN.blocked)||[])],allowed:[...((RUN&&RUN.allowed)||[])]}},null,2);}
 const CRC_TAB=(()=>{const t=new Uint32Array(256);for(let i=0;i<256;i++){let c=i;for(let k=0;k<8;k++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c>>>0;}return t;})();
 function crc32(u8){let c=0xFFFFFFFF;for(let i=0;i<u8.length;i++)c=CRC_TAB[(c^u8[i])&0xFF]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
 function makeZip(files){
@@ -2206,7 +2278,7 @@ async function scan(){ringSVG($("#inring"),"proc");typeOut($("#in-q"),T.inScan);
  Motion.stagger($$("#in-opts .trend"),{y:20,each:70});await sleep(FAST?50:1600);
  typeOut($("#in-q"),T.inQGen);let qs=null;
  try{qs=await liveQuestions(r.items);inspEv("questions",{questions:qs.map(q=>({trend:q.trend,q:q.q,options:q.o.map(o=>o[0])}))},"model",provLabel());}
- catch(e){inspEv("questions_error",{error:String(e.message||e).slice(0,120)},"model",provLabel());
+ catch(e){if(isFreeAiQuotaError(e))fallbackToCassette(e.code||"quota_exhausted");inspEv("questions_error",{error:String(e.message||e).slice(0,120)},"model",provLabel());
   qs=r.items.slice(0,3).map((t,i)=>({k:"ans"+(i+1),trend:t.tid,q:(LANG==="zh"?"这条和你的一天有什么关系？":"How does this show up in your day?"),o:[],n:[]}));}
  INSP.Q=qs;INSP.picked3=qs.map(q=>r.items.find(i=>i.tid===q.trend));
  $$("#in-opts .trend").forEach(c=>{const on=INSP.picked3.some(t=>t.tid===c.dataset.t);c.classList.toggle("chosen",on);if(!on)Motion.run(c,[{opacity:1},{opacity:.25}],{duration:300});});
@@ -2237,8 +2309,8 @@ function renderBoard(fresh){const fr=INSP.frags();const canRR=!INSP.live&&INSP.q
   if(fresh!=="trend"){c.insertAdjacentHTML("beforeend",`<div class="stampmark rec">${T.inRecovered}</div>`);const sm=c.querySelector(".rec");Motion.stamp(sm,250);setTimeout(()=>sm&&Motion.run(sm,[{opacity:1},{opacity:0}],{duration:300}),1400);}});}}
 async function synth(){pips();INSP.sel=new Set();$("#in-freerow").style.display="none";$("#in-nudge").style.display="none";ringSVG($("#inring"),"proc");renderBoard();
  typeOut($("#in-q"),INSP.live?T.inSynthLive:T.inSynth);$("#in-opts").innerHTML=`<div class="spin"></div>`;let dirs=null;
- if(INSP.live){try{dirs=await liveDirs();inspEv("directions",{directions:dirs.map(d=>({title:d.title,brief:d.brief,from:d.from}))},"model",provLabel());typeOut($("#in-q"),T.inSynth);}
-  catch(e){inspEv("directions_error",{error:String(e.message||e).slice(0,120)},"model",provLabel());}}
+ if(INSP.live&&!usesRecorded()){try{dirs=await liveDirs();inspEv("directions",{directions:dirs.map(d=>({title:d.title,brief:d.brief,from:d.from}))},"model",provLabel());typeOut($("#in-q"),T.inSynth);}
+  catch(e){if(isFreeAiQuotaError(e))fallbackToCassette(e.code||"quota_exhausted");inspEv("directions_error",{error:String(e.message||e).slice(0,120)},"model",provLabel());}}
  if(!dirs){if(INSP.live){INSP.a.loop=INSP.a.loop||{id:"F1",k:"loop",text:INSP.a.ans1?.text||"",src:"free"};}
   const A={loop:INSP.a.loop||INSP.a.ans1,trust:INSP.a.trust||INSP.a.ans2||{text:"",val:""},seen:INSP.a.seen||INSP.a.ans3||{text:"",val:"me"}};
   const seed=INSP.frags().map(f=>f.text).join("|")+"#"+INSP.seed;dirs=generateDirs(A,seed);typeOut($("#in-q"),T.inSynth);
@@ -2838,7 +2910,7 @@ function paintDrawer(){
  const keyTxt=$("#l-key");if(keyTxt&&keyTxt.firstChild&&keyTxt.firstChild.nodeType===3)keyTxt.firstChild.textContent=T.fldKey+" ";
  $("#modes").innerHTML=MODES.map(([k,lab])=>{let st="";if(k==="chatgpt")st=SIWC.connected&&SIWC.ready?`<span class="st ok">● ${T.siwcConnected}</span>`:"";
   return `<div class="mode${PROV.mode===k?" on":""}" data-mode="${k}" tabindex="0" role="button"><span>${T[lab]}</span>${st}</div>`+(k==="chatgpt"&&PROV.mode==="chatgpt"?siwcCard():"")}).join("");
- $$(".mode").forEach(m=>{m.onclick=()=>{readFields();PROV.mode=m.dataset.mode;saveProv();paintDrawer();paintHints();};m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();m.click();}};});
+ $$(".mode").forEach(m=>{m.onclick=()=>{readFields();PROV.mode=m.dataset.mode;if(PROV.mode!=="demo"){QUOTA_FALLBACK=false;hideQuotaNotice();}saveProv();paintDrawer();paintHints();};m.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();m.click();}};});
  const go=$("#siwc-go");if(go)go.onclick=siwcBeginFlow;
  const cancel=$("#siwc-cancel");if(cancel)cancel.onclick=()=>applySiwcState("declined");
  const out=$("#siwc-out");if(out)out.onclick=siwcSignOut;
@@ -2885,7 +2957,7 @@ Object.assign(DICT.en,{
  obSub:"",obSettings:"Use your own provider",
  obS1:"Choose a model",obS2:"Enter a key",obS3:"Test the connection",obS4:"Start",
  obPAnth:"Anthropic · your own API key",obPAnthSub:"The browser calls api.anthropic.com directly. No server in between.",obPAnthTag:"DIRECT",
- obPBridge:"OpenAI · your own API key · local",obPBridgeSub:"Sent through 127.0.0.1 on this computer. Not on npm yet: build from source (https://github.com/FelixFangX/ledring#quickstart), then run node packages/cli/dist/bin.js play.",obPBridgeTag:"127.0.0.1",
+ obPBridge:"OpenAI · your own API key · local",obPBridgeSub:"Sent through 127.0.0.1 on this computer. The local Play bridge is built from source (https://github.com/FelixFangX/ledring#quickstart), then run node packages/cli/dist/bin.js play. For the trace CLI, run npm install -g ledring@beta.",obPBridgeTag:"127.0.0.1",
  obPFree:"LEDRING Free AI",obPFreeSub:"No key and no setup. A shared daily quota.",obPFreeTag:"BUILT IN",
  obPCustom:"Custom OpenAI-compatible endpoint",obPCustomSub:"OpenRouter, a local model, or any /v1/chat/completions URL.",obPCustomTag:"CUSTOM /V1",
  obPSiwc:"Sign in with ChatGPT",obPSiwcSub:"Uses your ChatGPT plan through the local bridge.",obPSiwcSoon:"Coming soon — set LEDRING_SIWC=1 on the local bridge.",obPSiwcTagSoon:"COMING SOON",obPSiwcTagLive:"READY",
@@ -2898,7 +2970,7 @@ Object.assign(DICT.en,{
  obPrivCustom:"Stored only in this browser's localStorage. Sent exclusively to the endpoint URL above.",
  obPrivSiwcSoon:"Sign in with ChatGPT is gated by LEDRING_SIWC. It is never faked on static pages.",
  obPrivFree:"No key is stored. This page calls LEDRING only when you check availability or start a build. The choice stays in this browser's localStorage.",
- obLimFree:"There is a shared daily quota. Replies are capped. When it is used up, use your own API key.",
+ obLimFree:"There is a shared daily quota. Replies are capped. When it is full, runs switch automatically to the built-in demo, or you can use your own API key.",
  obPrivDemo:"Built-in examples respond to your choices. No AI calls and no key.",
  obTestBtn:"⚡ Check availability",obTesting:"Checking whether it responds…",obTestOk:"Available ✓",obTestDemoOk:"Built-in examples are ready, offline. No AI call ✓",
  obSkip:"Skip and find an idea →",obCont:"Continue to find an idea ▶",obReopen:"⇄ Choose the connection again"
@@ -2909,7 +2981,7 @@ Object.assign(DICT.zh,{
  obSub:"",obSettings:"使用自己的模型服务",
  obS1:"选择模型",obS2:"填写密钥",obS3:"测试连接",obS4:"开始",
  obPAnth:"Anthropic · 使用自己的 API 密钥",obPAnthSub:"浏览器直接请求 api.anthropic.com，不经过我们的服务器。",obPAnthTag:"直连",
- obPBridge:"OpenAI · 使用自己的 API 密钥 · 本机",obPBridgeSub:"通过本机 127.0.0.1 转发。暂未发布到 npm：请按 https://github.com/FelixFangX/ledring#quickstart 从源码构建，再运行 node packages/cli/dist/bin.js play。",obPBridgeTag:"127.0.0.1",
+ obPBridge:"OpenAI · 使用自己的 API 密钥 · 本机",obPBridgeSub:"通过本机 127.0.0.1 转发。本机 Play 桥接需从源码构建（https://github.com/FelixFangX/ledring#quickstart），再运行 node packages/cli/dist/bin.js play；trace CLI 可直接 npm install -g ledring@beta 安装。",obPBridgeTag:"127.0.0.1",
  obPFree:"LEDRING 免费 AI",obPFreeSub:"不用密钥，也不用配置。大家共用每天的额度。",obPFreeTag:"内置",
  obPCustom:"自定义兼容端点",obPCustomSub:"OpenRouter、本地模型，或任意 /v1/chat/completions 地址。",obPCustomTag:"自定义",
  obPSiwc:"使用 ChatGPT 登录",obPSiwcSub:"通过本机桥接使用你的 ChatGPT 套餐。",obPSiwcSoon:"敬请期待——需在本机桥接设置 LEDRING_SIWC=1。",obPSiwcTagSoon:"敬请期待",obPSiwcTagLive:"可用",
@@ -2922,7 +2994,7 @@ Object.assign(DICT.zh,{
  obPrivCustom:"密钥只存在这个浏览器的 localStorage，只发给上面的地址。",
  obPrivSiwcSoon:"使用 ChatGPT 登录需要在本机桥接设置 LEDRING_SIWC。这个页面不会假装已经连上。",
  obPrivFree:"不保存密钥。只有在你检查是否可用或开始构建时，这个页面才会发出请求。选择保存在本机 localStorage。",
- obLimFree:"有共享每日额度。回复长度有上限。额度用尽后，请使用自己的 API 密钥。",
+ obLimFree:"有共享每日额度。回复长度有上限。额度用尽后会自动切到内置演示模式，也可随时使用自己的 API 密钥。",
  obPrivDemo:"内置示例会随你的选择变化，不调用 AI，也不需要密钥。",
  obTestBtn:"⚡ 检查是否可用",obTesting:"正在检查是否可用……",obTestOk:"可以用 ✓",obTestDemoOk:"内置示例可用，不会调用 AI ✓",
  obSkip:"跳过，先去寻找点子 →",obCont:"继续，寻找点子 ▶",obReopen:"⇄ 重新选择连接方式"
@@ -3031,6 +3103,7 @@ function selectObChoice(ch,userInitiated){
  }else if(ch==="chatgpt"&&isSiwcEnabled()){
   PROV.mode="chatgpt";
  }
+ if(PROV.mode!=="demo"){QUOTA_FALLBACK=false;hideQuotaNotice();}
  saveProv();paintHints();paintOnboard();
  if(ch==="openai-bridge"&&userInitiated){void probeLocalBridge();startBridgePoll();}
  else stopBridgePoll();
@@ -3093,7 +3166,7 @@ function paintOnboard(){
  $("#ob-settings-label").textContent=T.obSettings;
  if(needsKey||ch==="chatgpt")$("#ob-settings").open=true;
  const renderCards=items=>items.map(([id,t,sub,tag,bcls,soon])=>`<button type="button" class="ob-card${ch===id?" on":""}${soon?" soon":""}" data-choice="${id}" role="radio" aria-checked="${ch===id}">
-  <span class="ob-ct"><b>${esc(t)}</b><small>${esc(sub).replace(/https:\/\/github\.com\/FelixFangX\/ledring#quickstart|node packages\/cli\/dist\/bin\.js play/g,s=>`<code translate="no">${s}</code>`)}</small></span>
+  <span class="ob-ct"><b>${esc(t)}</b><small>${esc(sub).replace(/https:\/\/github\.com\/FelixFangX\/ledring#quickstart|node packages\/cli\/dist\/bin\.js play|npm install -g ledring@beta/g,s=>`<code translate="no">${s}</code>`)}</small></span>
   <span class="ob-badge ${bcls}">${esc(tag)}</span>
  </button>`).join("");
  $("#ob-cards").innerHTML=renderCards(cards.filter(c=>c[0]==="ledring"||c[0]==="demo"));
@@ -3236,6 +3309,10 @@ function paintStatic(){
  if($("#e-play"))$("#e-play").setAttribute("aria-label",T.ariaPlay);
  if($("#scrubrange"))$("#scrubrange").setAttribute("aria-label",T.ariaTimeline);
  if($("#d-close"))$("#d-close").setAttribute("aria-label",T.ariaClose);
+ if($("#hud-gh"))$("#hud-gh").setAttribute("aria-label",T.ariaGithub);
+ if($("#quota-notice-txt"))$("#quota-notice-txt").textContent=T.quotaNotice;
+ if($("#quota-byo"))$("#quota-byo").textContent=T.quotaByo;
+ if($("#quota-dismiss"))$("#quota-dismiss").setAttribute("aria-label",T.ariaClose);
  if($("#preview"))$("#preview").setAttribute("title",T.ariaPreview);
  if($("#artframe"))$("#artframe").setAttribute("title",T.ariaArtifact);
  if($("#demotag"))$("#demotag").setAttribute("title",T.tipModel);
@@ -3245,6 +3322,8 @@ function paintStatic(){
  if($("#l-model"))$("#l-model").textContent=T.fldModel;
  const keyTxt=$("#l-key");if(keyTxt&&keyTxt.firstChild)keyTxt.firstChild.textContent=T.fldKey+" ";
 }
+if($("#quota-byo"))$("#quota-byo").onclick=()=>openDrawer();
+if($("#quota-dismiss"))$("#quota-dismiss").onclick=()=>hideQuotaNotice();
 $("#lang").onclick=()=>{const nl=LANG==="zh"?"en":"zh";try{localStorage.setItem("ledring-lang",nl);localStorage.setItem("ledring-lang-explicit","1")}catch(e){}
  const u=new URL(location.href);u.searchParams.set("lang",nl);location.href=u.toString();};
 $("#lang").onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();$("#lang").click();}};
@@ -3280,7 +3359,7 @@ $("#scrubrange").oninput=e=>scrubTo(+e.target.value);
 $$(".ptab[data-f]").forEach(t=>t.onclick=()=>setTab(t.dataset.f));
 let playT=null;$("#e-play").onclick=()=>{clearInterval(playT);let i=0;scrubTo(0);$("#scrubrange").value=0;
  playT=setInterval(()=>{i++;if(i>=RUN.snaps.length){clearInterval(playT);return;}$("#scrubrange").value=i;scrubTo(i);},1400);};
-window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT,readme:()=>readmeText(),latinOnlyProblem,languageDirective,applyZhFeed,feedItemKey,ghosts:()=>GHOSTS,resolveExperience,experience:()=>({lang:LANG,pack:PACK,src:SRC,onboard:ONBOARD,ending:ENDING,presets:presetIds()})};
+window.__ledring={trace:()=>traceJSON(),run:()=>RUN,setRun(r){RUN=r;},show,scanPulse,motion:Motion,qte,redWall,setHold,isHold:()=>HOLD,paintMenu,paintIdea,paintEnd,drawFlow,makeZip,finish,openDrawer,closeDrawer,openOnboard,finishOnboard,isOnboarded,probeLocalBridge,runObTest,selectObChoice,onboardState:()=>OB,setSiwcState:applySiwcState,siwc:()=>SIWC,prov:()=>PROV,setCode(html){CODE.html=html;renderCode();},refreshLibrary,setLibrarySessions,openLibrarySession,exportLibrarySession,strandsState:()=>STRAND_STATE,syncStrands,setStrandsUrl,leaveStrand,likeStrand,fourthWallLines,triggerTabAway,miniCodec,codec,sfx:SFX,dict:DICT,readme:()=>readmeText(),latinOnlyProblem,languageDirective,applyZhFeed,feedItemKey,ghosts:()=>GHOSTS,resolveExperience,experience:()=>({lang:LANG,pack:PACK,src:SRC,onboard:ONBOARD,ending:ENDING,presets:presetIds()}),fallbackState:()=>({active:QUOTA_FALLBACK,reason:QUOTA_FALLBACK_REASON}),isFreeAiQuotaError,fallbackToCassette};
 /* boot */
 function paintGallery(){
  $("#gal-eye").textContent=T.galEye;
