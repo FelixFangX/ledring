@@ -4,14 +4,14 @@ One page, two packs. The pack follows `?src=` when that channel is known. Otherw
 
 | `src` | Language | Pack | Onboarding | Ending |
 | --- | --- | --- | --- | --- |
-| `x`, `hn`, `reddit` | English | Dev | Full | Star the repo, run from source, view source |
+| `x`, `hn`, `reddit` | English | Dev | Full | Star the repo, install CLI, view source |
 | `v2ex` | Chinese | China | Full | Share card |
 | `xhs`, `douyin` | Chinese | China | Skipped. Start opens the four presets. | Share card |
 
 Dev presets stay the code and tool ideas: snake, pomodoro, pixel paint, bill split. Ending links:
 
 - Star the repo: https://github.com/FelixFangX/ledring
-- Run from source (not on npm yet): https://github.com/FelixFangX/ledring#quickstart
+- Install CLI (`npm install -g ledring@beta`): https://github.com/FelixFangX/ledring#install
 - View source: https://github.com/FelixFangX/ledring/blob/main/packages/play-web/index.html
 
 A China-pack run uses one timed choice (8 seconds) and a 3.6 second Red Wall. With the plan and the build, a phone run stays inside 1–2 minutes. Dev runs keep two choices and the 4.5 second wall. `?idea=snake` still plays the dev preset in either language.

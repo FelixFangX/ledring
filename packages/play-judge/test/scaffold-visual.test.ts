@@ -603,7 +603,7 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
         }
         if (lang === "en") {
           expect(await page.locator("#e-star").textContent()).toContain("Star");
-          expect(await page.locator("#e-cli").textContent()).toContain("#quickstart");
+          expect(await page.locator("#e-cli").textContent()).toContain("npm install -g ledring@beta");
           expect(await page.locator("#e-source").textContent()).toMatch(/source/i);
           expect(await page.locator("#e-share").evaluate((el) => (el as HTMLElement).hidden)).toBe(true);
         } else {
@@ -2137,6 +2137,88 @@ describe.skipIf(!installed && !process.env.CI)("play scaffold visual", () => {
       });
       expect(await violations(), "run").toEqual([]);
       await ctx.close();
+    } finally {
+      await browser?.close();
+      await site.close();
+    }
+  }, 60_000);
+
+  it("auto-falls back to built-in demo cassette on Free AI HTTP 429 with bilingual notice, BYO button, and persistent GitHub link", async () => {
+    if (!installed) throw new Error("chromium is not installed");
+    const site = await serve(playDir);
+    let browser: Browser | undefined;
+    try {
+      browser = await chromium.launch({ headless: true });
+      for (const lang of ["en", "zh"] as const) {
+        const ctx = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+        const page = await ctx.newPage();
+        let aiPosts = 0;
+        await page.route("https://api.ledring.dev/ai/chat", async (route) => {
+          const origin = route.request().headers().origin ?? "*";
+          const cors = {
+            "access-control-allow-origin": origin,
+            "access-control-allow-headers": "content-type",
+            "access-control-allow-methods": "POST, OPTIONS",
+          };
+          if (route.request().method() === "OPTIONS") {
+            await route.fulfill({ status: 204, headers: cors, body: "" });
+            return;
+          }
+          aiPosts += 1;
+          await route.fulfill({
+            status: 429,
+            contentType: "application/json",
+            headers: cors,
+            body: JSON.stringify({ error: { message: "shared quota", code: "quota_exhausted" } }),
+          });
+        });
+
+        await page.goto(
+          `${site.url}?idea=snake&script=block,tests,polish&fast=1&rm=1&lang=${lang}&mode=ledring&strandsUrl=${encodeURIComponent("https://api.ledring.dev")}`,
+        );
+        await page.locator("#quota-notice.on").waitFor({ state: "visible", timeout: 15_000 });
+        const noticeText = (await page.locator("#quota-notice-txt").textContent()) ?? "";
+        expect(noticeText).toContain(lang === "zh" ? "今日免费 AI 公共额度已用完" : "shared free AI quota is full");
+        expect(await page.locator("#hud-gh").isVisible()).toBe(true);
+        expect(await page.locator("#hud-gh").getAttribute("href")).toBe("https://github.com/FelixFangX/ledring");
+
+        if (lang === "zh") {
+          const zhBad = await page.evaluate(() => {
+            const w = window as unknown as { __ledring: { latinOnlyProblem: (s: string) => string | null } };
+            const texts = [
+              document.querySelector("#quota-notice-txt")?.textContent ?? "",
+              document.querySelector("#quota-byo")?.textContent ?? "",
+              document.querySelector("#hud-gh")?.textContent ?? "",
+              document.querySelector("#hud-gh")?.getAttribute("aria-label") ?? "",
+            ];
+            return texts.map((t) => w.__ledring.latinOnlyProblem(t)).filter(Boolean);
+          });
+          expect(zhBad).toEqual([]);
+        }
+
+        await page.locator("#end.on").waitFor({ state: "visible", timeout: 25_000 });
+        expect(aiPosts).toBe(1);
+        const trace = await page.evaluate(() => {
+          const w = window as unknown as { __ledring: { trace: () => string } };
+          return JSON.parse(w.__ledring.trace()) as { "x-ledring-play": { ending: string; mode: string; fallbackFrom?: string } };
+        });
+        expect(trace["x-ledring-play"].mode).toBe("demo");
+        expect(trace["x-ledring-play"].fallbackFrom).toBe("ledring");
+        expect(trace["x-ledring-play"].ending).not.toBe("BROKEN");
+
+        // Clicking BYO button in notice opens connection drawer
+        await page.locator("#quota-byo").click();
+        await page.locator("#drawer.on").waitFor({ state: "visible" });
+        await page.locator("#d-close").click();
+
+        // Check mobile 390px HUD has zero horizontal overflow with persistent GitHub link
+        await page.setViewportSize({ width: 390, height: 844 });
+        const hudOverflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        expect(hudOverflow).toBeLessThanOrEqual(1);
+        expect(await page.locator("#hud-gh").isVisible()).toBe(true);
+
+        await ctx.close();
+      }
     } finally {
       await browser?.close();
       await site.close();
